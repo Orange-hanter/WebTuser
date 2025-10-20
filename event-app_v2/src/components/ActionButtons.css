@@ -1,0 +1,59 @@
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.action-button {
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.action-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  transform: scale(1.1);
+}
+
+.action-button:active {
+  transform: scale(0.95);
+}
+
+.action-button-dislike {
+  background-color: var(--white);
+}
+
+.action-button-dislike-icon {
+  color: var(--red-500);
+  width: 32px;
+  height: 32px;
+}
+
+.action-button-like {
+  background: linear-gradient(135deg, var(--purple-500), var(--pink-500));
+}
+
+.action-button-like-icon {
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+}
+
+/* Responsive design for desktop */
+@media (min-width: 1024px) {
+  .action-buttons {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+}

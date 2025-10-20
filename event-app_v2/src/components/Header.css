@@ -1,0 +1,56 @@
+.app-header {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--purple-100);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header-content {
+  max-width: 428px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--purple-800);
+}
+
+.app-header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-header-button {
+  padding: 0.5rem;
+  border-radius: 50%;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.app-header-button:hover {
+  background-color: var(--purple-100);
+}
+
+.app-header-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--purple-600);
+}
+
+@media (min-width: 1024px) {
+  .app-header-content {
+    max-width: 1400px;
+  }
+}

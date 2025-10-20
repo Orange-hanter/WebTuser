@@ -7,6 +7,7 @@ import EventDetailModal from './components/EventDetailModal';
 import EmptyState from './components/EmptyState';
 import { useEventPreferences, useEventNavigation } from './hooks/useEventLogic';
 import { mockEvents } from './data/mockEvents';
+import './App.css';
 
 const App = () => {
   const [events] = useState(mockEvents);
@@ -35,11 +36,11 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="app-container">
       <Header onSettingsClick={() => setShowSettings(true)} />
       
-      <main className="max-w-md mx-auto px-4 py-6">
-        <div className="relative mb-24">
+      <main className="app-main">
+        <div className="event-wrapper">
           <EventCard 
             event={currentEvent} 
             onClick={() => setShowEventDetail(true)} 
