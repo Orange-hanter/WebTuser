@@ -1,8 +1,14 @@
-import React from 'react';
+import { FC } from 'react';
 import { MapPin, Clock, Star } from 'lucide-react';
+import type { Event } from '../types';
 import './EventCard.css';
 
-const EventCard = ({ event, onClick }) => (
+interface EventCardProps {
+  event: Event;
+  onClick: () => void;
+}
+
+const EventCard: FC<EventCardProps> = ({ event, onClick }) => (
   <div 
     className="event-card"
     onClick={onClick}

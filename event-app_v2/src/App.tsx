@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, FC } from 'react';
 import Header from './components/Header';
 import EventCard from './components/EventCard';
 import ActionButtons from './components/ActionButtons';
@@ -7,18 +7,18 @@ import EventDetailModal from './components/EventDetailModal';
 import EmptyState from './components/EmptyState';
 import LoadingSpinner from './components/LoadingSpinner';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from './hooks/useEventLogic';
+import type { Event } from './types';
 import './App.css';
 
-const App = () => {
-  // Используем бесконечную подзагрузку вместо mock данных
+const App: FC = () => {
   const { events, isLoading, error, hasMore, loadMoreEvents } = useInfiniteEventScroll();
   
-  const [likedEvents, setLikedEvents] = useState([]);
+  const [_likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
   const [preferences, handleSettingsChange] = useEventPreferences();
-  const { currentIndex, currentEvent, goToNextEvent, totalEvents } = useEventNavigation(events);
+  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events);
 
   // Обработчик для загрузки еще событий
   useEffect(() => {

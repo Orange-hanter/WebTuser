@@ -1,14 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { fetchEventsBatch } from '../services/eventApi';
+import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNavigationReturn } from '../types';
 
 /**
  * Хук для управления бесконечной подзагрузкой событий
  * Загружает события порциями и добавляет их в кэш
  */
-export const useInfiniteEventScroll = () => {
-  const [events, setEvents] = useState([]);
+export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
+  const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
 
@@ -28,7 +29,8 @@ export const useInfiniteEventScroll = () => {
         setHasMore(result.pagination.hasMore);
       }
     } catch (err) {
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      setError(errorMessage);
       console.error('Error loading events:', err);
     } finally {
       setIsLoading(false);
@@ -62,26 +64,26 @@ export const useInfiniteEventScroll = () => {
 };
 
 /**
- * Старый хук для предпочтений
+ * Хук для предпочтений пользователя
  */
 export const useEventPreferences = () => {
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState<EventPreferences>({
     types: ['Музыка', 'Творчество', 'Общение', 'Искусство', 'Здоровье'],
     distance: 5,
     timeOfDay: 'any'
   });
 
-  const handleSettingsChange = useCallback((key, value) => {
+  const handleSettingsChange = useCallback((key: keyof EventPreferences, value: any) => {
     setPreferences(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  return [preferences, handleSettingsChange];
+  return [preferences, handleSettingsChange] as const;
 };
 
 /**
  * Хук для навигации по событиям (работает с массивом событий)
  */
-export const useEventNavigation = (events) => {
+export const useEventNavigation = (events: Event[]): UseEventNavigationReturn => {
   const [currentIndex, setCurrentIndex] = useState(0);
   
   const goToNextEvent = useCallback(() => {

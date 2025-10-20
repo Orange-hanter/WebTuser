@@ -1,8 +1,17 @@
-import React from 'react';
+import { FC } from 'react';
 import { X, MapPin, Clock, Users, Star } from 'lucide-react';
+import type { Event } from '../types';
 import './EventDetailModal.css';
 
-const EventDetailModal = ({ isOpen, onClose, event, onLike, onDislike }) => {
+interface EventDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  event: Event | undefined;
+  onLike: () => void;
+  onDislike: () => void;
+}
+
+const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike, onDislike }) => {
   if (!isOpen || !event) return null;
 
   return (

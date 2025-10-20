@@ -1,8 +1,12 @@
-import React from 'react';
+import { FC } from 'react';
 import { Star } from 'lucide-react';
 import './EmptyState.css';
 
-const EmptyState = ({ onReset }) => (
+interface EmptyStateProps {
+  onReset: () => void;
+}
+
+const EmptyState: FC<EmptyStateProps> = ({ onReset }) => (
   <div className="empty-state-container">
     <div className="empty-state-card">
       <Star className="empty-state-icon" />

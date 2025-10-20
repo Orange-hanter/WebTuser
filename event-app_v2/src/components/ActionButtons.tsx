@@ -1,8 +1,13 @@
-import React from 'react';
+import { FC } from 'react';
 import { Heart, X } from 'lucide-react';
 import './ActionButtons.css';
 
-const ActionButtons = ({ onLike, onDislike }) => (
+interface ActionButtonsProps {
+  onLike: () => void;
+  onDislike: () => void;
+}
+
+const ActionButtons: FC<ActionButtonsProps> = ({ onLike, onDislike }) => (
   <div className="action-buttons">
     <button 
       onClick={onDislike}

@@ -1,7 +1,7 @@
-import React from 'react';
+import { FC } from 'react';
 import './LoadingSpinner.css';
 
-const LoadingSpinner = () => (
+const LoadingSpinner: FC = () => (
   <div className="loading-spinner">
     <div className="spinner"></div>
     <p className="loading-text">Загрузка событий...</p>

@@ -1,8 +1,12 @@
-import React from 'react';
+import { FC } from 'react';
 import { Settings, Search } from 'lucide-react';
 import './Header.css';
 
-const Header = ({ onSettingsClick }) => (
+interface HeaderProps {
+  onSettingsClick: () => void;
+}
+
+const Header: FC<HeaderProps> = ({ onSettingsClick }) => (
   <header className="app-header">
     <div className="app-header-content">
       <h1 className="app-header-title">Афиша</h1>

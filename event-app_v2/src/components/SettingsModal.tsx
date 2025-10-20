@@ -1,15 +1,23 @@
-import React from 'react';
+import { FC } from 'react';
 import { X } from 'lucide-react';
+import type { EventPreferences } from '../types';
 import './SettingsModal.css';
 
-const SettingsModal = ({ isOpen, onClose, preferences, onSettingsChange }) => {
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  preferences: EventPreferences;
+  onSettingsChange: (key: keyof EventPreferences, value: any) => void;
+}
+
+const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose, preferences, onSettingsChange }) => {
   if (!isOpen) return null;
 
-  const handleTypeChange = (type, checked) => {
+  const handleTypeChange = (type: string, checked: boolean) => {
     if (checked) {
       onSettingsChange('types', [...preferences.types, type]);
     } else {
-      onSettingsChange('types', preferences.types.filter(t => t !== type));
+      onSettingsChange('types', preferences.types.filter((t: string) => t !== type));
     }
   };
 

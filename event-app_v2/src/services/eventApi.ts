@@ -1,11 +1,13 @@
 // API Service для работы с событиями
 // Для демонстрации используем JSONPlaceholder API и mock данные
 
+import { Event, EventDetails, EventBatchResponse, EventDetailsResponse } from '../types';
+
 const API_BASE_URL = 'https://jsonplaceholder.typicode.com';
 const EVENTS_BATCH_SIZE = 5; // Количество событий для загрузки за раз
 
 // Mock данные для демонстрации
-const mockEventTemplates = [
+const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
   {
     title: "Джаз на закате",
     type: "Музыка",
@@ -101,15 +103,15 @@ const mockEventTemplates = [
  * Имитирует реальный API с параметрами limit и offset
  * @param {number} offset - Смещение от начала (для пагинации)
  * @param {number} limit - Количество событий для загрузки
- * @returns {Promise<Object>} Объект с массивом событий и метаданными
+ * @returns {Promise<EventBatchResponse>} Объект с массивом событий и метаданными
  */
-export const fetchEventsBatch = async (offset = 0, limit = EVENTS_BATCH_SIZE) => {
+export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE): Promise<EventBatchResponse> => {
   try {
     // Симуляция задержки сети
     await new Promise(resolve => setTimeout(resolve, 800));
 
     // Генерируем события с учетом offset
-    const events = [];
+    const events: Event[] = [];
     const totalEvents = 50; // Всего событий в "базе"
 
     for (let i = offset; i < offset + limit && i < totalEvents; i++) {
@@ -130,7 +132,7 @@ export const fetchEventsBatch = async (offset = 0, limit = EVENTS_BATCH_SIZE) =>
           day: 'numeric'
         }).slice(1),
         attendees: template.attendees + Math.floor(Math.random() * 30),
-        rating: (parseFloat(template.rating) + (Math.random() - 0.5) * 0.4).toFixed(1)
+        rating: Number((parseFloat(String(template.rating)) + (Math.random() - 0.5) * 0.4).toFixed(1))
       });
     }
 
@@ -153,9 +155,9 @@ export const fetchEventsBatch = async (offset = 0, limit = EVENTS_BATCH_SIZE) =>
 /**
  * Эндпоинт 2: Получение деталей одного события
  * @param {number} eventId - ID события
- * @returns {Promise<Object>} Полная информация о событии
+ * @returns {Promise<EventDetailsResponse>} Полная информация о событии
  */
-export const fetchEventDetails = async (eventId) => {
+export const fetchEventDetails = async (eventId: number): Promise<EventDetailsResponse> => {
   try {
     // Симуляция задержки сети
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -167,6 +169,7 @@ export const fetchEventDetails = async (eventId) => {
       data: {
         id: eventId,
         ...template,
+        date: new Date().toLocaleDateString('ru-RU'),
         fullDescription: `${template.description} Это расширенное описание события с дополнительными деталями. Организаторы: команда профессионалов с опытом более 10 лет.`,
         organizer: {
           name: "ООО 'Культурные события'",
@@ -185,7 +188,7 @@ export const fetchEventDetails = async (eventId) => {
  * Утилита для получения данных с реального API (пример)
  * Используется JSONPlaceholder как демонстрация
  */
-export const fetchFromExternalAPI = async (endpoint) => {
+export const fetchFromExternalAPI = async (endpoint: string): Promise<any> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`);
     
