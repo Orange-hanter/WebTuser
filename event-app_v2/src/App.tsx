@@ -6,6 +6,9 @@ import SettingsModal from '@components/SettingsModal';
 import EventDetailModal from '@components/EventDetailModal';
 import EmptyState from '@components/EmptyState';
 import LoadingSpinner from '@components/LoadingSpinner';
+import BottomNavigation, { type NavTab } from '@components/BottomNavigation';
+import CreateEventModal from '@components/CreateEventModal';
+import SubscribedEventsModal from '@components/SubscribedEventsModal';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import type { Event } from '@/types';
 import './App.css';
@@ -16,6 +19,7 @@ const App: FC = () => {
   const [_likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState<NavTab>('discover');
   
   const [preferences, handleSettingsChange] = useEventPreferences();
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events);
@@ -83,44 +87,58 @@ const App: FC = () => {
 
   return (
     <div className="app-container">
-      <Header onSettingsClick={() => setShowSettings(true)} />
+      {/* Основной контент - показываем в зависимости от activeTab */}
+      {activeTab === 'discover' && (
+        <>
+          <Header onSettingsClick={() => setShowSettings(true)} />
+          
+          <main className="app-main">
+            <div className="event-wrapper">
+              {currentEvent ? (
+                <>
+                  <EventCard 
+                    event={currentEvent} 
+                    onClick={() => setShowEventDetail(true)} 
+                  />
+                  <ActionButtons 
+                    onLike={handleLike} 
+                    onDislike={handleDislike} 
+                  />
+                </>
+              ) : (
+                <LoadingSpinner />
+              )}
+            </div>
+
+            <div className="events-footer">
+              {/* Индикатор подзагрузки */}
+              {isLoading && events.length > 0 && (
+                <div className="loading-indicator">
+                  <span className="loading-dot"></span>
+                  <span className="loading-dot"></span>
+                  <span className="loading-dot"></span>
+                </div>
+              )}
+
+              {/* Информация о прогрессе */}
+              {events.length > 0 && (
+                <div className="events-progress">
+                  Событие {currentIndex + 1} из {events.length}
+                </div>
+              )}
+            </div>
+          </main>
+        </>
+      )}
+
+      {/* Модали */}
+      <CreateEventModal isVisible={activeTab === 'create'} />
       
-      <main className="app-main">
-        <div className="event-wrapper">
-          {currentEvent ? (
-            <>
-              <EventCard 
-                event={currentEvent} 
-                onClick={() => setShowEventDetail(true)} 
-              />
-              <ActionButtons 
-                onLike={handleLike} 
-                onDislike={handleDislike} 
-              />
-            </>
-          ) : (
-            <LoadingSpinner />
-          )}
-        </div>
-
-        <div className="events-footer">
-          {/* Индикатор подзагрузки */}
-          {isLoading && events.length > 0 && (
-            <div className="loading-indicator">
-              <span className="loading-dot"></span>
-              <span className="loading-dot"></span>
-              <span className="loading-dot"></span>
-            </div>
-          )}
-
-          {/* Информация о прогрессе */}
-          {events.length > 0 && (
-            <div className="events-progress">
-              Событие {currentIndex + 1} из {events.length}
-            </div>
-          )}
-        </div>
-      </main>
+      <SubscribedEventsModal 
+        isVisible={activeTab === 'subscribed'} 
+        likedEvents={_likedEvents}
+        onRemove={(eventId) => setLikedEvents(prev => prev.filter(e => e.id !== eventId))}
+      />
 
       <SettingsModal 
         isOpen={showSettings}
@@ -135,6 +153,12 @@ const App: FC = () => {
         event={currentEvent}
         onLike={handleLike}
         onDislike={handleDislike}
+      />
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
     </div>
   );

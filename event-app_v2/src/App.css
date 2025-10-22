@@ -1,12 +1,18 @@
 .app-container {
   min-height: 100vh;
   background: linear-gradient(to bottom right, var(--purple-50), var(--pink-50));
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 .app-main {
   max-width: 428px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
+  padding-bottom: 80px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .event-wrapper {
