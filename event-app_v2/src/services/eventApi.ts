@@ -1,18 +1,18 @@
 // API Service для работы с событиями
 // Для демонстрации используем JSONPlaceholder API и mock данные
 
-import { Event, EventDetails, EventBatchResponse, EventDetailsResponse } from '../types';
+import { Event, EventDetails, EventBatchResponse, EventDetailsResponse } from '@/types';
 
 const API_BASE_URL = 'https://jsonplaceholder.typicode.com';
 const EVENTS_BATCH_SIZE = 5; // Количество событий для загрузки за раз
 
 // Mock данные для демонстрации
-const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
+const mockEventTemplates = [
   {
-    title: "Джаз на закате",
-    type: "Музыка",
-    location: "Парк Горького",
-    time: "19:00",
+    title: "Джаз на закате" as const,
+    type: "Музыка" as const,
+    location: "Парк Горького" as const,
+    time: "19:00" as const,
     attendees: 24,
     rating: 4.8,
     description: "Живая джазовая музыка в уютном уголке парка. Приходите насладиться атмосферой и хорошей компанией.",
@@ -20,10 +20,10 @@ const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
     tags: ["музыка", "вечер", "расслабление"]
   },
   {
-    title: "Арт-завтрак",
-    type: "Творчество",
-    location: "Кафе 'Богема'",
-    time: "10:00",
+    title: "Арт-завтрак" as const,
+    type: "Творчество" as const,
+    location: "Кафе 'Богема'" as const,
+    time: "10:00" as const,
     attendees: 12,
     rating: 4.6,
     description: "Начните день с творчества! Рисуйте за завтраком под руководством профессионального художника.",
@@ -31,10 +31,10 @@ const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
     tags: ["творчество", "утро", "еда"]
   },
   {
-    title: "Разговорный клуб",
-    type: "Общение",
-    location: "Библиотека им. Ленина",
-    time: "18:30",
+    title: "Разговорный клуб" as const,
+    type: "Общение" as const,
+    location: "Библиотека им. Ленина" as const,
+    time: "18:30" as const,
     attendees: 18,
     rating: 4.7,
     description: "Практикуйте английский язык в дружелюбной атмосфере. Все уровни приветствуются!",
@@ -42,10 +42,10 @@ const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
     tags: ["язык", "общение", "образование"]
   },
   {
-    title: "Уличный перформанс",
-    type: "Искусство",
-    location: "Арбат",
-    time: "16:00",
+    title: "Уличный перформанс" as const,
+    type: "Искусство" as const,
+    location: "Арбат" as const,
+    time: "16:00" as const,
     attendees: 45,
     rating: 4.9,
     description: "Интерактивный перформанс современных танцоров. Присоединяйтесь к импровизации!",
@@ -53,10 +53,10 @@ const mockEventTemplates: Omit<Event, 'id' | 'date'>[] = [
     tags: ["танец", "искусство", "вечер"]
   },
   {
-    title: "Йога на восходе",
-    type: "Здоровье",
-    location: "Пляж 'Сочи'",
-    time: "07:00",
+    title: "Йога на восходе" as const,
+    type: "Здоровье" as const,
+    location: "Пляж 'Сочи'" as const,
+    time: "07:00" as const,
     attendees: 15,
     rating: 4.5,
     description: "Начните день с энергичной йога-практики на берегу моря. Инструктор международного класса.",
@@ -164,19 +164,33 @@ export const fetchEventDetails = async (eventId: number): Promise<EventDetailsRe
 
     const template = mockEventTemplates[(eventId - 1) % mockEventTemplates.length];
     
+    if (!template) {
+      throw new Error('Template not found');
+    }
+    
+    const details: EventDetails = {
+      id: eventId,
+      title: template.title,
+      type: template.type,
+      location: template.location,
+      time: template.time,
+      attendees: template.attendees,
+      rating: template.rating,
+      description: template.description,
+      image: template.image,
+      tags: template.tags,
+      date: new Date().toLocaleDateString('ru-RU'),
+      fullDescription: `${template.description} Это расширенное описание события с дополнительными деталями. Организаторы: команда профессионалов с опытом более 10 лет.`,
+      organizer: {
+        name: "ООО 'Культурные события'",
+        rating: 4.8,
+        reviews: 342
+      }
+    };
+    
     return {
       success: true,
-      data: {
-        id: eventId,
-        ...template,
-        date: new Date().toLocaleDateString('ru-RU'),
-        fullDescription: `${template.description} Это расширенное описание события с дополнительными деталями. Организаторы: команда профессионалов с опытом более 10 лет.`,
-        organizer: {
-          name: "ООО 'Культурные события'",
-          rating: 4.8,
-          reviews: 342
-        }
-      }
+      data: details
     };
   } catch (error) {
     console.error('Error fetching event details:', error);

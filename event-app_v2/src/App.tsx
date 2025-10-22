@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect, FC } from 'react';
-import Header from './components/Header';
-import EventCard from './components/EventCard';
-import ActionButtons from './components/ActionButtons';
-import SettingsModal from './components/SettingsModal';
-import EventDetailModal from './components/EventDetailModal';
-import EmptyState from './components/EmptyState';
-import LoadingSpinner from './components/LoadingSpinner';
-import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from './hooks/useEventLogic';
-import type { Event } from './types';
+import Header from '@components/Header';
+import EventCard from '@components/EventCard';
+import ActionButtons from '@components/ActionButtons';
+import SettingsModal from '@components/SettingsModal';
+import EventDetailModal from '@components/EventDetailModal';
+import EmptyState from '@components/EmptyState';
+import LoadingSpinner from '@components/LoadingSpinner';
+import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
+import type { Event } from '@/types';
 import './App.css';
 
 const App: FC = () => {
@@ -103,21 +103,23 @@ const App: FC = () => {
           )}
         </div>
 
-        {/* Индикатор подзагрузки */}
-        {isLoading && events.length > 0 && (
-          <div className="loading-indicator">
-            <span className="loading-dot"></span>
-            <span className="loading-dot"></span>
-            <span className="loading-dot"></span>
-          </div>
-        )}
+        <div className="events-footer">
+          {/* Индикатор подзагрузки */}
+          {isLoading && events.length > 0 && (
+            <div className="loading-indicator">
+              <span className="loading-dot"></span>
+              <span className="loading-dot"></span>
+              <span className="loading-dot"></span>
+            </div>
+          )}
 
-        {/* Информация о прогрессе */}
-        {events.length > 0 && (
-          <div className="events-progress">
-            Событие {currentIndex + 1} из {events.length}
-          </div>
-        )}
+          {/* Информация о прогрессе */}
+          {events.length > 0 && (
+            <div className="events-progress">
+              Событие {currentIndex + 1} из {events.length}
+            </div>
+          )}
+        </div>
       </main>
 
       <SettingsModal 

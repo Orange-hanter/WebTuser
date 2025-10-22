@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { X } from 'lucide-react';
-import type { EventPreferences } from '../types';
-import './SettingsModal.css';
+import type { EventPreferences } from '@/types';
+import '@components/SettingsModal.css';
 
 interface SettingsModalProps {
   isOpen: boolean;

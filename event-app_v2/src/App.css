@@ -22,7 +22,11 @@
 @media (min-width: 1024px) {
   .app-main {
     max-width: 1400px;
+    min-height: 100vh;
     padding: 1.5rem;
+    display: flex;
+  flex-direction: column;
+
   }
 
   .event-wrapper {
@@ -47,6 +51,12 @@
 /* Smooth transitions for responsive layout changes */
 * {
   transition: max-width 0.3s ease, padding 0.3s ease;
+}
+
+.events-footer{
+  margin-top: auto; /* прижмёт к низу */
+  padding: 1rem 0;
+  text-align: center;
 }
 
 /* Loading indicator */

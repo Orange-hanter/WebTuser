@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { fetchEventsBatch } from '../services/eventApi';
-import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNavigationReturn } from '../types';
+import { fetchEventsBatch } from '@services/eventApi';
+import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNavigationReturn } from '@/types';
 
 /**
  * Хук для управления бесконечной подзагрузкой событий

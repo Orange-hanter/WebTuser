@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Settings, Search } from 'lucide-react';
-import './Header.css';
+import '@components/Header.css';
 
 interface HeaderProps {
   onSettingsClick: () => void;
