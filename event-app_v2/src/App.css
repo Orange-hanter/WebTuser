@@ -11,40 +11,43 @@
 .app-main {
   max-width: 428px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 0.75rem 0.5rem 0 0.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   overflow: hidden;
   width: 100%;
-  gap: 1.5rem;
+  gap: 0;
 }
 
 /* Small phones optimization (iPhone SE) */
 @media (max-width: 375px) {
   .app-main {
     max-width: 100%;
-    padding: 1rem 0.75rem;
-    gap: 1rem;
+    padding: 0.75rem 0.5rem 0 0.5rem;
+    gap: 0;
   }
 }
 
-/* Контент события - заполняет своё место */
+/* Контент события - заполняет доступное пространство с резервом для кнопок */
 .event-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  height: auto;
   flex-shrink: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  min-height: 0;
+  max-height: calc(100% - 140px);
 }
 
-/* Информация о прогрессе - внизу контента */
+/* Информация о прогрессе - внизу, над кнопками */
 .events-footer {
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   text-align: center;
   width: 100%;
   flex-shrink: 0;
@@ -53,34 +56,40 @@
 /* Responsive design for desktop */
 @media (min-width: 1024px) {
   .app-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto auto;
+    display: flex;
+    flex-direction: column;
   }
 
   .app-main {
     max-width: 100%;
-    grid-column: 1 / -1;
-    padding: 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr 120px;
-    grid-template-rows: auto auto;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: row;
     gap: 2rem;
     align-items: center;
-    justify-items: center;
+    justify-content: center;
+    flex: 1;
+    overflow: hidden;
   }
 
   .event-content {
-    grid-column: 1;
-    grid-row: 1 / 3;
+    grid-column: auto;
+    grid-row: auto;
     width: auto;
-    height: auto;
+    height: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+    max-width: 550px;
   }
 
   .events-footer {
-    grid-column: 1;
-    grid-row: 2;
+    grid-column: auto;
+    grid-row: auto;
     padding: 0;
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
