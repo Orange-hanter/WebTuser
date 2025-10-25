@@ -93,25 +93,28 @@ const App: FC = () => {
           <Header onSettingsClick={() => setShowSettings(true)} />
           
           <main className="app-main">
-            <div className="event-wrapper">
+            {/* Контент события */}
+            <div className="event-content">
               {currentEvent ? (
-                <>
-                  <EventCard 
-                    event={currentEvent} 
-                    onClick={() => setShowEventDetail(true)} 
-                  />
-                  <ActionButtons 
-                    onLike={handleLike} 
-                    onDislike={handleDislike} 
-                  />
-                </>
+                <EventCard 
+                  event={currentEvent} 
+                  onClick={() => setShowEventDetail(true)} 
+                />
               ) : (
                 <LoadingSpinner />
               )}
             </div>
 
+{/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
+            {currentEvent && (
+              <ActionButtons 
+                onLike={handleLike} 
+                onDislike={handleDislike} 
+              />
+            )}
+
+            {/* Информация о прогрессе */}
             <div className="events-footer">
-              {/* Индикатор подзагрузки */}
               {isLoading && events.length > 0 && (
                 <div className="loading-indicator">
                   <span className="loading-dot"></span>
@@ -120,14 +123,16 @@ const App: FC = () => {
                 </div>
               )}
 
-              {/* Информация о прогрессе */}
               {events.length > 0 && (
                 <div className="events-progress">
                   Событие {currentIndex + 1} из {events.length}
                 </div>
               )}
             </div>
+            
           </main>
+
+         
         </>
       )}
 
