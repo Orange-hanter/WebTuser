@@ -9,6 +9,7 @@ import LoadingSpinner from '@components/LoadingSpinner';
 import BottomNavigation, { type NavTab } from '@components/BottomNavigation';
 import CreateEventModal from '@components/CreateEventModal';
 import SubscribedEventsModal from '@components/SubscribedEventsModal';
+import KeyboardHints from '@components/KeyboardHints';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import type { Event } from '@/types';
 import './App.css';
@@ -46,6 +47,48 @@ const App: FC = () => {
   const handleDislike = () => {
     goToNextEvent();
   };
+
+  // Обработчик клавиатурных сокращений
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Не реагируем на клавиши, если пользователь печатает в input/textarea
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Используем .code для работы с любыми раскладками клавиатуры
+      // .code возвращает физическую позицию клавиши, независимо от языка
+      switch (event.code) {
+        case 'KeyX':
+          // X - не нравится (дизлайк)
+          event.preventDefault();
+          handleDislike();
+          break;
+        case 'KeyA':
+          // A - принять (лайк)
+          event.preventDefault();
+          handleLike();
+          break;
+        case 'KeyD':
+          // D - открыть детали карточки
+          event.preventDefault();
+          if (currentEvent) {
+            setShowEventDetail(true);
+          }
+          break;
+        case 'KeyQ':
+          // Q - открыть настройки
+          event.preventDefault();
+          setShowSettings(true);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentEvent, handleLike, handleDislike]);
 
   const isEventsEnd = useMemo(() => {
     return currentIndex >= events.length && !isLoading && !hasMore;
@@ -129,7 +172,7 @@ const App: FC = () => {
                 </div>
               )}
             </div>
-            
+
           </main>
 
          
@@ -165,6 +208,9 @@ const App: FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
+
+      {/* Keyboard Hints Toggle */}
+      <KeyboardHints />
     </div>
   );
 };
