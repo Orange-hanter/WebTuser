@@ -133,6 +133,77 @@
   fill: var(--yellow-400);
 }
 
+/* Small phones (iPhone SE - 375px) */
+@media (max-width: 375px) {
+  .event-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .event-card:hover {
+    transform: scale(1);
+  }
+
+  .event-card-image-container {
+    height: 240px;
+  }
+
+  .event-card-type-badge {
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .event-card-overlay {
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .event-card-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .event-card-info {
+    gap: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .event-card-content {
+    padding: 0.75rem;
+  }
+
+  .event-card-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .event-card-rating-stars {
+    gap: 0.15rem;
+  }
+
+  .event-card-rating {
+    gap: 0.25rem;
+  }
+
+  .event-card-description {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .event-card-tags {
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .event-card-tag {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.65rem;
+  }
+}
+
 @media (min-width: 1024px) {
   .event-card {
     max-width: 420px;

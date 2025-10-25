@@ -49,6 +49,26 @@
   color: var(--purple-600);
 }
 
+/* Small phones optimization */
+@media (max-width: 375px) {
+  .app-header-content {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-header-title {
+    font-size: 1.1rem;
+  }
+
+  .app-header-button {
+    padding: 0.4rem;
+  }
+
+  .app-header-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
 @media (min-width: 1024px) {
   .app-header-content {
     max-width: 1400px;

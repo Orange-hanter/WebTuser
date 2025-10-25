@@ -51,6 +51,25 @@
   fill: currentColor;
 }
 
+/* Small phones optimization (iPhone SE) */
+@media (max-width: 375px) {
+  .action-buttons {
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .action-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .action-button-dislike-icon,
+  .action-button-like-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 /* Responsive design for desktop */
 @media (min-width: 1024px) {
   .action-buttons {

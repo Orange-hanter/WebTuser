@@ -22,6 +22,15 @@
   gap: 1.5rem;
 }
 
+/* Small phones optimization (iPhone SE) */
+@media (max-width: 375px) {
+  .app-main {
+    max-width: 100%;
+    padding: 1rem 0.75rem;
+    gap: 1rem;
+  }
+}
+
 /* Контент события - заполняет своё место */
 .event-content {
   display: flex;
