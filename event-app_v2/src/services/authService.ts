@@ -1,9 +1,39 @@
 import type { AuthCredentials, RegistrationData, VerificationData, User, UserProfile } from '@/types';
 
+// 🔧 API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/v1/api';
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+// API Response Models (из Swagger)
+interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at: string;
+  user: {
+    id: string;
+    email: string;
+    phone?: string;
+    verified: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+interface ErrorResponse {
+  code: number;
+  error: string;
+  message: string;
+}
+
+interface VerifyResponse {
+  verified: boolean;
+  message: string;
 }
 
 interface JwtPayload {
@@ -12,19 +42,6 @@ interface JwtPayload {
   iat: number;
   exp: number;
 }
-
-// Имитация JWT токена (в реальности это создается на сервере)
-const generateMockJWT = (userId: string, email: string): string => {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = btoa(JSON.stringify({
-    userId,
-    email,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 86400 * 7, // 7 дней
-  }));
-  const signature = btoa('mock-secret-key');
-  return `${header}.${payload}.${signature}`;
-};
 
 // Парсинг JWT для извлечения данных
 const parseJWT = (token: string): JwtPayload | null => {
@@ -78,48 +95,44 @@ class AuthService {
   /**
    * Регистрация нового пользователя
    */
-  static async register(data: RegistrationData): Promise<ApiResponse<{ email: string }>> {
+  static async register(data: RegistrationData): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
     try {
-      await this.simulateDelay();
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          phone: data.phone || '',
+        }),
+      });
 
-      // Проверка на существующего пользователя
-      if (this.MOCK_USERS.has(data.email)) {
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
         return {
           success: false,
-          error: 'Пользователь с таким email уже существует',
+          error: errorData.message || 'Ошибка регистрации',
         };
       }
 
-      // Генерируем код верификации
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      this.VERIFICATION_CODES.set(data.email, {
-        code: verificationCode,
-        timestamp: Date.now(),
-      });
-
-      // Сохраняем временного пользователя (не верифицирован)
-      const newUser = {
-        id: Date.now().toString(),
-        email: data.email,
-        password: data.password,
-        firstName: '',
-        lastName: '',
-        verified: false,
-        createdAt: new Date().toISOString(),
-      } as const;
+      const responseData = await response.json();
       
-      if (data.phone) {
-        Object.assign(newUser, { phone: data.phone });
-      }
-      
-      this.MOCK_USERS.set(data.email, newUser as any);
-
-      // В реальном приложении здесь отправляется email/SMS
-      console.log(`[AUTH] Verification code for ${data.email}: ${verificationCode}`);
-
+      // API возвращает { user: User, verify_code: string }
       return {
         success: true,
-        data: { email: data.email },
+        data: {
+          user: {
+            id: responseData.user.id,
+            email: responseData.user.email,
+            phone: responseData.user.phone,
+            firstName: '',
+            lastName: '',
+            createdAt: responseData.user.created_at,
+          },
+          verifyCode: responseData.verify_code,
+        },
       };
     } catch (error) {
       return {
@@ -134,53 +147,48 @@ class AuthService {
    */
   static async verify(data: VerificationData): Promise<ApiResponse<{ token: string; user: User }>> {
     try {
-      await this.simulateDelay();
+      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          code: data.code,
+        }),
+      });
 
-      const verificationData = this.VERIFICATION_CODES.get(data.email);
-
-      // Проверка кода (для тестирования используем '123456')
-      if (!verificationData && data.code !== '123456') {
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
         return {
           success: false,
-          error: 'Неверный код подтверждения',
+          error: errorData.message || 'Неверный код подтверждения',
         };
       }
 
-      // Проверка истечения кода (15 минут)
-      if (verificationData && Date.now() - verificationData.timestamp > 15 * 60 * 1000) {
+      const verifyResponse: VerifyResponse = await response.json();
+
+      if (!verifyResponse.verified) {
         return {
           success: false,
-          error: 'Код подтверждения истёк',
+          error: 'Верификация не прошла',
         };
       }
 
-      const user = this.MOCK_USERS.get(data.email);
-      if (!user) {
-        return {
-          success: false,
-          error: 'Пользователь не найден',
-        };
-      }
-
-      // Отмечаем пользователя как верифицированного
-      user.verified = true;
-
-      // Генерируем JWT токен
-      const token = generateMockJWT(user.id, user.email);
-
-      // Сохраняем токен в "HTTPOnly cookie" (в браузере это делается через HTTP заголовки)
-      this.setAuthCookie(token);
-
-      // Очищаем код верификации
-      this.VERIFICATION_CODES.delete(data.email);
-
-      const { password, verified, ...userWithoutSensitive } = user;
-
+      // После успешной верификации нужно залогиниться
+      // (API verify не возвращает токен, только подтверждение)
+      // Поэтому возвращаем успех без токена, приложение должно показать форму входа
       return {
         success: true,
         data: {
-          token,
-          user: userWithoutSensitive,
+          token: '', // Пустой токен, требуется логин
+          user: {
+            id: '',
+            email: data.email,
+            firstName: '',
+            lastName: '',
+            createdAt: new Date().toISOString(),
+          },
         },
       };
     } catch (error) {
@@ -196,45 +204,42 @@ class AuthService {
    */
   static async login(credentials: AuthCredentials): Promise<ApiResponse<{ token: string; user: User }>> {
     try {
-      await this.simulateDelay();
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
 
-      const user = this.MOCK_USERS.get(credentials.email);
-
-      if (!user) {
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
         return {
           success: false,
-          error: 'Неверный email или пароль',
+          error: errorData.message || 'Неверные учетные данные',
         };
       }
 
-      // Проверка пароля (в реальности это был бы bcrypt.compare)
-      if (user.password !== credentials.password) {
-        return {
-          success: false,
-          error: 'Неверный email или пароль',
-        };
-      }
+      const authResponse: AuthResponse = await response.json();
 
-      if (!user.verified) {
-        return {
-          success: false,
-          error: 'Пользователь не верифицирован. Пожалуйста, подтвердите email.',
-        };
-      }
-
-      // Генерируем JWT токен
-      const token = generateMockJWT(user.id, user.email);
-
-      // Сохраняем токен в "HTTPOnly cookie"
-      this.setAuthCookie(token);
-
-      const { password, verified, ...userWithoutSensitive } = user;
+      // Сохраняем токен в sessionStorage
+      this.setAuthCookie(authResponse.access_token);
 
       return {
         success: true,
         data: {
-          token,
-          user: userWithoutSensitive,
+          token: authResponse.access_token,
+          user: {
+            id: authResponse.user.id,
+            email: authResponse.user.email,
+            phone: authResponse.user.phone,
+            firstName: '',
+            lastName: '',
+            createdAt: authResponse.user.created_at,
+          },
         },
       };
     } catch (error) {
@@ -335,10 +340,26 @@ class AuthService {
    */
   static async logout(): Promise<ApiResponse<null>> {
     try {
-      // Удаляем "HTTPOnly cookie"
+      const token = this.getAuthToken();
+      
+      if (token) {
+        // Вызываем API logout
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ token }),
+        });
+      }
+
+      // Очищаем локальный токен независимо от результата API
       this.clearAuthCookie();
       return { success: true };
     } catch (error) {
+      // Даже при ошибке очищаем токен
+      this.clearAuthCookie();
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Ошибка выхода',
@@ -403,4 +424,4 @@ class AuthService {
 }
 
 export default AuthService;
-export { generateMockJWT, parseJWT, type JwtPayload };
+export { parseJWT, type JwtPayload };
