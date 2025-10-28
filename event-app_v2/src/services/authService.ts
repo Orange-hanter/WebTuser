@@ -67,7 +67,6 @@ const parseJWT = (token: string): JwtPayload | null => {
 
 class AuthService {
   private static MOCK_USERS: Map<string, User & { password: string; verified: boolean }> = new Map();
-  private static VERIFICATION_CODES: Map<string, { code: string; timestamp: number }> = new Map();
 
   // Инициализация mock данных
   static {
@@ -126,7 +125,7 @@ class AuthService {
           user: {
             id: responseData.user.id,
             email: responseData.user.email,
-            phone: responseData.user.phone,
+            phone: responseData.user.phone || '',
             firstName: '',
             lastName: '',
             createdAt: responseData.user.created_at,
@@ -185,6 +184,7 @@ class AuthService {
           user: {
             id: '',
             email: data.email,
+            phone: '',
             firstName: '',
             lastName: '',
             createdAt: new Date().toISOString(),
@@ -235,7 +235,7 @@ class AuthService {
           user: {
             id: authResponse.user.id,
             email: authResponse.user.email,
-            phone: authResponse.user.phone,
+            phone: authResponse.user.phone || '',
             firstName: '',
             lastName: '',
             createdAt: authResponse.user.created_at,

@@ -49,12 +49,28 @@ const App: FC = () => {
 
   // ✅ При изменении isAuthenticated, обновляем showApp
   useEffect(() => {
-    console.log('🟢 App useEffect: isAuthenticated changed to', isAuthenticated);
-    if (isAuthenticated) {
-      setShowApp(true);
-    }
-    setIsInitialized(true);
-  }, [isAuthenticated]);
+  console.log('🟢 App useEffect: isAuthenticated changed to', isAuthenticated);
+
+  if (!isAuthenticated) {
+    // 👇 Полный сброс всех пользовательских данных при выходе
+    console.log('🟢 App: User logged out — resetting all user-specific state');
+    
+    setLikedEvents([]);
+    setShowEventDetail(false);
+    setShowSettings(false);
+    setActiveTab('discover');
+    
+    // Сброс событий и пагинации
+    // resetEvents();
+    
+    // Не нужно setShowApp(false) — он и так синхронизирован ниже
+  }
+
+    // Синхронизируем showApp с isAuthenticated
+  setShowApp(isAuthenticated);
+  setIsInitialized(true);
+}, [isAuthenticated/*, resetEvents */]);
+
 
   // Обработчик для загрузки еще событий
   useEffect(() => {
@@ -117,9 +133,12 @@ const App: FC = () => {
   console.log('🟢 App render: showApp=', showApp, 'isAuthenticated=', isAuthenticated);
   
   // Если пользователь не авторизован - показываем AuthFlow
-  if (!isAuthenticated && !showApp) {
+  if (!isAuthenticated) {
+    console.log('🟢 App: Showing AuthFlow');
     return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
   }
+  
+  console.log('🟢 App: Showing main app');
 
   // Если ошибка при загрузке
   if (error && events.length === 0) {

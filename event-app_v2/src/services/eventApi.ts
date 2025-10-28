@@ -116,23 +116,27 @@ export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENT
 
     for (let i = offset; i < offset + limit && i < totalEvents; i++) {
       const template = mockEventTemplates[i % mockEventTemplates.length];
+      if (!template) continue;
       const date = new Date();
       date.setDate(date.getDate() + Math.floor(i / 2));
+      const formattedDate = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      });
 
       events.push({
         id: i + 1,
-        ...template,
-        date: date.toLocaleDateString('ru-RU', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric'
-        }).charAt(0).toUpperCase() + date.toLocaleDateString('ru-RU', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric'
-        }).slice(1),
-        attendees: template.attendees + Math.floor(Math.random() * 30),
-        rating: Number((parseFloat(String(template.rating)) + (Math.random() - 0.5) * 0.4).toFixed(1))
+        title: template.title ?? 'Событие',
+        type: template.type ?? 'Разное',
+        location: template.location ?? '',
+        time: template.time ?? '',
+        date: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1),
+        attendees: (template.attendees ?? 0) + Math.floor(Math.random() * 30),
+        rating: Number((parseFloat(String(template.rating ?? 0)) + (Math.random() - 0.5) * 0.4).toFixed(1)),
+        description: template.description ?? '',
+        image: template.image ?? '',
+        tags: template.tags ?? [],
       });
     }
 

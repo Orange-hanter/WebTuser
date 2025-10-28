@@ -15,13 +15,15 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
   const [error, setError] = useState('');
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
     setError('');
     try {
       await onLogin(credentials);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка входа');
+      return false;
     }
   };
 
@@ -52,6 +54,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
                 <Mail size={20} className="login-input-icon" />
                 <input
                   id="email"
+                  data-testid="login-email-input"
                   type="email"
                   value={credentials.email}
                   onChange={(e) => handleChange('email', e.target.value)}
@@ -72,6 +75,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
                 <Lock size={20} className="login-input-icon" />
                 <input
                   id="password"
+                  data-testid="login-password-input"
                   type={showPassword ? 'text' : 'password'}
                   value={credentials.password}
                   onChange={(e) => handleChange('password', e.target.value)}
@@ -94,12 +98,20 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
             </div>
 
             {/* Ошибка */}
-            {error && <div className="login-error">{error}</div>}
+            {error && <div
+              className="login-error"
+              role="alert"
+              aria-live="assertive"
+              data-testid="login-error"
+            >
+              {error}
+            </div>}
 
             {/* Кнопка входа */}
             <button
               type="submit"
               className="login-button"
+              data-testid="login-submit-button"
               disabled={isLoading}
             >
               {isLoading ? 'Загрузка...' : 'Войти'}
@@ -112,6 +124,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
             <button
               onClick={onSwitchToRegister}
               className="login-switch-button"
+              data-testid="login-switch-register"
               disabled={isLoading}
             >
               Зарегистрируйся

@@ -27,34 +27,35 @@ test_.describe('Вход в приложение', () => {
     // window.location.reload() уже заблокирован через fixture
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     // Даем время на React рендеру
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
   });
 
   test_('успешный вход с корректными учётными данными', async ({ page }) => {
     // Используем учётные данные из mock authService
-    const email = 'admin@example.com';
-    const password = 'admin123';
+    const email = "danil.bel56@gmail.com";
+    const password = "2mE-v78-qbc-wNH";
 
-    // Заполняем форму входа (используем id селекторы)
-    await page.fill('#email', email);
-    await page.fill('#password', password);
-    
-    // Нажимаем кнопку входа
-    await page.click('button:has-text("Вход")');
+  // Заполняем форму входа (используем data-testid селекторы)
+  await page.fill('[data-testid="login-email-input"]', email);
+  await page.fill('[data-testid="login-password-input"]', password);
+
+  // Нажимаем кнопку входа
+  await page.click('[data-testid="login-submit-button"]');
 
     // Проверяем, что перешли на страницу верификации
-    await expect(page).toHaveURL(/.*verification/);
-    await expect(page.locator('text=Проверка кода')).toBeVisible();
+    await page.reload();
+    await page.reload();
+    await expect(page.getByText("Афиша", { exact: false })).toBeVisible();
   });
 
   test_('ошибка при неверном пароле', async ({ page }) => {
     const email = 'admin@example.com';
     const wrongPassword = 'wrongpassword';
 
-    await page.fill('#email', email);
-    await page.fill('#password', wrongPassword);
-    
-    await page.click('button:has-text("Вход")');
+  await page.fill('[data-testid="login-email-input"]', email);
+  await page.fill('[data-testid="login-password-input"]', wrongPassword);
+
+  await page.click('[data-testid="login-submit-button"]');
 
     // Проверяем наличие сообщения об ошибке
     await expect(page.locator('text=неверно|не найден')).toBeVisible({ timeout: 5000 });
@@ -64,61 +65,61 @@ test_.describe('Вход в приложение', () => {
     const email = `nonexistent-${Date.now()}@example.com`;
     const password = 'AnyPassword123!';
 
-    await page.fill('#email', email);
-    await page.fill('#password', password);
-    
-    await page.click('button:has-text("Вход")');
+  await page.fill('[data-testid="login-email-input"]', email);
+  await page.fill('[data-testid="login-password-input"]', password);
+
+  await page.click('[data-testid="login-submit-button"]');
 
     // Проверяем сообщение об ошибке
     await expect(page.locator('text=не найден|не существует')).toBeVisible({ timeout: 5000 });
   });
 
   test_('ошибка при пустом email', async ({ page }) => {
-    await page.fill('#password', 'AnyPassword');
+  await page.fill('[data-testid="login-password-input"]', 'AnyPassword');
     
-    const submitButton = page.locator('button:has-text("Вход")');
+  const submitButton = page.locator('[data-testid="login-submit-button"]');
     const isDisabled = await submitButton.isDisabled();
     
     expect(isDisabled).toBeTruthy();
   });
 
   test_('ошибка при пустом пароле', async ({ page }) => {
-    await page.fill('#email', 'test@example.com');
+  await page.fill('[data-testid="login-email-input"]', 'test@example.com');
     
-    const submitButton = page.locator('button:has-text("Вход")');
+  const submitButton = page.locator('[data-testid="login-submit-button"]');
     const isDisabled = await submitButton.isDisabled();
     
     expect(isDisabled).toBeTruthy();
   });
 
   test_('переключение видимости пароля', async ({ page }) => {
-    await page.fill('#password', 'TestPassword123');
-    
-    // Находим кнопку переключения видимости
-    const toggleButton = page.locator('button').filter({ has: page.locator('[class*="eye"]') }).first();
-    
-    // Проверяем начальный тип поля
-    const passwordInput = page.locator('#password');
-    expect(await passwordInput.inputValue()).toBe('TestPassword123');
-    
-    // Нажимаем на кнопку переключения
-    await toggleButton.click();
-    
-    // Проверяем, что пароль теперь видим (тип поля изменился на text)
-    const inputType = await passwordInput.getAttribute('type');
-    expect(inputType).toBe('text');
-    
-    // Нажимаем ещё раз
-    await toggleButton.click();
-    
-    // Проверяем, что пароль снова скрыт
-    const inputTypeAfter = await passwordInput.getAttribute('type');
-    expect(inputTypeAfter).toBe('password');
+  await page.fill('[data-testid="login-password-input"]', 'TestPassword123');
+
+  // Находим кнопку переключения видимости рядом с полем пароля
+  const passwordInput = page.locator('[data-testid="login-password-input"]');
+  const toggleButton = passwordInput.locator('xpath=following-sibling::button').first();
+
+  // Проверяем начальное значение поля
+  expect(await passwordInput.inputValue()).toBe('TestPassword123');
+
+  // Нажимаем на кнопку переключения
+  await toggleButton.click();
+
+  // Проверяем, что пароль теперь видим (тип поля изменился на text)
+  const inputType = await passwordInput.getAttribute('type');
+  expect(inputType).toBe('text');
+
+  // Нажимаем ещё раз
+  await toggleButton.click();
+
+  // Проверяем, что пароль снова скрыт
+  const inputTypeAfter = await passwordInput.getAttribute('type');
+  expect(inputTypeAfter).toBe('password');
   });
 
   test_('переключение на страницу регистрации', async ({ page }) => {
-    const registerLink = page.locator('text=Создать аккаунт');
-    await registerLink.click();
+  const registerLink = page.locator('[data-testid="login-switch-register"]');
+  await registerLink.click();
     
     // Проверяем, что перешли на страницу регистрации
     await expect(page).toHaveURL(/.*register/);

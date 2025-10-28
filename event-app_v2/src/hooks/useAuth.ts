@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import AuthService from '@/services/authService';
 import type { User, AuthCredentials, RegistrationData, UserProfile } from '@/types';
 
@@ -15,29 +15,30 @@ interface UseAuthReturn {
 }
 
 export const useAuth = (): UseAuthReturn => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [tempEmail, setTempEmail] = useState('');
-  const [currentToken, setCurrentToken] = useState(AuthService.getAuthToken() || '');
-
-  // 🔧 Инициализация состояния при монтировании
-  useEffect(() => {
+  // Инициализируем user из токена если он существует
+  const [user, setUser] = useState<User | null>(() => {
     const token = AuthService.getAuthToken();
     if (token && AuthService.isTokenValid()) {
-      setCurrentToken(token);
-      // Здесь можно загрузить данные пользователя из API если нужно
-      // Пока просто отмечаем что токен действителен
-      const mockUser: User = {
+      // Возвращаем временного пользователя если токен валиден
+      return {
         id: 'temp',
         email: '',
         firstName: '',
         lastName: '',
         createdAt: new Date().toISOString(),
       };
-      setUser(mockUser);
     }
-  }, []);
+    return null;
+  });
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tempEmail, setTempEmail] = useState('');
+  const [currentToken, setCurrentToken] = useState(AuthService.getAuthToken() || '');
+
+  const logStatus = () => {
+    console.log('🔐 useAuth: user=', user?.id, 'isAuthenticated=', (user !== null && AuthService.isTokenValid()), 'tokenValid=', AuthService.isTokenValid())
+    };
 
   const login = useCallback(async (credentials: AuthCredentials) => {
     setIsLoading(true);
@@ -67,6 +68,7 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setIsLoading(false);
     }
+    logStatus();
   }, []);
 
   const register = useCallback(async (data: RegistrationData) => {
@@ -144,14 +146,14 @@ export const useAuth = (): UseAuthReturn => {
       setUser(null);
       setCurrentToken('');
       setTempEmail('');
+      logStatus();
     } catch (err) {
       console.error('Logout error:', err);
     }
   }, []);
 
-  const isAuthenticated = user !== null && AuthService.isTokenValid();
+  const isAuthenticated = (user !== null && AuthService.isTokenValid());
   
-  console.log('🔐 useAuth: user=', user?.id, 'isAuthenticated=', isAuthenticated, 'tokenValid=', AuthService.isTokenValid());
 
   return {
     user,
