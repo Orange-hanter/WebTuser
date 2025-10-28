@@ -1,0 +1,298 @@
+.register-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Анимированный фон */
+.register-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.register-gradient-blob {
+  position: absolute;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  filter: blur(80px);
+  opacity: 0.7;
+  animation: blobRegisterMove 8s ease-in-out infinite;
+}
+
+.register-gradient-blob.blob-1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  top: -50px;
+  left: -50px;
+  animation-delay: 0s;
+}
+
+.register-gradient-blob.blob-1.active {
+  animation: blobRegisterMoveActive 0.6s ease-out forwards;
+}
+
+.register-gradient-blob.blob-2 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(135deg, #f5576c, #ffa502);
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -4s;
+}
+
+.register-gradient-blob.blob-2.active {
+  animation: blobRegisterMoveActive 0.6s ease-out forwards;
+}
+
+.register-gradient-blob.blob-3 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #ffa502, #f093fb);
+  top: 50%;
+  right: 10%;
+  animation-delay: -2s;
+  opacity: 0.5;
+}
+
+@keyframes blobRegisterMove {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(50px, 50px) scale(1.05);
+  }
+}
+
+@keyframes blobRegisterMoveActive {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(0, -30px) scale(1.15);
+    filter: blur(60px);
+  }
+}
+
+/* Контент */
+.register-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  padding: 1rem;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUpRegister 0.6s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUpRegister {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.register-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+/* Форма */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.register-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.register-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.register-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.register-input-wrapper.focused {
+  background: #f9fafb;
+  border-color: #f093fb;
+  box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.1);
+}
+
+.register-input-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.register-input-wrapper.focused .register-input-icon {
+  color: #f093fb;
+}
+
+.register-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-family: inherit;
+}
+
+.register-input::placeholder {
+  color: #d1d5db;
+}
+
+.register-toggle-password {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.register-toggle-password:hover {
+  color: #f093fb;
+}
+
+/* Ошибка */
+.register-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border-left: 4px solid #dc2626;
+}
+
+/* Кнопка */
+.register-button {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.register-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+}
+
+.register-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Переключение */
+.register-footer-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 1.5rem 0 0 0;
+}
+
+.register-switch-button {
+  background: none;
+  border: none;
+  color: #f093fb;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+}
+
+.register-switch-button:hover:not(:disabled) {
+  color: #f5576c;
+}
+
+.register-switch-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 640px) {
+  .register-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .register-title {
+    font-size: 1.75rem;
+  }
+
+  .register-gradient-blob {
+    filter: blur(60px);
+    opacity: 0.5;
+  }
+
+  .register-gradient-blob.blob-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .register-gradient-blob.blob-2 {
+    width: 150px;
+    height: 150px;
+  }
+}

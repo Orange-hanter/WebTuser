@@ -1,0 +1,290 @@
+.profile-step-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Фон */
+.profile-step-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.profile-step-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+.profile-step-blob.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  top: -100px;
+  left: -100px;
+}
+
+.profile-step-blob.blob-2 {
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(135deg, #764ba2, #f093fb);
+  bottom: -100px;
+  right: -100px;
+  animation-delay: -3s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
+}
+
+/* Контент */
+.profile-step-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 500px;
+  padding: 1rem;
+}
+
+.profile-step-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.6s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Прогресс */
+.profile-step-progress {
+  width: 100%;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.profile-step-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.profile-step-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.profile-step-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+/* Форма */
+.profile-step-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-step-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.profile-step-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-step-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.profile-step-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.profile-step-input-wrapper:focus-within {
+  background: #f9fafb;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.profile-step-input-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.profile-step-input-wrapper:focus-within .profile-step-input-icon {
+  color: #667eea;
+}
+
+.profile-step-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-family: inherit;
+}
+
+.profile-step-input::placeholder {
+  color: #d1d5db;
+}
+
+/* Textarea */
+.profile-step-textarea-wrapper {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.profile-step-textarea-wrapper:focus-within {
+  background: #f9fafb;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.profile-step-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.profile-step-textarea::placeholder {
+  color: #d1d5db;
+}
+
+/* Ошибка */
+.profile-step-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border-left: 4px solid #dc2626;
+}
+
+/* Кнопки */
+.profile-step-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.profile-step-button {
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.profile-step-button.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.profile-step-button.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.profile-step-button.secondary {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.profile-step-button.secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.profile-step-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.profile-step-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 640px) {
+  .profile-step-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .profile-step-title {
+    font-size: 1.5rem;
+  }
+
+  .profile-step-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-step-buttons {
+    grid-template-columns: 1fr;
+  }
+}

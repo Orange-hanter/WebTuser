@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, FC } from 'react';
+import { useState, useMemo, useEffect, FC, useCallback } from 'react';
 import Header from '@components/Header';
 import EventCard from '@components/EventCard';
 import ActionButtons from '@components/ActionButtons';
@@ -10,11 +10,32 @@ import BottomNavigation, { type NavTab } from '@components/BottomNavigation';
 import CreateEventModal from '@components/CreateEventModal';
 import SubscribedEventsModal from '@components/SubscribedEventsModal';
 import KeyboardHints from '@components/KeyboardHints';
+import AuthFlow from '@components/AuthFlow';
+import { useAuth } from '@hooks/useAuth';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import type { Event } from '@/types';
 import './App.css';
 
 const App: FC = () => {
+  const { isAuthenticated } = useAuth();
+  const [showApp, setShowApp] = useState(isAuthenticated);
+
+  const handleAuthSuccess = useCallback(() => {
+    setShowApp(true);
+  }, []);
+
+  // Отслеживаем выход пользователя
+  useEffect(() => {
+    if (!isAuthenticated && showApp) {
+      setShowApp(false);
+    }
+  }, [isAuthenticated, showApp]);
+  
+  // Если пользователь не авторизован - показываем AuthFlow
+  if (!showApp || !isAuthenticated) {
+    return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
+  }
+
   const { events, isLoading, error, hasMore, loadMoreEvents } = useInfiniteEventScroll();
   
   const [_likedEvents, setLikedEvents] = useState<Event[]>([]);

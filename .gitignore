@@ -1,1 +1,4 @@
 .DS_Store
+.vscode/settings.json
+event-app_v2/test-results/*
+event-app_v2/playwright-report/*

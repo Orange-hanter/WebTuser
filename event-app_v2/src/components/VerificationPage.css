@@ -1,0 +1,274 @@
+.verification-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Фон */
+.verification-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.verification-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+.verification-blob.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  top: -100px;
+  left: -100px;
+}
+
+.verification-blob.blob-2 {
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(135deg, #764ba2, #f093fb);
+  bottom: -100px;
+  right: -100px;
+  animation-delay: -3s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
+}
+
+/* Контент */
+.verification-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 450px;
+  padding: 1rem;
+}
+
+.verification-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.verification-icon {
+  color: #667eea;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.verification-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.verification-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+/* Выбор метода */
+.verification-method-selector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.verification-method-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.verification-method-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f3f4f6;
+}
+
+.verification-method-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+}
+
+.verification-method-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Форма */
+.verification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Ввод кода */
+.verification-code-input-wrapper {
+  position: relative;
+}
+
+.verification-code-input {
+  width: 100%;
+  opacity: 0;
+  position: absolute;
+  height: 0;
+  pointer-events: none;
+}
+
+.verification-code-chars {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.verification-code-char {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.verification-code-input:focus + .verification-code-chars .verification-code-char {
+  border-color: #667eea;
+}
+
+/* Ошибка */
+.verification-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border-left: 4px solid #dc2626;
+}
+
+/* Кнопка */
+.verification-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.verification-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.verification-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Переотправка */
+.verification-resend {
+  margin-top: 1.5rem;
+}
+
+.verification-resend-button {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+}
+
+.verification-resend-button:hover:not(:disabled) {
+  color: #764ba2;
+}
+
+.verification-resend-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verification-resend-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 640px) {
+  .verification-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .verification-title {
+    font-size: 1.5rem;
+  }
+
+  .verification-code-char {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .verification-code-chars {
+    gap: 0.5rem;
+  }
+}

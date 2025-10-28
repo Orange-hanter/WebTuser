@@ -48,6 +48,45 @@ export interface EventBatchResponse {
   };
 }
 
+// User authentication types
+export interface User {
+  id: string;
+  email: string;
+  phone?: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  bio?: string;
+  city?: string;
+  interests?: string[];
+  createdAt: string;
+}
+
+export interface AuthCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegistrationData extends AuthCredentials {
+  confirmPassword: string;
+  phone?: string;
+}
+
+export interface VerificationData {
+  email: string;
+  code: string;
+  method: 'sms' | 'email';
+}
+
+export interface UserProfile {
+  firstName: string;
+  lastName: string;
+  city: string;
+  bio: string;
+  interests: string[];
+  avatar?: string;
+}
+
 export interface EventDetailsResponse {
   success: boolean;
   data: EventDetails;

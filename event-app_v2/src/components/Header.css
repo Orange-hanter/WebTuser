@@ -49,6 +49,14 @@
   color: var(--purple-600);
 }
 
+.app-header-logout:hover {
+  background-color: #fee2e2;
+}
+
+.app-header-logout:hover .app-header-icon {
+  color: var(--red-600);
+}
+
 /* Small phones optimization */
 @media (max-width: 375px) {
   .app-header-content {
