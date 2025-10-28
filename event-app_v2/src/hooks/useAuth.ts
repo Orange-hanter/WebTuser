@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import AuthService from '@/services/authService';
 import type { User, AuthCredentials, RegistrationData, UserProfile } from '@/types';
 
@@ -20,6 +20,24 @@ export const useAuth = (): UseAuthReturn => {
   const [error, setError] = useState<string | null>(null);
   const [tempEmail, setTempEmail] = useState('');
   const [currentToken, setCurrentToken] = useState(AuthService.getAuthToken() || '');
+
+  // 🔧 Инициализация состояния при монтировании
+  useEffect(() => {
+    const token = AuthService.getAuthToken();
+    if (token && AuthService.isTokenValid()) {
+      setCurrentToken(token);
+      // Здесь можно загрузить данные пользователя из API если нужно
+      // Пока просто отмечаем что токен действителен
+      const mockUser: User = {
+        id: 'temp',
+        email: '',
+        firstName: '',
+        lastName: '',
+        createdAt: new Date().toISOString(),
+      };
+      setUser(mockUser);
+    }
+  }, []);
 
   const login = useCallback(async (credentials: AuthCredentials) => {
     setIsLoading(true);

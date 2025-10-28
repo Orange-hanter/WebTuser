@@ -18,18 +18,24 @@ import './App.css';
 
 const App: FC = () => {
   const { isAuthenticated } = useAuth();
-  const [showApp, setShowApp] = useState(isAuthenticated);
+  // ✅ Инициализируем showApp с правильным значением
+  const [showApp, setShowApp] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // ✅ При монтировании, синхронизируем showApp с isAuthenticated
+  useEffect(() => {
+    setShowApp(isAuthenticated);
+    setIsInitialized(true);
+  }, [isAuthenticated]);
 
   const handleAuthSuccess = useCallback(() => {
     setShowApp(true);
   }, []);
 
-  // Отслеживаем выход пользователя
-  useEffect(() => {
-    if (!isAuthenticated && showApp) {
-      setShowApp(false);
-    }
-  }, [isAuthenticated, showApp]);
+  // Если ещё инициализируемся - показываем spinner или ничего
+  if (!isInitialized) {
+    return <LoadingSpinner />;
+  }
   
   // Если пользователь не авторизован - показываем AuthFlow
   if (!showApp || !isAuthenticated) {

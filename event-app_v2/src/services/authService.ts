@@ -55,12 +55,21 @@ class AuthService {
   // Инициализация mock данных
   static {
     // Добавляем тестового пользователя
-    this.MOCK_USERS.set('test@example.com', {
-      id: '1',
-      email: 'test@example.com',
-      password: 'password123', // В реальности это был бы хеш
-      firstName: 'Test',
-      lastName: 'User',
+    this.MOCK_USERS.set("test@example.com", {
+      id: "1",
+      email: "test@example.com",
+      password: "password123", // В реальности это был бы хеш
+      firstName: "Test",
+      lastName: "User",
+      verified: true,
+      createdAt: new Date().toISOString(),
+    });
+    this.MOCK_USERS.set("admin@example.com", {
+      id: "2",
+      email: "admin@example.com",
+      password: "admin123", // В реальности это был бы хеш
+      firstName: "Admin",
+      lastName: "User",
       verified: true,
       createdAt: new Date().toISOString(),
     });
