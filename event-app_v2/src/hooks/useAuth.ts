@@ -43,17 +43,24 @@ export const useAuth = (): UseAuthReturn => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log('🔐 useAuth.login: Starting login...', credentials.email);
       const response = await AuthService.login(credentials);
+      
+      console.log('🔐 useAuth.login: Response received', response);
       
       if (!response.success) {
         throw new Error(response.error || 'Ошибка входа');
       }
 
       if (response.data) {
+        console.log('🔐 useAuth.login: Setting user and token', response.data.user);
         setUser(response.data.user);
         setCurrentToken(response.data.token);
       }
+      
+      console.log('🔐 useAuth.login: Login successful!');
     } catch (err) {
+      console.error('🔐 useAuth.login: Error', err);
       const errorMessage = err instanceof Error ? err.message : 'Ошибка входа';
       setError(errorMessage);
       throw err;
@@ -142,11 +149,15 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, []);
 
+  const isAuthenticated = user !== null && AuthService.isTokenValid();
+  
+  console.log('🔐 useAuth: user=', user?.id, 'isAuthenticated=', isAuthenticated, 'tokenValid=', AuthService.isTokenValid());
+
   return {
     user,
     isLoading,
     error,
-    isAuthenticated: user !== null && AuthService.isTokenValid(),
+    isAuthenticated,
     login,
     register,
     verify,

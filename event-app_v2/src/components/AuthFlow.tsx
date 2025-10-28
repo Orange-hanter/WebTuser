@@ -21,10 +21,13 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
 
   const handleLogin = async (credentials: AuthCredentials) => {
     try {
+      console.log('🔵 AuthFlow.handleLogin: Starting...', credentials.email);
       await login(credentials);
+      console.log('🔵 AuthFlow.handleLogin: Login successful, calling onAuthSuccess');
       onAuthSuccess();
+      console.log('🔵 AuthFlow.handleLogin: onAuthSuccess called');
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('🔵 AuthFlow.handleLogin: Error', error);
     }
   };
 

@@ -4,7 +4,7 @@ test.describe('Регистрация', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // Нажимаем на кнопку "Создать аккаунт"
-    await page.click('text=Создать аккаунт');
+    await page.click("text=Зарегистрируйся");
   });
 
   test('успешная регистрация с корректными данными', async ({ page }) => {
@@ -13,12 +13,12 @@ test.describe('Регистрация', () => {
     const password = 'TestPassword123!';
 
     // Заполняем форму регистрации
-    await page.fill('input[placeholder*="Email"]', email);
-    await page.fill('input[placeholder*="пароль"]', password);
-    await page.fill('input[placeholder*="Подтвердите пароль"]', password);
+    await page.fill('input[placeholder*="your@email.com"]', email);
+    await page.fill('input[placeholder*="Минимум 6 символов"]', password);
+    await page.fill('input[placeholder*="Повтори пароль"]', password);
     
     // Нажимаем кнопку регистрации
-    await page.click('button:has-text("Регистрация")');
+    await page.click('button:has-text("Зарегистрироваться")');
 
     // Проверяем, что перешли на страницу верификации
     await expect(page).toHaveURL(/.*verification/);

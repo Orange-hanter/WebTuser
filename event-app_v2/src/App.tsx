@@ -18,39 +18,43 @@ import './App.css';
 
 const App: FC = () => {
   const { isAuthenticated } = useAuth();
-  // ✅ Инициализируем showApp с правильным значением
   const [showApp, setShowApp] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // ✅ При монтировании, синхронизируем showApp с isAuthenticated
-  useEffect(() => {
-    setShowApp(isAuthenticated);
-    setIsInitialized(true);
-  }, [isAuthenticated]);
-
-  const handleAuthSuccess = useCallback(() => {
-    setShowApp(true);
-  }, []);
-
-  // Если ещё инициализируемся - показываем spinner или ничего
-  if (!isInitialized) {
-    return <LoadingSpinner />;
-  }
-  
-  // Если пользователь не авторизован - показываем AuthFlow
-  if (!showApp || !isAuthenticated) {
-    return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
-  }
-
+  // ✅ ВСЕ хуки должны быть вызваны до любых условий!
   const { events, isLoading, error, hasMore, loadMoreEvents } = useInfiniteEventScroll();
-  
   const [_likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
-  
   const [preferences, handleSettingsChange] = useEventPreferences();
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events);
+
+  // Handlers (не хуки, но нужны для useEffect)
+  const handleLike = useCallback(() => {
+    if (currentEvent) {
+      setLikedEvents(prev => [...prev, currentEvent]);
+    }
+    goToNextEvent();
+  }, [currentEvent, goToNextEvent]);
+
+  const handleDislike = useCallback(() => {
+    goToNextEvent();
+  }, [goToNextEvent]);
+
+  const handleAuthSuccess = useCallback(() => {
+    console.log('🟢 App.handleAuthSuccess: Called, setting showApp to true');
+    setShowApp(true);
+  }, []);
+
+  // ✅ При изменении isAuthenticated, обновляем showApp
+  useEffect(() => {
+    console.log('🟢 App useEffect: isAuthenticated changed to', isAuthenticated);
+    if (isAuthenticated) {
+      setShowApp(true);
+    }
+    setIsInitialized(true);
+  }, [isAuthenticated]);
 
   // Обработчик для загрузки еще событий
   useEffect(() => {
@@ -64,47 +68,29 @@ const App: FC = () => {
     return () => window.removeEventListener('loadMoreEvents', handleLoadMore);
   }, [hasMore, isLoading, loadMoreEvents]);
 
-  const handleLike = () => {
-    if (currentEvent) {
-      setLikedEvents(prev => [...prev, currentEvent]);
-    }
-    goToNextEvent();
-  };
-
-  const handleDislike = () => {
-    goToNextEvent();
-  };
-
   // Обработчик клавиатурных сокращений
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Не реагируем на клавиши, если пользователь печатает в input/textarea
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
 
-      // Используем .code для работы с любыми раскладками клавиатуры
-      // .code возвращает физическую позицию клавиши, независимо от языка
       switch (event.code) {
         case 'KeyX':
-          // X - не нравится (дизлайк)
           event.preventDefault();
           handleDislike();
           break;
         case 'KeyA':
-          // A - принять (лайк)
           event.preventDefault();
           handleLike();
           break;
         case 'KeyD':
-          // D - открыть детали карточки
           event.preventDefault();
           if (currentEvent) {
             setShowEventDetail(true);
           }
           break;
         case 'KeyQ':
-          // Q - открыть настройки
           event.preventDefault();
           setShowSettings(true);
           break;
@@ -120,6 +106,20 @@ const App: FC = () => {
   const isEventsEnd = useMemo(() => {
     return currentIndex >= events.length && !isLoading && !hasMore;
   }, [currentIndex, events.length, isLoading, hasMore]);
+
+  // ✅ Теперь безопасно делать early returns
+  
+  // Если ещё инициализируемся - показываем spinner
+  if (!isInitialized) {
+    return <LoadingSpinner />;
+  }
+  
+  console.log('🟢 App render: showApp=', showApp, 'isAuthenticated=', isAuthenticated);
+  
+  // Если пользователь не авторизован - показываем AuthFlow
+  if (!isAuthenticated && !showApp) {
+    return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
+  }
 
   // Если ошибка при загрузке
   if (error && events.length === 0) {

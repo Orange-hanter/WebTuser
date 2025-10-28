@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { Mail, MessageSquare } from 'lucide-react';
 import '@components/VerificationPage.css';
 
@@ -18,6 +18,12 @@ const VerificationPage: FC<VerificationPageProps> = ({
   const [code, setCode] = useState('');
   const [method, setMethod] = useState<'sms' | 'email'>(defaultMethod);
   const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Автофокус на инпут при монтировании
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -56,6 +62,10 @@ const VerificationPage: FC<VerificationPageProps> = ({
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setCode(value);
+  };
+
+  const handleCodeBoxClick = () => {
+    inputRef.current?.focus();
   };
 
   return (
@@ -108,7 +118,10 @@ const VerificationPage: FC<VerificationPageProps> = ({
             {/* Поле кода */}
             <div className="verification-code-input-wrapper">
               <input
+                ref={inputRef}
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={code}
                 onChange={handleCodeChange}
                 placeholder="000000"
@@ -116,8 +129,9 @@ const VerificationPage: FC<VerificationPageProps> = ({
                 disabled={isLoading}
                 maxLength={6}
                 autoComplete="off"
+                aria-label="Код верификации"
               />
-              <div className="verification-code-chars">
+              <div className="verification-code-chars" onClick={handleCodeBoxClick}>
                 {[0, 1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="verification-code-char">
                     {code[i] || ''}
