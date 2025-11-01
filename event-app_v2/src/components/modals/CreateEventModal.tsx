@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import '@components/CreateEventModal.css';
+import './CreateEventModal.css';
 
 interface CreateEventModalProps {
   isVisible: boolean;

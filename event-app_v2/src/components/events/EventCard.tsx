@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import { MapPin, Clock, Star } from 'lucide-react';
+import { MapPin, Users, Star, Clock } from 'lucide-react';
 import type { Event } from '@/types';
-import '@components/EventCard.css';
+import './EventCard.css';
 
 interface EventCardProps {
   event: Event;

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Star } from 'lucide-react';
-import '@components/EmptyState.css';
+import './EmptyState.css';
 
 interface EmptyStateProps {
   onReset: () => void;

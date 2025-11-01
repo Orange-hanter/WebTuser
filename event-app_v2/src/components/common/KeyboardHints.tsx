@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { Keyboard, X } from 'lucide-react';
-import '@components/KeyboardHints.css';
+import './KeyboardHints.css';
 
 const KeyboardHints: FC = () => {
   const [isVisible, setIsVisible] = useState(false);

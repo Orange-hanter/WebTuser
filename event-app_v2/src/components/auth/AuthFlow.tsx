@@ -1,9 +1,5 @@
 import { FC, useState } from 'react';
-import LoginPage from '@components/LoginPage';
-import RegisterPage from '@components/RegisterPage';
-import VerificationPage from '@components/VerificationPage';
-import ProfileStep1 from '@components/ProfileStep1';
-import ProfileStep2 from '@components/ProfileStep2';
+import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2 } from '@components/auth';
 import { useAuth } from '@hooks/useAuth';
 import type { AuthCredentials, RegistrationData, UserProfile } from '@/types';
 

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import '@components/LoadingSpinner.css';
+import './LoadingSpinner.css';
 
 const LoadingSpinner: FC = () => (
   <div className="loading-spinner">

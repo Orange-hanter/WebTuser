@@ -1,6 +1,6 @@
-import { FC, useState, useEffect, useRef } from 'react';
-import { Mail, MessageSquare } from 'lucide-react';
-import '@components/VerificationPage.css';
+import { FC, useState, useRef, useEffect } from 'react';
+import { Check, ArrowLeft, Mail, MessageSquare } from 'lucide-react';
+import './VerificationPage.css';
 
 interface VerificationPageProps {
   email: string;

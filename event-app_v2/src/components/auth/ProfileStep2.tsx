@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Heart, Music, Film, Book, Dumbbell, Palette, Code, Plane, Sparkles } from 'lucide-react';
 import type { UserProfile } from '@/types';
-import '@components/ProfileStep2.css';
+import './ProfileStep2.css';
 
 interface ProfileStep2Props {
   onComplete: (data: Partial<UserProfile>) => Promise<void>;

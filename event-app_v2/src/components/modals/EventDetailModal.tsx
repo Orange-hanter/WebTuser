@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import { X, MapPin, Clock, Users, Star } from 'lucide-react';
+import { X, MapPin, Clock, Users, Star, Heart, Share2 } from 'lucide-react';
 import type { Event } from '@/types';
-import '@components/EventDetailModal.css';
+import './EventDetailModal.css';
 
 interface EventDetailModalProps {
   isOpen: boolean;

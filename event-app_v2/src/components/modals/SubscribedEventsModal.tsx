@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Heart, Trash2, Calendar, MapPin, Clock } from 'lucide-react';
 import type { Event } from '@/types';
-import '@components/SubscribedEventsModal.css';
+import './SubscribedEventsModal.css';
 
 interface SubscribedEventsModalProps {
   isVisible: boolean;

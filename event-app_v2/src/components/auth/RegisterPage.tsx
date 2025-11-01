@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react';
 import type { RegistrationData } from '@/types';
-import '@components/RegisterPage.css';
+import './RegisterPage.css';
 
 interface RegisterPageProps {
   onRegister: (data: RegistrationData) => Promise<void>;

@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { User, MapPin, FileText } from 'lucide-react';
 import type { UserProfile } from '@/types';
-import '@components/ProfileStep1.css';
+import './ProfileStep1.css';
 
 interface ProfileStep1Props {
   onNext: (data: Partial<UserProfile>) => Promise<void>;

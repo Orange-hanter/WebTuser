@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import { Settings, Search, LogOut } from 'lucide-react';
+import { Settings, LogOut, Search } from 'lucide-react';
 import { useAuth } from '@hooks/useAuth';
-import '@components/Header.css';
+import './Header.css';
 
 interface HeaderProps {
   onSettingsClick: () => void;

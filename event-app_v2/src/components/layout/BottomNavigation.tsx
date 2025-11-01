@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Compass, Plus, Heart } from 'lucide-react';
-import '@components/BottomNavigation.css';
+import './BottomNavigation.css';
 
 export type NavTab = 'discover' | 'create' | 'subscribed';
 

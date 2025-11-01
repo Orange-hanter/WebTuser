@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import type { AuthCredentials } from '@/types';
-import '@components/LoginPage.css';
+import './LoginPage.css';
 
 interface LoginPageProps {
   onLogin: (credentials: AuthCredentials) => Promise<void>;
