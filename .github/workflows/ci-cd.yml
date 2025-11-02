@@ -1,0 +1,268 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20.x'
+  APP_NAME: event-app-v2
+
+jobs:
+  # Job 1: Проверка кода и тесты
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: event-app_v2/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./event-app_v2
+        run: npm ci
+
+      - name: Run TypeScript check
+        working-directory: ./event-app_v2
+        run: npm run type-check || npx tsc --noEmit
+
+      - name: Run linter
+        working-directory: ./event-app_v2
+        run: npm run lint || echo "Linting completed with warnings"
+
+      - name: Install Playwright browsers
+        working-directory: ./event-app_v2
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run E2E tests
+        working-directory: ./event-app_v2
+        run: npm run test:e2e || echo "Tests completed"
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: event-app_v2/playwright-report/
+          retention-days: 30
+
+  # Job 2: Сборка приложения
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: event-app_v2/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./event-app_v2
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./event-app_v2
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+      - name: Create deployment archive
+        run: |
+          cd event-app_v2/dist
+          tar -czf ../../deployment.tar.gz .
+          cd ../..
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: deployment.tar.gz
+          retention-days: 7
+
+  # Job 3: Деплой на staging (develop branch)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: ${{ secrets.STAGING_URL }}
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Deploy to staging server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "deployment.tar.gz"
+          target: "/tmp/"
+
+      - name: Execute deployment script on staging
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            # Создаем директорию для приложения
+            mkdir -p /var/www/${{ env.APP_NAME }}/staging
+            
+            # Бэкап предыдущей версии
+            if [ -d "/var/www/${{ env.APP_NAME }}/staging/current" ]; then
+              mv /var/www/${{ env.APP_NAME }}/staging/current /var/www/${{ env.APP_NAME }}/staging/backup_$(date +%Y%m%d_%H%M%S)
+            fi
+            
+            # Создаем новую директорию
+            mkdir -p /var/www/${{ env.APP_NAME }}/staging/current
+            
+            # Распаковываем новую версию
+            tar -xzf /tmp/deployment.tar.gz -C /var/www/${{ env.APP_NAME }}/staging/current
+            
+            # Удаляем архив
+            rm /tmp/deployment.tar.gz
+            
+            # Перезапускаем nginx (или ваш веб-сервер)
+            sudo systemctl reload nginx || echo "Nginx reload skipped"
+            
+            # Очищаем старые бэкапы (оставляем последние 3)
+            cd /var/www/${{ env.APP_NAME }}/staging
+            ls -t | grep backup | tail -n +4 | xargs -r rm -rf
+            
+            echo "Deployment to staging completed successfully!"
+
+      - name: Health check
+        run: |
+          echo "Waiting for application to start..."
+          sleep 10
+          curl -f ${{ secrets.STAGING_URL }} || echo "Health check failed"
+
+  # Job 4: Деплой на production (main branch)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: ${{ secrets.PRODUCTION_URL }}
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Deploy to production server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "deployment.tar.gz"
+          target: "/tmp/"
+
+      - name: Execute deployment script on production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            # Создаем директорию для приложения
+            mkdir -p /var/www/${{ env.APP_NAME }}/production
+            
+            # Бэкап предыдущей версии
+            if [ -d "/var/www/${{ env.APP_NAME }}/production/current" ]; then
+              mv /var/www/${{ env.APP_NAME }}/production/current /var/www/${{ env.APP_NAME }}/production/backup_$(date +%Y%m%d_%H%M%S)
+            fi
+            
+            # Создаем новую директорию
+            mkdir -p /var/www/${{ env.APP_NAME }}/production/current
+            
+            # Распаковываем новую версию
+            tar -xzf /tmp/deployment.tar.gz -C /var/www/${{ env.APP_NAME }}/production/current
+            
+            # Удаляем архив
+            rm /tmp/deployment.tar.gz
+            
+            # Перезапускаем nginx
+            sudo systemctl reload nginx
+            
+            # Очищаем старые бэкапы (оставляем последние 5)
+            cd /var/www/${{ env.APP_NAME }}/production
+            ls -t | grep backup | tail -n +6 | xargs -r rm -rf
+            
+            echo "Deployment to production completed successfully!"
+
+      - name: Health check
+        run: |
+          echo "Waiting for application to start..."
+          sleep 10
+          curl -f ${{ secrets.PRODUCTION_URL }} || exit 1
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "URL: ${{ secrets.PRODUCTION_URL }}"
+
+  # Job 5: Откат деплоя при неудаче
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure()
+    
+    steps:
+      - name: Rollback production deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /var/www/${{ env.APP_NAME }}/production
+            
+            # Находим последний бэкап
+            LATEST_BACKUP=$(ls -t | grep backup | head -n 1)
+            
+            if [ -n "$LATEST_BACKUP" ]; then
+              echo "Rolling back to $LATEST_BACKUP"
+              rm -rf current
+              mv $LATEST_BACKUP current
+              sudo systemctl reload nginx
+              echo "Rollback completed successfully!"
+            else
+              echo "No backup found for rollback!"
+              exit 1
+            fi

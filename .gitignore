@@ -2,3 +2,11 @@
 .vscode/settings.json
 event-app_v2/test-results/*
 event-app_v2/playwright-report/*
+
+# Environment files (keep only .example files)
+.env.staging
+.env.production
+.env.local
+
+# Deployment artifacts
+deployment*.tar.gz
