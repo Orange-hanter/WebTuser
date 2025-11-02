@@ -18,7 +18,8 @@
       "@hooks/*": ["src/hooks/*"],
       "@services/*": ["src/services/*"],
       "@types/*": ["src/types/*"],
-      "@data/*": ["src/data/*"]
+      "@data/*": ["src/data/*"],
+      "@contexts/*": ["src/contexts/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,

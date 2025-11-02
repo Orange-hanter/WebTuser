@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Heart, Music, Film, Book, Dumbbell, Palette, Code, Plane, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { UserProfile } from '@/types';
 import './ProfileStep2.css';
 

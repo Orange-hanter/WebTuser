@@ -86,6 +86,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   className="register-input"
                   disabled={isLoading}
                   required
+                  data-testid="register-email-input"
                 />
               </div>
             </div>
@@ -105,6 +106,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   placeholder="+7 (999) 123-45-67"
                   className="register-input"
                   disabled={isLoading}
+                  data-testid="register-phone-input"
                 />
               </div>
             </div>
@@ -125,6 +127,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   className="register-input"
                   disabled={isLoading}
                   required
+                  data-testid="register-password-input"
                 />
                 <button
                   type="button"
@@ -153,6 +156,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   className="register-input"
                   disabled={isLoading}
                   required
+                  data-testid="register-confirm-password-input"
                 />
                 <button
                   type="button"
@@ -166,13 +170,23 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
             </div>
 
             {/* Ошибка */}
-            {error && <div className="register-error">{error}</div>}
+            {error && (
+              <div 
+                className="register-error" 
+                role="alert"
+                aria-live="polite"
+                data-testid="register-error-message"
+              >
+                {error}
+              </div>
+            )}
 
             {/* Кнопка регистрации */}
             <button
               type="submit"
               className="register-button"
               disabled={isLoading}
+              data-testid="register-submit-button"
             >
               {isLoading ? 'Загрузка...' : 'Зарегистрироваться'}
             </button>
@@ -185,6 +199,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
               onClick={onSwitchToLogin}
               className="register-switch-button"
               disabled={isLoading}
+              data-testid="register-switch-to-login-button"
             >
               Войти
             </button>

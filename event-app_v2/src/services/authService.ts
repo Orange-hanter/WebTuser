@@ -66,30 +66,6 @@ const parseJWT = (token: string): JwtPayload | null => {
 };
 
 class AuthService {
-  private static MOCK_USERS: Map<string, User & { password: string; verified: boolean }> = new Map();
-
-  // Инициализация mock данных
-  static {
-    // Добавляем тестового пользователя
-    this.MOCK_USERS.set("test@example.com", {
-      id: "1",
-      email: "test@example.com",
-      password: "password123", // В реальности это был бы хеш
-      firstName: "Test",
-      lastName: "User",
-      verified: true,
-      createdAt: new Date().toISOString(),
-    });
-    this.MOCK_USERS.set("admin@example.com", {
-      id: "2",
-      email: "admin@example.com",
-      password: "admin123", // В реальности это был бы хеш
-      firstName: "Admin",
-      lastName: "User",
-      verified: true,
-      createdAt: new Date().toISOString(),
-    });
-  }
 
   /**
    * Регистрация нового пользователя
@@ -231,7 +207,7 @@ class AuthService {
       return {
         success: true,
         data: {
-          token: authResponse.access_token,
+          token: authResponse.access_token, // TODO: удалить обязательно и не испольщовать
           user: {
             id: authResponse.user.id,
             email: authResponse.user.email,
@@ -258,7 +234,6 @@ class AuthService {
     profile: Partial<UserProfile>
   ): Promise<ApiResponse<User>> {
     try {
-      await this.simulateDelay();
 
       const payload = parseJWT(token);
       if (!payload) {
@@ -268,27 +243,22 @@ class AuthService {
         };
       }
 
-      const user = this.MOCK_USERS.get(payload.email);
-      if (!user) {
-        return {
-          success: false,
-          error: 'Пользователь не найден',
-        };
-      }
-
-      // Обновляем профиль
-      if (profile.firstName) user.firstName = profile.firstName;
-      if (profile.lastName) user.lastName = profile.lastName;
-      if (profile.city) user.city = profile.city;
-      if (profile.bio) user.bio = profile.bio;
-      if (profile.interests) user.interests = profile.interests;
-      if (profile.avatar) user.avatar = profile.avatar;
-
-      const { password, verified, ...userWithoutSensitive } = user;
-
+      // TODO: не реализован функционал обновления профиля на бэкенде
+      // Временная заглушка - возвращаем успех с частичными данными
       return {
         success: true,
-        data: userWithoutSensitive,
+        data: {
+          id: payload.userId,
+          email: payload.email,
+          phone: '',
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          city: profile.city || '',
+          bio: profile.bio || '',
+          interests: profile.interests || [],
+          avatar: profile.avatar || '',
+          createdAt: new Date().toISOString(),
+        },
       };
     } catch (error) {
       return {
@@ -303,7 +273,6 @@ class AuthService {
    */
   static async getCurrentUser(token: string): Promise<ApiResponse<User>> {
     try {
-      await this.simulateDelay();
 
       const payload = parseJWT(token);
       if (!payload) {
@@ -313,19 +282,18 @@ class AuthService {
         };
       }
 
-      const user = this.MOCK_USERS.get(payload.email);
-      if (!user) {
-        return {
-          success: false,
-          error: 'Пользователь не найден',
-        };
-      }
-
-      const { password, verified, ...userWithoutSensitive } = user;
-
+      // TODO: не реализован функционал получения пользователя на бэкенде
+      // Временная заглушка - возвращаем данные из токена
       return {
         success: true,
-        data: userWithoutSensitive,
+        data: {
+          id: payload.userId,
+          email: payload.email,
+          phone: '',
+          firstName: '',
+          lastName: '',
+          createdAt: new Date().toISOString(),
+        },
       };
     } catch (error) {
       return {
@@ -413,13 +381,6 @@ class AuthService {
     const token = this.getAuthToken();
     if (!token) return false;
     return parseJWT(token) !== null;
-  }
-
-  /**
-   * Имитация задержки сети
-   */
-  private static simulateDelay(): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, 800));
   }
 }
 

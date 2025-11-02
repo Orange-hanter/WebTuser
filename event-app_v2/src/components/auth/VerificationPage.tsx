@@ -1,10 +1,11 @@
 import { FC, useState, useRef, useEffect } from 'react';
-import { Check, ArrowLeft, Mail, MessageSquare } from 'lucide-react';
+import { Mail, MessageSquare } from 'lucide-react';
 import './VerificationPage.css';
 
 interface VerificationPageProps {
   email: string;
   onVerify: (code: string, method: 'sms' | 'email') => Promise<void>;
+  onSwitchToNextStep: () => void;
   isLoading?: boolean;
   defaultMethod?: 'sms' | 'email';
 }
@@ -12,8 +13,10 @@ interface VerificationPageProps {
 const VerificationPage: FC<VerificationPageProps> = ({
   email,
   onVerify,
+  onSwitchToNextStep,
   isLoading = false,
   defaultMethod = 'email'
+  
 }) => {
   const [code, setCode] = useState('');
   const [method, setMethod] = useState<'sms' | 'email'>(defaultMethod);
@@ -48,6 +51,7 @@ const VerificationPage: FC<VerificationPageProps> = ({
 
     try {
       await onVerify(code, method);
+      onSwitchToNextStep();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка верификации');
     }

@@ -1,27 +1,31 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2 } from '@components/auth';
-import { useAuth } from '@hooks/useAuth';
+import { useAuthContext } from '@/contexts';
 import type { AuthCredentials, RegistrationData, UserProfile } from '@/types';
 
 type AuthStep = 'login' | 'register' | 'verification' | 'profile-step1' | 'profile-step2';
 
 interface AuthFlowProps {
-  onAuthSuccess: () => void;
+  onAuthSuccess?: () => void;
 }
 
 const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
   const [currentStep, setCurrentStep] = useState<AuthStep>('login');
   const [tempEmail, setTempEmail] = useState('');
   const [profileData, setProfileData] = useState<Partial<UserProfile>>({});
-  const { login, register, verify, updateProfile, isLoading } = useAuth();
+  const { login, register, verify, updateProfile, isLoading } = useAuthContext();
 
+  console.log('🔵 AuthFlow: render page')
+  
   const handleLogin = async (credentials: AuthCredentials) => {
     try {
       console.log('🔵 AuthFlow.handleLogin: Starting...', credentials.email);
       await login(credentials);
-      console.log('🔵 AuthFlow.handleLogin: Login successful, calling onAuthSuccess');
-      onAuthSuccess();
-      console.log('🔵 AuthFlow.handleLogin: onAuthSuccess called');
+      console.log('🔵 AuthFlow.handleLogin: Login successful');
+      if (onAuthSuccess) {
+        console.log('🔵 AuthFlow.handleLogin: Calling onAuthSuccess');
+        onAuthSuccess();
+      }
     } catch (error) {
       console.error('🔵 AuthFlow.handleLogin: Error', error);
     }
@@ -29,6 +33,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
 
   const handleRegister = async (data: RegistrationData) => {
     try {
+      console.log('🔵 AuthFlow.handleRegister: go to verification')
       await register(data);
       setTempEmail(data.email);
       setCurrentStep('verification');
@@ -37,9 +42,14 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     }
   };
 
+  useEffect(() => {
+    console.log('🔵 AuthFlow: currentStep=', currentStep);
+  }, [currentStep]);
+
   const handleVerify = async (code: string, method: 'sms' | 'email') => {
     try {
       await verify(code, method);
+      // После успешной верификации переходим к заполнению профиля
       setCurrentStep('profile-step1');
     } catch (error) {
       console.error('Verify error:', error);
@@ -59,7 +69,12 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     try {
       const completeProfile = { ...profileData, ...data };
       await updateProfile(completeProfile);
-      onAuthSuccess();
+      // После успешного обновления профиля произойдет автоматический логин в AuthContext
+      console.log('🔵 AuthFlow.handleProfileStep2: Profile updated successfully');
+      if (onAuthSuccess) {
+        console.log('🔵 AuthFlow.handleProfileStep2: Calling onAuthSuccess');
+        onAuthSuccess();
+      }
     } catch (error) {
       console.error('Profile step 2 error:', error);
     }
@@ -68,6 +83,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
   const handleSkipStep1 = () => {
     setCurrentStep('profile-step2');
   };
+
 
   return (
     <>
@@ -91,6 +107,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
         <VerificationPage
           email={tempEmail}
           onVerify={handleVerify}
+          onSwitchToNextStep={() => setCurrentStep('profile-step1')}
           isLoading={isLoading}
           defaultMethod="email"
         />

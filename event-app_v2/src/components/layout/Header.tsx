@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Settings, LogOut, Search } from 'lucide-react';
-import { useAuth } from '@hooks/useAuth';
+import { useAuthContext } from '@/contexts';
 import './Header.css';
 
 interface HeaderProps {
@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 const Header: FC<HeaderProps> = ({ onSettingsClick }) => {
-  const { logout } = useAuth();
+  const { logout } = useAuthContext();
 
   return (
     <header className="app-header">

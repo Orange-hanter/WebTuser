@@ -82,6 +82,7 @@ export async function completeFullRegistration(
   await verifyCode(page);
   await completeProfile(page);
 
+  // После заполнения профиля пользователь автоматически авторизуется
   // Ожидаем основного приложения
   await expect(page.locator('text=Афиша')).toBeVisible({ timeout: 5000 });
 }
@@ -93,8 +94,8 @@ export async function completeFullLogin(
 ): Promise<void> {
   await loginUser(page, email, password);
   await verifyCode(page);
-  await completeProfile(page);
 
+  // После верификации пользователь автоматически авторизуется
   // Ожидаем основного приложения
   await expect(page.locator('text=Афиша')).toBeVisible({ timeout: 5000 });
 }

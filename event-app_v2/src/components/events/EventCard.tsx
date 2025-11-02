@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { MapPin, Users, Star, Clock } from 'lucide-react';
+import { MapPin, Star, Clock } from 'lucide-react';
 import type { Event } from '@/types';
 import './EventCard.css';
 

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { X, MapPin, Clock } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { EventPreferences } from '@/types';
 import './SettingsModal.css';
 
