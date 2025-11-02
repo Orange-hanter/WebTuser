@@ -105,7 +105,8 @@ jobs:
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment:
       name: staging
-      url: ${{ secrets.STAGING_URL }}
+    env:
+      STAGING_URL: ${{ secrets.STAGING_URL }}
     
     steps:
       - name: Download build artifact
@@ -171,7 +172,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: ${{ secrets.PRODUCTION_URL }}
+    env:
+      PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
     
     steps:
       - name: Download build artifact
