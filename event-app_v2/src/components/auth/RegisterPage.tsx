@@ -103,7 +103,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   onChange={(e) => handleChange('phone', e.target.value)}
                   onFocus={() => setFocusedField('phone')}
                   onBlur={() => setFocusedField(null)}
-                  placeholder="+7 (999) 123-45-67"
+                  placeholder="+375 (XX) 123-45-67"
                   className="register-input"
                   disabled={isLoading}
                   data-testid="register-phone-input"
