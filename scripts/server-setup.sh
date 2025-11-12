@@ -104,18 +104,6 @@ server {
     listen 80;
     server_name tuserduser.online www.tuserduser.online;
     
-    # Redirect to HTTPS
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name tuserduser.online www.tuserduser.online;
-    
-    # SSL certificates (will be configured by certbot)
-    # ssl_certificate /etc/letsencrypt/live/tuserduser.online/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/tuserduser.online/privkey.pem;
-    
     root /var/www/event-app-v2/production/current;
     index index.html;
     
@@ -145,6 +133,8 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
 }
+
+# After running certbot, the HTTPS configuration will be automatically added
 NGINX_PROD
 
 # Enable sites
@@ -165,10 +155,12 @@ echo "✅ Server setup completed!"
 echo ""
 echo "Next steps:"
 echo "1. Add GitHub Actions SSH public key to /home/$DEPLOY_USER/.ssh/authorized_keys"
-echo "2. Update domain names in Nginx configs:"
+echo "2. Update domain names in Nginx configs if needed:"
 echo "   - /etc/nginx/sites-available/event-app-staging"
 echo "   - /etc/nginx/sites-available/event-app-production"
-echo "3. Set up SSL with: sudo certbot --nginx -d tuserduser.online -d www.tuserduser.online"
+echo "3. Set up SSL with certbot (this will automatically configure HTTPS):"
+echo "   - sudo certbot --nginx -d tuserduser.online -d www.tuserduser.online"
+echo "   - sudo certbot --nginx -d staging.tuserduser.online"
 echo "4. Configure GitHub Secrets with server details"
 echo "5. Test deployment with: git push origin develop"
 echo ""
