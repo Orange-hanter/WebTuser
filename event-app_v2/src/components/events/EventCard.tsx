@@ -34,7 +34,7 @@ const EventCard: FC<EventCardProps> = ({ event, onClick }) => (
           </div>
           <div className="event-card-info-item">
             <Clock size={16} />
-            {event.time}
+            {event.date}
           </div>
         </div>
       </div>

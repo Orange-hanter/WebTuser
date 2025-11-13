@@ -1,148 +1,136 @@
-// API Service для работы с событиями
-// Для демонстрации используем JSONPlaceholder API и mock данные
+// API Service for working with events
+// Uses real backend API at api.tuserduser.online
 
 import { Event, EventDetails, EventBatchResponse, EventDetailsResponse } from '@/types';
 
-const API_BASE_URL = 'https://jsonplaceholder.typicode.com';
-const EVENTS_BATCH_SIZE = 5; // Количество событий для загрузки за раз
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tuserduser.online/v1/api';
+const EVENTS_BATCH_SIZE = 5; // Number of events to load per batch
 
-// Mock данные для демонстрации
-const mockEventTemplates = [
-  {
-    title: "Джаз на закате" as const,
-    type: "Музыка" as const,
-    location: "Парк Горького" as const,
-    time: "19:00" as const,
-    attendees: 24,
-    rating: 4.8,
-    description: "Живая джазовая музыка в уютном уголке парка. Приходите насладиться атмосферой и хорошей компанией.",
-    image: "https://placehold.co/400x600/4F46E5/FFFFFF?text=Jazz",
-    tags: ["музыка", "вечер", "расслабление"]
-  },
-  {
-    title: "Арт-завтрак" as const,
-    type: "Творчество" as const,
-    location: "Кафе 'Богема'" as const,
-    time: "10:00" as const,
-    attendees: 12,
-    rating: 4.6,
-    description: "Начните день с творчества! Рисуйте за завтраком под руководством профессионального художника.",
-    image: "https://placehold.co/400x600/EC4899/FFFFFF?text=Art",
-    tags: ["творчество", "утро", "еда"]
-  },
-  {
-    title: "Разговорный клуб" as const,
-    type: "Общение" as const,
-    location: "Библиотека им. Ленина" as const,
-    time: "18:30" as const,
-    attendees: 18,
-    rating: 4.7,
-    description: "Практикуйте английский язык в дружелюбной атмосфере. Все уровни приветствуются!",
-    image: "https://placehold.co/400x600/10B981/FFFFFF?text=Club",
-    tags: ["язык", "общение", "образование"]
-  },
-  {
-    title: "Уличный перформанс" as const,
-    type: "Искусство" as const,
-    location: "Арбат" as const,
-    time: "16:00" as const,
-    attendees: 45,
-    rating: 4.9,
-    description: "Интерактивный перформанс современных танцоров. Присоединяйтесь к импровизации!",
-    image: "https://placehold.co/400x600/F59E0B/FFFFFF?text=Perf",
-    tags: ["танец", "искусство", "вечер"]
-  },
-  {
-    title: "Йога на восходе" as const,
-    type: "Здоровье" as const,
-    location: "Пляж 'Сочи'" as const,
-    time: "07:00" as const,
-    attendees: 15,
-    rating: 4.5,
-    description: "Начните день с энергичной йога-практики на берегу моря. Инструктор международного класса.",
-    image: "https://placehold.co/400x600/06B6D4/FFFFFF?text=Yoga",
-    tags: ["здоровье", "утро", "спорт"]
-  },
-  {
-    title: "Кино-марафон",
-    type: "Развлечение",
-    location: "Кинотеатр 'Октябрь'",
-    time: "17:00",
-    attendees: 35,
-    rating: 4.7,
-    description: "Марафон лучших фильмов года с закусками и напитками. Билеты включают весь день просмотра.",
-    image: "https://placehold.co/400x600/8B5CF6/FFFFFF?text=Cinema",
-    tags: ["кино", "развлечение", "день"]
-  },
-  {
-    title: "Кулинарный мастер-класс",
-    type: "Еда",
-    location: "Кулинарная школа 'Вкус'",
-    time: "14:00",
-    attendees: 20,
-    rating: 4.8,
-    description: "Научитесь готовить итальянскую пасту от шефа Микеле. Включен обед и напитки.",
-    image: "https://placehold.co/400x600/F97316/FFFFFF?text=Cook",
-    tags: ["еда", "кулинария", "мастер-класс"]
-  },
-  {
-    title: "Встреча стартап-сообщества",
-    type: "Образование",
-    location: "TechHub",
-    time: "19:30",
-    attendees: 50,
-    rating: 4.6,
-    description: "Нетворкинг и презентации новых проектов от молодых предпринимателей. Пиццу угощаем мы!",
-    image: "https://placehold.co/400x600/06B6D4/FFFFFF?text=Startup",
-    tags: ["бизнес", "технология", "сеть"]
+
+// Helper to get auth token from sessionStorage
+const getAuthToken = (): string | null => {
+  return sessionStorage.getItem('authToken');
+};
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
-];
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+};
+
+// Backend event model from Swagger
+interface BackendEvent {
+  id: string;
+  type: string;
+  start: string;
+  end: string;
+  time?: string;
+  duration: number; // minutes
+  place?: string;
+  priceType: string;
+  needReg: boolean;
+  details?: Record<string, any>;
+  imgUrl?: string;
+}
+
+// Color mapping for event types
+const getColorForType = (type: string): string => {
+  const colors: Record<string, string> = {
+    'Музыка': '9333EA',      // purple
+    'Творчество': 'EC4899',  // pink
+    'Общение': '3B82F6',     // blue
+    'Искусство': 'F59E0B',   // amber
+    'Здоровье': '10B981',    // green
+    'Спорт': 'EF4444',       // red
+    'Образование': '6366F1', // indigo
+    'Развлечения': 'F97316', // orange
+    'Бизнес': '8B5CF6',      // violet
+  };
+  return colors[type] || '6B7280'; // gray as default
+};
+
+// Generate placeholder image URL
+const getPlaceholderImage = (title: string, type: string): string => {
+  const color = getColorForType(type);
+  const encodedTitle = encodeURIComponent(title);
+  return `https://placehold.co/400x600/${color}/white?text=${encodedTitle}`;
+};
+
+// Transform backend event to frontend Event type
+const transformBackendEvent = (backendEvent: BackendEvent): Event => {
+  // Parse UTC time from backend and convert to local timezone
+  const startDate = new Date(backendEvent.start);
+  const formattedDate = startDate.toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+
+  let time = backendEvent.time || startDate;
+  time = new Date(time).toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  });
+
+  const title = backendEvent.details?.title || `${backendEvent.type} event`;
+  const image = backendEvent.imgUrl 
+    || backendEvent.details?.image 
+    || getPlaceholderImage(title, backendEvent.type);
+  console.log('time:', time, 'formattedDate:', formattedDate);
+  return {
+    id: parseInt(backendEvent.id, 10) || 0,
+    title: title,
+    type: backendEvent.type,
+    location: backendEvent.place || 'Location TBD',
+    time: time,
+    date: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1),
+    attendees: backendEvent.details?.attendees || 0,
+    rating: backendEvent.details?.rating || 0,
+    description: backendEvent.details?.description || '',
+    image: image,
+    tags: backendEvent.details?.tags || [backendEvent.type, backendEvent.priceType],
+  };
+};
 
 /**
- * Эндпоинт 1: Получение списка событий с пагинацией
- * Имитирует реальный API с параметрами limit и offset
- * @param {number} offset - Смещение от начала (для пагинации)
- * @param {number} limit - Количество событий для загрузки
- * @returns {Promise<EventBatchResponse>} Объект с массивом событий и метаданными
+ * Endpoint 1: Fetch events list
+ * GET /v1/api/events
+ * @returns {Promise<EventBatchResponse>} Object with events array and metadata
  */
 export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE): Promise<EventBatchResponse> => {
   try {
-    // Симуляция задержки сети
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const response = await fetchWithAuth(`${API_BASE_URL}/events`);
 
-    // Генерируем события с учетом offset
-    const events: Event[] = [];
-    const totalEvents = 50; // Всего событий в "базе"
-
-    for (let i = offset; i < offset + limit && i < totalEvents; i++) {
-      const template = mockEventTemplates[i % mockEventTemplates.length];
-      if (!template) continue;
-      const date = new Date();
-      date.setDate(date.getDate() + Math.floor(i / 2));
-      const formattedDate = date.toLocaleDateString('ru-RU', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric'
-      });
-
-      events.push({
-        id: i + 1,
-        title: template.title ?? 'Событие',
-        type: template.type ?? 'Разное',
-        location: template.location ?? '',
-        time: template.time ?? '',
-        date: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1),
-        attendees: (template.attendees ?? 0) + Math.floor(Math.random() * 30),
-        rating: Number((parseFloat(String(template.rating ?? 0)) + (Math.random() - 0.5) * 0.4).toFixed(1)),
-        description: template.description ?? '',
-        image: template.image ?? '',
-        tags: template.tags ?? [],
-      });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const backendEvents: BackendEvent[] = await response.json();
+    
+    // Transform backend events to frontend format
+    const allEvents = backendEvents.map(transformBackendEvent);
+    
+    // Apply pagination on client side (backend doesn't support it yet)
+    const paginatedEvents = allEvents.slice(offset, offset + limit);
+    const totalEvents = allEvents.length;
 
     return {
       success: true,
-      data: events,
+      data: paginatedEvents,
       pagination: {
         offset,
         limit,
@@ -152,43 +140,37 @@ export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENT
     };
   } catch (error) {
     console.error('Error fetching events batch:', error);
-    throw new Error('Ошибка при загрузке событий');
+    throw new Error('Error loading events');
   }
 };
 
 /**
- * Эндпоинт 2: Получение деталей одного события
- * @param {number} eventId - ID события
- * @returns {Promise<EventDetailsResponse>} Полная информация о событии
+ * Endpoint 2: Fetch single event details
+ * GET /v1/api/events/{id}
+ * @param {number} eventId - Event ID
+ * @returns {Promise<EventDetailsResponse>} Full event information
  */
 export const fetchEventDetails = async (eventId: number): Promise<EventDetailsResponse> => {
   try {
-    // Симуляция задержки сети
-    await new Promise(resolve => setTimeout(resolve, 400));
+    const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`);
 
-    const template = mockEventTemplates[(eventId - 1) % mockEventTemplates.length];
-    
-    if (!template) {
-      throw new Error('Template not found');
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Event not found');
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const backendEvent: BackendEvent = await response.json();
+    const event = transformBackendEvent(backendEvent);
     
     const details: EventDetails = {
-      id: eventId,
-      title: template.title,
-      type: template.type,
-      location: template.location,
-      time: template.time,
-      attendees: template.attendees,
-      rating: template.rating,
-      description: template.description,
-      image: template.image,
-      tags: template.tags,
-      date: new Date().toLocaleDateString('ru-RU'),
-      fullDescription: `${template.description} Это расширенное описание события с дополнительными деталями. Организаторы: команда профессионалов с опытом более 10 лет.`,
-      organizer: {
-        name: "ООО 'Культурные события'",
-        rating: 4.8,
-        reviews: 342
+      ...event,
+      fullDescription: backendEvent.details?.fullDescription || event.description,
+      organizer: backendEvent.details?.organizer || {
+        name: "Event Organizer",
+        rating: 4.5,
+        reviews: 0
       }
     };
     
@@ -198,26 +180,57 @@ export const fetchEventDetails = async (eventId: number): Promise<EventDetailsRe
     };
   } catch (error) {
     console.error('Error fetching event details:', error);
-    throw new Error('Ошибка при загрузке деталей события');
+    throw new Error(error instanceof Error ? error.message : 'Error loading event details');
   }
 };
 
 /**
- * Утилита для получения данных с реального API (пример)
- * Используется JSONPlaceholder как демонстрация
+ * Create a new event
+ * POST /v1/api/events
  */
-export const fetchFromExternalAPI = async (endpoint: string): Promise<any> => {
+export const createEvent = async (eventData: {
+  type: string;
+  start: string;
+  end: string;
+  duration: number;
+  priceType: string;
+  place?: string;
+  needReg?: boolean;
+  details?: Record<string, any>;
+}): Promise<BackendEvent> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
-    
+    const response = await fetchWithAuth(`${API_BASE_URL}/events`, {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
-    const data = await response.json();
-    return data;
+
+    const event: BackendEvent = await response.json();
+    return event;
   } catch (error) {
-    console.error('Error fetching from external API:', error);
+    console.error('Error creating event:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an event
+ * DELETE /v1/api/events/{id}
+ */
+export const deleteEvent = async (eventId: number): Promise<void> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting event:', error);
     throw error;
   }
 };
@@ -225,5 +238,6 @@ export const fetchFromExternalAPI = async (endpoint: string): Promise<any> => {
 export default {
   fetchEventsBatch,
   fetchEventDetails,
-  fetchFromExternalAPI
+  createEvent,
+  deleteEvent,
 };
