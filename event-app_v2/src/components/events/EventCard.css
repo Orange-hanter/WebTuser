@@ -18,6 +18,51 @@
   transform: scale(1.05);
 }
 
+/* Empty state card */
+.event-card-empty {
+  cursor: default;
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+  border: 2px dashed var(--gray-300);
+  justify-content: center;
+  align-items: center;
+}
+
+.event-card-empty:hover {
+  transform: scale(1);
+}
+
+.event-card-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.event-card-empty-icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--gray-400);
+  stroke-width: 1.5;
+}
+
+.event-card-empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin: 0;
+}
+
+.event-card-empty-description {
+  font-size: 1rem;
+  color: var(--gray-500);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 300px;
+}
+
 .event-card-image-container {
   position: relative;
   flex-grow: 1;

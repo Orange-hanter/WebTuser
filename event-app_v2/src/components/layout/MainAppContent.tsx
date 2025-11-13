@@ -1,15 +1,16 @@
 import { FC, useState, useMemo, useEffect, useCallback } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, ActionButtons } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons } from '@components/events';
 import { 
   SettingsModal, 
   EventDetailModal, 
   CreateEventModal, 
   SubscribedEventsModal 
 } from '@components/modals';
-import { EmptyState, LoadingSpinner, KeyboardHints } from '@components/common';
+import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import type { Event } from '@/types';
+import './MainAppContent.css';
 
 const MainAppContent: FC = () => {
   const { events, isLoading, error, hasMore, loadMoreEvents } = useInfiniteEventScroll();
@@ -25,11 +26,11 @@ const MainAppContent: FC = () => {
       setLikedEvents(prev => [...prev, currentEvent]);
     }
     goToNextEvent();
-  }, [currentEvent, goToNextEvent]);
+  }, [currentEvent]);
 
   const handleDislike = useCallback(() => {
     goToNextEvent();
-  }, [goToNextEvent]);
+  }, [currentEvent]);
 
   // Обработчик для загрузки еще событий
   useEffect(() => {
@@ -78,9 +79,17 @@ const MainAppContent: FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentEvent, handleLike, handleDislike]);
 
-  const isEventsEnd = useMemo(() => {
-    return currentIndex >= events.length && !isLoading && !hasMore;
-  }, [currentIndex, events.length, isLoading, hasMore]);
+  const showEmptyCard = useMemo(() => {
+    const shouldShow = !currentEvent && !isLoading && !hasMore && events.length > 0;
+    console.debug('[MainAppContent] showEmptyCard debug', {
+      hasCurrentEvent: Boolean(currentEvent),
+      isLoading,
+      hasMore,
+      eventsLength: events.length,
+      shouldShow,
+    });
+    return shouldShow;
+  }, [currentEvent, isLoading, hasMore]);
 
   // Если ошибка при загрузке
   if (error && events.length === 0) {
@@ -111,11 +120,6 @@ const MainAppContent: FC = () => {
     );
   }
 
-  // Если все события просмотрены
-  if (isEventsEnd) {
-    return <EmptyState onReset={() => setShowSettings(true)} />;
-  }
-
   return (
     <div className="app-container">
       {/* Основной контент - показываем в зависимости от activeTab */}
@@ -126,7 +130,9 @@ const MainAppContent: FC = () => {
           <main className="app-main">
             {/* Контент события */}
             <div className="event-content">
-              {currentEvent ? (
+              {showEmptyCard ? (
+                <EmptyEventCard />
+              ) : currentEvent ? (
                 <EventCard 
                   event={currentEvent} 
                   onClick={() => setShowEventDetail(true)} 
@@ -137,7 +143,7 @@ const MainAppContent: FC = () => {
             </div>
 
             {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
-            {currentEvent && (
+            {currentEvent && !showEmptyCard && (
               <ActionButtons 
                 onLike={handleLike} 
                 onDislike={handleDislike} 

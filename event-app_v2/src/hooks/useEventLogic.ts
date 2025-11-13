@@ -93,6 +93,11 @@ export const useEventNavigation = (events: Event[]): UseEventNavigationReturn =>
       if (nextIndex >= events.length - 2) {
         window.dispatchEvent(new CustomEvent('loadMoreEvents'));
       }
+      console.debug('Navigating to event index:', nextIndex, 'of', events.length);
+      if (nextIndex >= events.length) {
+        console.warn('No more events to navigate to.');
+        return -1;
+      }
       return nextIndex < events.length ? nextIndex : prev;
     });
   }, [events.length]);
