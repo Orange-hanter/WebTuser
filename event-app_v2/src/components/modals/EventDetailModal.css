@@ -187,7 +187,6 @@
 .modal-button-dislike {
   border: 2px solid var(--gray-300);
   color: var(--gray-700);
-  background-color: transparent;
 }
 
 .modal-button-dislike:hover {
