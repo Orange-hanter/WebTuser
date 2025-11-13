@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { X, MapPin, Clock, Users, Star } from 'lucide-react';
 import type { Event } from '@/types';
 import './EventDetailModal.css';
@@ -12,11 +12,47 @@ interface EventDetailModalProps {
 }
 
 const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike, onDislike }) => {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // Close modal on Escape key press
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !event) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
+        <button 
+          onClick={onClose}
+          className="modal-close-button"
+          aria-label="Close"
+        >
+          <X className="modal-close-icon" />
+        </button>
+
         <div className="modal-image-wrapper">
           <img 
             src={event.image} 
@@ -24,13 +60,6 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
             className="modal-image"
             loading="lazy"
           />
-          <button 
-            onClick={onClose}
-            className="modal-close-button"
-            aria-label="Закрыть"
-          >
-            <X className="modal-close-icon" />
-          </button>
         </div>
         
         <div className="modal-body">
