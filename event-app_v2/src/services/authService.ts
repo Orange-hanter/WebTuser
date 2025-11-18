@@ -273,7 +273,6 @@ class AuthService {
    */
   static async getCurrentUser(token: string): Promise<ApiResponse<User>> {
     try {
-
       const payload = parseJWT(token);
       if (!payload) {
         return {
@@ -282,17 +281,46 @@ class AuthService {
         };
       }
 
-      // TODO: не реализован функционал получения пользователя на бэкенде
-      // Временная заглушка - возвращаем данные из токена
+      // Call actual /me endpoint to get user profile with telegram info
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Fallback to token data if endpoint not ready
+        return {
+          success: true,
+          data: {
+            id: payload.userId,
+            email: payload.email,
+            phone: '',
+            firstName: '',
+            lastName: '',
+            createdAt: new Date().toISOString(),
+          },
+        };
+      }
+
+      const userData = await response.json();
+
       return {
         success: true,
         data: {
-          id: payload.userId,
-          email: payload.email,
-          phone: '',
-          firstName: '',
-          lastName: '',
-          createdAt: new Date().toISOString(),
+          id: userData.id || payload.userId,
+          email: userData.email || payload.email,
+          phone: userData.phone || '',
+          firstName: userData.firstName || userData.first_name || '',
+          lastName: userData.lastName || userData.last_name || '',
+          city: userData.city || '',
+          bio: userData.bio || '',
+          interests: userData.interests || [],
+          avatar: userData.avatar || '',
+          createdAt: userData.createdAt || userData.created_at || new Date().toISOString(),
+          telegram_registered: userData.telegram_registered || false,
+          telegram_info: userData.telegram_info || undefined,
         },
       };
     } catch (error) {

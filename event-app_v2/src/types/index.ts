@@ -60,6 +60,28 @@ export interface User {
   city?: string;
   interests?: string[];
   createdAt: string;
+  telegram_registered?: boolean;
+  telegram_info?: TelegramInfo;
+}
+
+export interface TelegramInfo {
+  username?: string;
+  chat_id: number;
+  status: 'active' | 'blocked' | 'inactive';
+  updated_at: string;
+}
+
+export interface TelegramBindingLink {
+  deeplink: string;
+  token: string;
+  expires_at: string;
+}
+
+export interface TelegramStatus {
+  status: 'active' | 'blocked' | 'inactive';
+  chat_id?: number;
+  username?: string;
+  updated_at?: string;
 }
 
 export interface AuthCredentials {
