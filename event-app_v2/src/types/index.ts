@@ -100,6 +100,28 @@ export interface VerificationData {
   method: 'sms' | 'email';
 }
 
+export interface CreateEventData {
+  type: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  duration: number;
+  location: string;
+  image?: string;
+  organizerContact: string;
+  priceType: 'free' | 'paid' | 'donation';
+  price?: string;
+  needReg: boolean;
+  dynamicFields: Record<string, any>;
+}
+
+export interface FeedbackData {
+  step: number;
+  message: string;
+  email?: string;
+}
+
 export interface UserProfile {
   firstName: string;
   lastName: string;

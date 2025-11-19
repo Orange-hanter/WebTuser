@@ -1,10 +1,10 @@
 import { FC, useState, useMemo, useEffect, useCallback } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
 import { EventCard, EmptyEventCard, ActionButtons } from '@components/events';
+import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
   EventDetailModal, 
-  CreateEventModal, 
   SubscribedEventsModal 
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
@@ -171,7 +171,12 @@ const MainAppContent: FC = () => {
       )}
 
       {/* Модали */}
-      <CreateEventModal isVisible={activeTab === 'create'} />
+      {activeTab === 'create' && (
+        <CreateEventWizard 
+          isVisible={true} 
+          onClose={() => setActiveTab('discover')} 
+        />
+      )}
       
       <SubscribedEventsModal 
         isVisible={activeTab === 'subscribed'} 
