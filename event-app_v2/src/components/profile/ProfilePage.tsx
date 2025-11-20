@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { User, Bell, Calendar, Clock, XCircle, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
+import { User, Bell, Calendar, Clock, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { useAuthContext } from '@/contexts';
 import { LoadingSpinner } from '@/components/common';
@@ -26,9 +26,7 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
   });
 
   // History state
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-  const [upcomingEvents, setUpcomingEvents] = useState<EventWithSubscription[]>([]);
-  const [pastEvents, setPastEvents] = useState<EventWithSubscription[]>([]);
+  const [historyEvents, setHistoryEvents] = useState<EventWithSubscription[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -60,12 +58,8 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
   const loadEvents = async () => {
     setIsLoadingEvents(true);
     try {
-      const [upcoming, past] = await Promise.all([
-        userService.getUpcomingEvents(),
-        userService.getEventHistory()
-      ]);
-      setUpcomingEvents(upcoming);
-      setPastEvents(past);
+      const history = await userService.getEventHistory();
+      setHistoryEvents(history);
     } catch (err) {
       if (err instanceof Error && err.message === 'Unauthorized') {
         logout();
@@ -87,17 +81,6 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
       setError('Не удалось сохранить изменения');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleCancelParticipation = async (eventId: number) => {
-    if (!confirm('Вы уверены, что хотите отменить участие?')) return;
-    
-    try {
-      await userService.cancelParticipation(eventId);
-      loadEvents(); // Refresh lists
-    } catch (err) {
-      alert('Не удалось отменить участие');
     }
   };
 
@@ -225,31 +208,18 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
 
       {/* Participation History Section */}
       <section className="profile-section">
-        <div className="history-tabs">
-          <button 
-            className={`history-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-            onClick={() => setActiveTab('upcoming')}
-          >
-            Предстоящие
-          </button>
-          <button 
-            className={`history-tab ${activeTab === 'past' ? 'active' : ''}`}
-            onClick={() => setActiveTab('past')}
-          >
-            История
-          </button>
-        </div>
+        <h3 className="profile-subtitle">История участия</h3>
 
         {isLoadingEvents ? (
           <LoadingSpinner />
         ) : (
           <div className="events-list">
-            {(activeTab === 'upcoming' ? upcomingEvents : pastEvents).length === 0 ? (
+            {historyEvents.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.5)' }}>
-                Нет событий
+                История пуста
               </div>
             ) : (
-              (activeTab === 'upcoming' ? upcomingEvents : pastEvents).map(event => (
+              historyEvents.map(event => (
                 <div key={event.id} className="event-card-compact">
                   <div className="event-info">
                     <h4>{event.title}</h4>
@@ -268,15 +238,6 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
                     </div>
                   </div>
                   <div className="event-actions">
-                    {activeTab === 'upcoming' && event.subscriptionStatus !== 'cancelled' && (
-                      <button 
-                        onClick={() => handleCancelParticipation(event.id)}
-                        style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}
-                        title="Отменить участие"
-                      >
-                        <XCircle size={24} />
-                      </button>
-                    )}
                     <button 
                       style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', marginLeft: 8 }}
                       title="Подробнее"

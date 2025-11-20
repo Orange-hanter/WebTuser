@@ -1,11 +1,10 @@
 import { FC, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, EmptyEventCard, ActionButtons, EventByCategory } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons, EventByCategory, UpcomingEventsView } from '@components/events';
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
-  EventDetailModal, 
-  SubscribedEventsModal 
+  EventDetailModal
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
@@ -16,8 +15,8 @@ import './ViewModeToggle.css';
 
 const MainAppContent: FC = () => {
   const { events, isLoading, error, hasMore, loadMoreEvents, setCategoryFilter } = useInfiniteEventScroll();
-  const [likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
@@ -68,19 +67,12 @@ const MainAppContent: FC = () => {
     }
   }, [hasMore, isLoading, loadMoreEvents]);
 
-  const handleTabChange = (tab: NavTab) => {
-    setActiveTab(tab);
-    setShowProfile(false);
-  };
-
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
   const handleLike = useCallback(() => {
-    if (currentEvent) {
-      setLikedEvents(prev => [...prev, currentEvent]);
-    }
+    // TODO: Implement like logic (e.g. API call)
     goToNextEvent();
-  }, [currentEvent]);
+  }, [goToNextEvent]);
 
   const handleDislike = useCallback(() => {
     goToNextEvent();
@@ -105,6 +97,7 @@ const MainAppContent: FC = () => {
         case 'KeyD':
           event.preventDefault();
           if (currentEvent) {
+            setSelectedEvent(currentEvent);
             setShowEventDetail(true);
           }
           break;
@@ -229,7 +222,10 @@ const MainAppContent: FC = () => {
                     ) : currentEvent ? (
                       <EventCard 
                         event={currentEvent} 
-                        onClick={() => setShowEventDetail(true)} 
+                        onClick={() => {
+                          setSelectedEvent(currentEvent);
+                          setShowEventDetail(true);
+                        }} 
                       />
                     ) : (
                       <LoadingSpinner />
@@ -275,11 +271,17 @@ const MainAppContent: FC = () => {
         />
       )}
       
-      <SubscribedEventsModal 
-        isVisible={activeTab === 'subscribed'} 
-        likedEvents={likedEvents}
-        onRemove={(eventId) => setLikedEvents(prev => prev.filter(e => e.id !== eventId))}
-      />
+      {activeTab === 'upcoming' && (
+        <main className="app-main" style={{ overflowY: 'auto' }}>
+          <UpcomingEventsView 
+            onEventClick={(event) => {
+              setSelectedEvent(event);
+              setShowEventDetail(true);
+            }}
+            onGoToDiscovery={() => setActiveTab('discover')}
+          />
+        </main>
+      )}
 
       <SettingsModal 
         isOpen={showSettings}
@@ -291,7 +293,7 @@ const MainAppContent: FC = () => {
       <EventDetailModal 
         isOpen={showEventDetail}
         onClose={() => setShowEventDetail(false)}
-        event={currentEvent}
+        event={selectedEvent || currentEvent}
         onLike={handleLike}
         onDislike={handleDislike}
       />

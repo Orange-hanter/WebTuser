@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { Compass, Plus, Heart } from 'lucide-react';
+import { Compass, Plus, Calendar } from 'lucide-react';
 import './BottomNavigation.css';
 
-export type NavTab = 'discover' | 'create' | 'subscribed';
+export type NavTab = 'discover' | 'create' | 'upcoming';
 
 interface BottomNavigationProps {
   activeTab: NavTab;
@@ -33,13 +33,13 @@ const BottomNavigation: FC<BottomNavigationProps> = ({ activeTab, onTabChange })
       </button>
 
       <button
-        className={`bottom-nav-item ${activeTab === 'subscribed' ? 'active' : ''}`}
-        onClick={() => onTabChange('subscribed')}
-        aria-label="Подписанные события"
-        title="Подписанные события"
+        className={`bottom-nav-item ${activeTab === 'upcoming' ? 'active' : ''}`}
+        onClick={() => onTabChange('upcoming')}
+        aria-label="Мои события"
+        title="Мои события"
       >
-        <Heart size={24} />
-        <span className="bottom-nav-label">Избранное</span>
+        <Calendar size={24} />
+        <span className="bottom-nav-label">События</span>
       </button>
     </nav>
   );
