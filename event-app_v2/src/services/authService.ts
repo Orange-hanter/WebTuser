@@ -119,6 +119,37 @@ class AuthService {
   }
 
   /**
+   * Повторная отправка кода верификации
+   */
+  static async resendCode(email: string): Promise<ApiResponse<null>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/resend-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        return {
+          success: false,
+          error: errorData.message || 'Ошибка отправки кода',
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Ошибка отправки кода',
+      };
+    }
+  }
+
+  /**
    * Верификация кода подтверждения
    */
   static async verify(data: VerificationData): Promise<ApiResponse<{ token: string; user: User }>> {

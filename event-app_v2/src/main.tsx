@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { AuthProvider } from '@/contexts'
+import { AuthProvider, ToastProvider } from '@/contexts'
 import '@/index.css'
 import App from '@/App'
 
@@ -12,8 +12,10 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ToastProvider>
   </StrictMode>,
 )

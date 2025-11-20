@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode, FC } from 'react';
 import AuthService from '@/services/authService';
 import TelegramService from '@/services/telegramService';
 import type { User, AuthCredentials, RegistrationData, UserProfile, TelegramBindingLink } from '@/types';
@@ -16,6 +16,7 @@ interface AuthContextType {
   refreshTelegramStatus: () => Promise<void>;
   bindTelegram: () => Promise<TelegramBindingLink | null>;
   unbindTelegram: () => Promise<void>;
+  resendCode: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,11 +52,11 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   // Вычисляемое значение isAuthenticated
   const isAuthenticated = user !== null && AuthService.isTokenValid();
 
-  const logStatus = () => {
+  const logStatus = useCallback(() => {
     console.log('🔐 AuthContext: user=', user?.id, 'isAuthenticated=', isAuthenticated, 'tokenValid=', AuthService.isTokenValid());
-  };
+  }, [user, isAuthenticated]);
 
-  const login = async (credentials: AuthCredentials) => {
+  const login = useCallback(async (credentials: AuthCredentials) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -84,9 +85,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     }
     logStatus();
-  };
+  }, [logStatus]);
 
-  const register = async (data: RegistrationData) => {
+  const register = useCallback(async (data: RegistrationData) => {
     console.log('🟢 AuthContext: Showing main app, isAuthenticated=', isAuthenticated);
     setError(null);
     try {
@@ -105,9 +106,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const verify = async (code: string, method: 'sms' | 'email') => {
+  const verify = useCallback(async (code: string, method: 'sms' | 'email') => {
     setError(null);
     try {
       const response = await AuthService.verify({ email: tempEmail, code, method });
@@ -131,9 +132,23 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tempEmail]);
 
-  const updateProfile = async (profile: Partial<UserProfile>) => {
+  const resendCode = useCallback(async (email: string) => {
+    setError(null);
+    try {
+      const response = await AuthService.resendCode(email);
+      if (!response.success) {
+        throw new Error(response.error || 'Ошибка отправки кода');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Ошибка отправки кода';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+
+  const updateProfile = useCallback(async (profile: Partial<UserProfile>) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -155,7 +170,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (response.data) {
-        console.log('🔐 AuthContext.updateProfile: Profile updated successfully', response.data);
         setUser(response.data);
       }
     } catch (err) {
@@ -165,129 +179,60 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentToken, tempCredentials, login]);
 
-  const refreshTelegramStatus = async () => {
-    if (!currentToken || !user) {
-      console.warn('🔐 AuthContext.refreshTelegramStatus: No active session');
-      return;
-    }
-
-    try {
-      console.log('📱 AuthContext.refreshTelegramStatus: Fetching user data...');
-      const response = await AuthService.getCurrentUser(currentToken);
-      
-      if (response.success && response.data) {
-        console.log('📱 AuthContext.refreshTelegramStatus: Updated user with Telegram info', response.data);
-        setUser(response.data);
-      }
-    } catch (err) {
-      console.error('📱 AuthContext.refreshTelegramStatus: Error', err);
-    }
-  };
-
-  const bindTelegram = async (): Promise<TelegramBindingLink | null> => {
-    if (!currentToken || !user) {
-      setError('Требуется авторизация');
-      return null;
-    }
-
+  const logout = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      console.log('📱 AuthContext.bindTelegram: Requesting binding link...');
-      const response = await TelegramService.requestBindingLink();
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Ошибка получения ссылки');
-      }
-
-      console.log('📱 AuthContext.bindTelegram: Binding link received', response.data);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Ошибка привязки Telegram';
-      setError(errorMessage);
-      console.error('📱 AuthContext.bindTelegram: Error', err);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const unbindTelegram = async () => {
-    if (!currentToken || !user) {
-      setError('Требуется авторизация');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log('📱 AuthContext.unbindTelegram: Unbinding Telegram...');
-      const response = await TelegramService.unbind();
-      
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка отключения Telegram');
-      }
-
-      console.log('📱 AuthContext.unbindTelegram: Successfully unbound, refreshing user...');
-      // Refresh user data to update telegram status
-      await refreshTelegramStatus();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Ошибка отключения Telegram';
-      setError(errorMessage);
-      console.error('📱 AuthContext.unbindTelegram: Error', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      console.log('🔐 AuthContext.logout: Starting logout...');
       await AuthService.logout();
       setUser(null);
       setCurrentToken('');
-      setTempEmail('');
       setTempCredentials(null);
-      console.log('🔐 AuthContext.logout: Logout successful');
-      logStatus();
     } catch (err) {
-      console.error('🔐 AuthContext.logout: Error', err);
+      console.error('Logout error:', err);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Логируем изменения состояния авторизации
-  useEffect(() => {
-    console.log('🔐 AuthContext: Auth state changed', { 
-      isAuthenticated, 
-      userId: user?.id,
-      hasToken: !!currentToken 
-    });
-  }, [isAuthenticated, user, currentToken]);
-
-  useEffect(() => {
-    console.log('👤 user changed:', user);
-  }, [user]);
-
-  useEffect(() => {
-    console.log('🔒 isAuthenticated changed:', isAuthenticated);
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    console.log('⏳ isLoading changed:', isLoading);
-  }, [isLoading]);
-
-  useEffect(() => {
-    console.log('❌ error changed:', error);
-  }, [error]);
-
-  useEffect(() => {
-    console.log('🎫 currentToken changed:', currentToken ? 'exists' : 'empty');
+  const refreshTelegramStatus = useCallback(async () => {
+    if (!currentToken) return;
+    try {
+      const response = await AuthService.getCurrentUser(currentToken);
+      if (response.success && response.data) {
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing telegram status:', error);
+    }
   }, [currentToken]);
 
-  const value: AuthContextType = {
+  const bindTelegram = useCallback(async (): Promise<TelegramBindingLink | null> => {
+    if (!currentToken) return null;
+    try {
+      const response = await TelegramService.requestBindingLink();
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error binding telegram:', error);
+      return null;
+    }
+  }, [currentToken]);
+
+  const unbindTelegram = useCallback(async () => {
+    if (!currentToken) return;
+    try {
+      await TelegramService.unbind();
+      await refreshTelegramStatus();
+    } catch (error) {
+      console.error('Error unbinding telegram:', error);
+      throw error;
+    }
+  }, [currentToken, refreshTelegramStatus]);
+
+  const contextValue = useMemo(() => ({
     user,
     isAuthenticated,
     isLoading,
@@ -300,12 +245,31 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     refreshTelegramStatus,
     bindTelegram,
     unbindTelegram,
-  };
+    resendCode
+  }), [
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    login,
+    register,
+    verify,
+    updateProfile,
+    logout,
+    refreshTelegramStatus,
+    bindTelegram,
+    unbindTelegram,
+    resendCode
+  ]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuthContext = (): AuthContextType => {
+export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuthContext must be used within an AuthProvider');
