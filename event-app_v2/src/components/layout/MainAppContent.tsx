@@ -12,6 +12,7 @@ import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from 
 import type { Event } from '@/types';
 import { ProfilePage } from '@/components/profile';
 import './MainAppContent.css';
+import './ViewModeToggle.css';
 
 const MainAppContent: FC = () => {
   const { events, isLoading, error, hasMore, loadMoreEvents, setCategoryFilter } = useInfiniteEventScroll();
@@ -143,8 +144,6 @@ const MainAppContent: FC = () => {
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
           onProfileClick={() => setShowProfile(true)}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
         />
         <main className="app-main">
           <div className="error-message">
@@ -165,8 +164,6 @@ const MainAppContent: FC = () => {
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
           onProfileClick={() => setShowProfile(true)}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
         />
         <main className="app-main">
           <LoadingSpinner />
@@ -182,8 +179,6 @@ const MainAppContent: FC = () => {
           <Header 
             onSettingsClick={() => setShowSettings(true)} 
             onProfileClick={() => setShowProfile(true)}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
           />
           <main className="app-main">
             <ProfilePage onBack={() => setShowProfile(false)} />
@@ -195,8 +190,6 @@ const MainAppContent: FC = () => {
             <Header 
               onSettingsClick={() => setShowSettings(true)} 
               onProfileClick={() => setShowProfile(true)}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
             />
             
             <main 
@@ -205,6 +198,23 @@ const MainAppContent: FC = () => {
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
             >
+              <div className="view-mode-toggle-container">
+                <div className="view-mode-toggle">
+                  <button 
+                    className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                    onClick={() => setViewMode('card')}
+                  >
+                    По слоту
+                  </button>
+                  <button 
+                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
+                    onClick={() => setViewMode('category')}
+                  >
+                    По категориям
+                  </button>
+                </div>
+              </div>
+
               {viewMode === 'category' ? (
                 <EventByCategory 
                   isActive={viewMode === 'category'}
