@@ -53,8 +53,40 @@
   background-color: #fee2e2;
 }
 
-.app-header-logout:hover .app-header-icon {
-  color: var(--red-600);
+.app-header-logout .app-header-icon {
+  color: #ef4444;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-mode-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  padding: 2px;
+}
+
+.toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.toggle-btn.active {
+  background: #fff;
+  color: var(--purple-600);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* Small phones optimization */
@@ -80,5 +112,11 @@
 @media (min-width: 1024px) {
   .app-header-content {
     max-width: 1400px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header-title {
+    display: none;
   }
 }

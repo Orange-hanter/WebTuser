@@ -27,6 +27,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include',
   });
 };
 
@@ -111,7 +112,7 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
  * GET /v1/api/events
  * @returns {Promise<EventBatchResponse>} Object with events array and metadata
  */
-export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE): Promise<EventBatchResponse> => {
+export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE, type?: string): Promise<EventBatchResponse> => {
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/events`);
 
@@ -122,8 +123,13 @@ export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENT
     const backendEvents: BackendEvent[] = await response.json();
     
     // Transform backend events to frontend format
-    const allEvents = backendEvents.map(transformBackendEvent);
+    let allEvents = backendEvents.map(transformBackendEvent);
     
+    // Apply filtering
+    if (type) {
+      allEvents = allEvents.filter(event => event.type === type);
+    }
+
     // Apply pagination on client side (backend doesn't support it yet)
     const paginatedEvents = allEvents.slice(offset, offset + limit);
     const totalEvents = allEvents.length;
@@ -235,9 +241,47 @@ export const deleteEvent = async (eventId: number): Promise<void> => {
   }
 };
 
+/**
+ * Get category statistics
+ * GET /v1/api/analytics/category-stats
+ */
+export const getCategoryStats = async (): Promise<import('@/types').CategoryStats[]> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/analytics/category-stats`);
+    
+    if (!response.ok) {
+      // Fallback to mock data if endpoint doesn't exist yet
+      console.warn('Category stats endpoint not found, using mock data');
+      return [
+        { type: 'concert', count: 1240, label: 'Концерт' },
+        { type: 'lecture', count: 850, label: 'Лекция' },
+        { type: 'sport', count: 2100, label: 'Спорт' },
+        { type: 'party', count: 3200, label: 'Вечеринка' },
+        { type: 'theater', count: 540, label: 'Театр' },
+        { type: 'exhibition', count: 1100, label: 'Выставка' },
+      ];
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching category stats:', error);
+    // Return empty array or mock data on error to prevent UI crash
+    return [
+      { type: 'concert', count: 1240, label: 'Концерт' },
+      { type: 'lecture', count: 850, label: 'Лекция' },
+      { type: 'sport', count: 2100, label: 'Спорт' },
+      { type: 'party', count: 3200, label: 'Вечеринка' },
+      { type: 'theater', count: 540, label: 'Театр' },
+      { type: 'exhibition', count: 1100, label: 'Выставка' },
+    ];
+  }
+};
+
 export default {
   fetchEventsBatch,
   fetchEventDetails,
   createEvent,
   deleteEvent,
+  getCategoryStats,
 };

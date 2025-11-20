@@ -261,6 +261,27 @@
   margin: 0;
 }
 
+/* Ссылка для входа */
+.verification-login-link {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.verification-switch-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.verification-switch-button:hover:not(:disabled) {
+  color: #4b5563;
+  text-decoration: underline;
+}
+
 /* Мобильная оптимизация */
 @media (max-width: 640px) {
   .verification-card {

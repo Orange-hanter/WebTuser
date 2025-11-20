@@ -5,7 +5,9 @@ import './VerificationPage.css';
 interface VerificationPageProps {
   email: string;
   onVerify: (code: string, method: 'sms' | 'email') => Promise<void>;
+  onResend?: () => Promise<void>;
   onSwitchToNextStep: () => void;
+  onSwitchToLogin?: () => void;
   isLoading?: boolean;
   defaultMethod?: 'sms' | 'email';
 }
@@ -13,7 +15,9 @@ interface VerificationPageProps {
 const VerificationPage: FC<VerificationPageProps> = ({
   email,
   onVerify,
+  onResend,
   onSwitchToNextStep,
+  onSwitchToLogin,
   isLoading = false,
   defaultMethod = 'email'
   
@@ -57,10 +61,17 @@ const VerificationPage: FC<VerificationPageProps> = ({
     }
   };
 
-  const handleResend = () => {
-    setTimeLeft(60);
-    setCanResend(false);
-    // Здесь можно добавить логику переотправки кода
+  const handleResend = async () => {
+    setError('');
+    if (onResend) {
+      try {
+        await onResend();
+        setTimeLeft(60);
+        setCanResend(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка отправки кода');
+      }
+    }
   };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,6 +185,20 @@ const VerificationPage: FC<VerificationPageProps> = ({
               </p>
             )}
           </div>
+
+          {/* Вернуться ко входу */}
+          {onSwitchToLogin && (
+            <div className="verification-login-link">
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="verification-switch-button"
+                disabled={isLoading}
+              >
+                Вернуться ко входу
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

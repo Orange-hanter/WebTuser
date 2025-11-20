@@ -1,0 +1,254 @@
+.wizard-container {
+  position: fixed;
+  inset: 0;
+  background-color: #f8f9fa;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.wizard-header {
+  background-color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gray-200);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.wizard-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+.wizard-close-button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--gray-500);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wizard-close-button:hover {
+  background-color: var(--gray-100);
+}
+
+.wizard-progress {
+  height: 4px;
+  background-color: var(--gray-200);
+  width: 100%;
+}
+
+.wizard-progress-bar {
+  height: 100%;
+  background-color: var(--purple-600);
+  transition: width 0.3s ease;
+}
+
+.wizard-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wizard-step-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 1.5rem;
+}
+
+.wizard-footer {
+  background-color: white;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wizard-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.wizard-button-secondary {
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.wizard-button-secondary:hover:not(:disabled) {
+  background-color: var(--gray-200);
+}
+
+.wizard-button-primary {
+  background-color: var(--purple-600);
+  color: white;
+}
+
+.wizard-button-primary:hover:not(:disabled) {
+  background-color: var(--purple-700);
+}
+
+.wizard-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Draft Banner */
+.draft-banner {
+  background-color: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.draft-reset-button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Step 1: Event Types */
+.event-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.event-type-card {
+  background-color: white;
+  border: 2px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-type-card:hover {
+  border-color: var(--purple-300);
+  transform: translateY(-2px);
+}
+
+.event-type-card.selected {
+  border-color: var(--purple-600);
+  background-color: var(--purple-50);
+  color: var(--purple-700);
+}
+
+/* Form Fields */
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--gray-700);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--purple-500);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.checkbox-field {
+  margin-top: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--purple-600);
+  cursor: pointer;
+}
+
+.form-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Preview Step */
+.preview-section {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.preview-label {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-bottom: 0.25rem;
+}
+
+.preview-value {
+  font-size: 1.125rem;
+  color: var(--gray-900);
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .wizard-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .event-type-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .wizard-footer {
+    padding: 1rem;
+  }
+}

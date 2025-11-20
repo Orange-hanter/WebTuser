@@ -48,6 +48,17 @@ export interface EventBatchResponse {
   };
 }
 
+export interface CategoryStats {
+  type: string;
+  count: number;
+  label: string;
+}
+
+export interface CategoryStatsResponse {
+  success: boolean;
+  data: CategoryStats[];
+}
+
 // User authentication types
 export interface User {
   id: string;
@@ -98,6 +109,28 @@ export interface VerificationData {
   email: string;
   code: string;
   method: 'sms' | 'email';
+}
+
+export interface CreateEventData {
+  type: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  duration: number;
+  location: string;
+  image?: string;
+  organizerContact: string;
+  priceType: 'free' | 'paid' | 'donation';
+  price?: string;
+  needReg: boolean;
+  dynamicFields: Record<string, any>;
+}
+
+export interface FeedbackData {
+  step: number;
+  message: string;
+  email?: string;
 }
 
 export interface UserProfile {

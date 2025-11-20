@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, memo } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import type { AuthCredentials } from '@/types';
 import './LoginPage.css';
@@ -6,23 +6,25 @@ import './LoginPage.css';
 interface LoginPageProps {
   onLogin: (credentials: AuthCredentials) => Promise<void>;
   onSwitchToRegister: () => void;
-  isLoading?: boolean;
 }
 
-const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading = false }) => {
+const LoginPage: FC<LoginPageProps> = memo(({ onLogin, onSwitchToRegister }) => {
   const [credentials, setCredentials] = useState<AuthCredentials>({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
     try {
       await onLogin(credentials);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка входа');
+      setIsSubmitting(false);
       return false;
     }
   };
@@ -62,7 +64,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
                   onBlur={() => setFocusedField(null)}
                   placeholder="your@email.com"
                   className="login-input"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -83,14 +85,14 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
                   onBlur={() => setFocusedField(null)}
                   placeholder="Введи пароль"
                   className="login-input"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="login-toggle-password"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -112,9 +114,9 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
               type="submit"
               className="login-button"
               data-testid="login-submit-button"
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading ? 'Загрузка...' : 'Войти'}
+              {isSubmitting ? 'Загрузка...' : 'Войти'}
             </button>
           </form>
 
@@ -125,7 +127,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
               onClick={onSwitchToRegister}
               className="login-switch-button"
               data-testid="login-switch-register"
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Зарегистрируйся
             </button>
@@ -134,6 +136,6 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin, onSwitchToRegister, isLoading 
       </div>
     </div>
   );
-};
+});
 
 export default LoginPage;

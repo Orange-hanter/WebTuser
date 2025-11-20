@@ -1,10 +1,10 @@
-import { FC, useState, useMemo, useEffect, useCallback } from 'react';
+import { FC, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, EmptyEventCard, ActionButtons } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons, EventByCategory } from '@components/events';
+import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
   EventDetailModal, 
-  CreateEventModal, 
   SubscribedEventsModal 
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
@@ -13,13 +13,59 @@ import type { Event } from '@/types';
 import './MainAppContent.css';
 
 const MainAppContent: FC = () => {
-  const { events, isLoading, error, hasMore, loadMoreEvents } = useInfiniteEventScroll();
+  const { events, isLoading, error, hasMore, loadMoreEvents, setCategoryFilter } = useInfiniteEventScroll();
   const [likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
+  const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
-  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events);
+  
+  // Swipe handling
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    const touch = e.targetTouches[0];
+    if (touch) {
+      touchEnd.current = null;
+      touchStart.current = touch.clientX;
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const touch = e.targetTouches[0];
+    if (touch) {
+      touchEnd.current = touch.clientX;
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && viewMode === 'card') {
+      setViewMode('category');
+    }
+    if (isRightSwipe && viewMode === 'category') {
+      setViewMode('card');
+    }
+  };
+
+  const handleCategorySelect = useCallback((category: string) => {
+    setCategoryFilter(category);
+    setViewMode('card');
+  }, [setCategoryFilter]);
+  
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !isLoading) {
+      loadMoreEvents();
+    }
+  }, [hasMore, isLoading, loadMoreEvents]);
+
+  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
   const handleLike = useCallback(() => {
     if (currentEvent) {
@@ -31,18 +77,6 @@ const MainAppContent: FC = () => {
   const handleDislike = useCallback(() => {
     goToNextEvent();
   }, [currentEvent]);
-
-  // Обработчик для загрузки еще событий
-  useEffect(() => {
-    const handleLoadMore = () => {
-      if (hasMore && !isLoading) {
-        loadMoreEvents();
-      }
-    };
-
-    window.addEventListener('loadMoreEvents', handleLoadMore);
-    return () => window.removeEventListener('loadMoreEvents', handleLoadMore);
-  }, [hasMore, isLoading, loadMoreEvents]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
@@ -80,7 +114,11 @@ const MainAppContent: FC = () => {
   }, [currentEvent, handleLike, handleDislike]);
 
   const showEmptyCard = useMemo(() => {
-    const shouldShow = !currentEvent && !isLoading && !hasMore && events.length > 0;
+    // Show empty card if:
+    // 1. We have no current event (either finished list or empty list)
+    // 2. We are not loading
+    // 3. We have no more events to load
+    const shouldShow = !currentEvent && !isLoading && !hasMore;
     console.debug('[MainAppContent] showEmptyCard debug', {
       hasCurrentEvent: Boolean(currentEvent),
       isLoading,
@@ -92,10 +130,14 @@ const MainAppContent: FC = () => {
   }, [currentEvent, isLoading, hasMore]);
 
   // Если ошибка при загрузке
-  if (error && events.length === 0) {
+  if (error && events.length === 0 && viewMode === 'card') {
     return (
       <div className="app-container">
-        <Header onSettingsClick={() => setShowSettings(true)} />
+        <Header 
+          onSettingsClick={() => setShowSettings(true)} 
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
         <main className="app-main">
           <div className="error-message">
             <p>Ошибка при загрузке событий: {error}</p>
@@ -109,10 +151,14 @@ const MainAppContent: FC = () => {
   }
 
   // Если событий еще нет и идет загрузка
-  if (events.length === 0 && isLoading) {
+  if (events.length === 0 && isLoading && viewMode === 'card') {
     return (
       <div className="app-container">
-        <Header onSettingsClick={() => setShowSettings(true)} />
+        <Header 
+          onSettingsClick={() => setShowSettings(true)} 
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
         <main className="app-main">
           <LoadingSpinner />
         </main>
@@ -125,53 +171,76 @@ const MainAppContent: FC = () => {
       {/* Основной контент - показываем в зависимости от activeTab */}
       {activeTab === 'discover' && (
         <>
-          <Header onSettingsClick={() => setShowSettings(true)} />
+          <Header 
+            onSettingsClick={() => setShowSettings(true)} 
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
           
-          <main className="app-main">
-            {/* Контент события */}
-            <div className="event-content">
-              {showEmptyCard ? (
-                <EmptyEventCard />
-              ) : currentEvent ? (
-                <EventCard 
-                  event={currentEvent} 
-                  onClick={() => setShowEventDetail(true)} 
-                />
-              ) : (
-                <LoadingSpinner />
-              )}
-            </div>
-
-            {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
-            {currentEvent && !showEmptyCard && (
-              <ActionButtons 
-                onLike={handleLike} 
-                onDislike={handleDislike} 
+          <main 
+            className="app-main"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {viewMode === 'category' ? (
+              <EventByCategory 
+                isActive={viewMode === 'category'}
+                onCategorySelect={handleCategorySelect}
               />
+            ) : (
+              <>
+                {/* Контент события */}
+                <div className="event-content">
+                  {showEmptyCard ? (
+                    <EmptyEventCard />
+                  ) : currentEvent ? (
+                    <EventCard 
+                      event={currentEvent} 
+                      onClick={() => setShowEventDetail(true)} 
+                    />
+                  ) : (
+                    <LoadingSpinner />
+                  )}
+                </div>
+
+                {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
+                {currentEvent && !showEmptyCard && (
+                  <ActionButtons 
+                    onLike={handleLike} 
+                    onDislike={handleDislike} 
+                  />
+                )}
+
+                {/* Информация о прогрессе */}
+                <div className="events-footer">
+                  {isLoading && events.length > 0 && (
+                    <div className="loading-indicator">
+                      <span className="loading-dot"></span>
+                      <span className="loading-dot"></span>
+                      <span className="loading-dot"></span>
+                    </div>
+                  )}
+
+                  {events.length > 0 && (
+                    <div className="events-progress">
+                      Событие {currentIndex + 1} из {events.length}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
-
-            {/* Информация о прогрессе */}
-            <div className="events-footer">
-              {isLoading && events.length > 0 && (
-                <div className="loading-indicator">
-                  <span className="loading-dot"></span>
-                  <span className="loading-dot"></span>
-                  <span className="loading-dot"></span>
-                </div>
-              )}
-
-              {events.length > 0 && (
-                <div className="events-progress">
-                  Событие {currentIndex + 1} из {events.length}
-                </div>
-              )}
-            </div>
           </main>
         </>
       )}
 
       {/* Модали */}
-      <CreateEventModal isVisible={activeTab === 'create'} />
+      {activeTab === 'create' && (
+        <CreateEventWizard 
+          isVisible={true} 
+          onClose={() => setActiveTab('discover')} 
+        />
+      )}
       
       <SubscribedEventsModal 
         isVisible={activeTab === 'subscribed'} 
