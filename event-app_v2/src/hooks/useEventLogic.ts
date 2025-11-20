@@ -6,12 +6,13 @@ import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNav
  * Хук для управления бесконечной подзагрузкой событий
  * Загружает события порциями и добавляет их в кэш
  */
-export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
+export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn & { setCategoryFilter: (category: string | null) => void } => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [categoryFilter, setCategoryFilterState] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
 
   // Загрузка следующей порции событий
@@ -23,7 +24,7 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
     setError(null);
 
     try {
-      const result = await fetchEventsBatch(offset, 5);
+      const result = await fetchEventsBatch(offset, 5, categoryFilter || undefined);
       
       if (result.success) {
         setEvents(prev => [...prev, ...result.data]);
@@ -38,7 +39,25 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
       isLoadingRef.current = false;
       setIsLoading(false);
     }
-  }, [offset, hasMore]);
+  }, [offset, hasMore, categoryFilter]);
+
+  const setCategoryFilter = useCallback((category: string | null) => {
+    setCategoryFilterState(category);
+    setEvents([]);
+    setOffset(0);
+    setHasMore(true);
+    setError(null);
+    // We need to trigger a reload, but since state updates are async, 
+    // we rely on useEffect or manual trigger.
+    // Let's use a ref to force reload in the next effect or just reset and let the component call loadMore
+  }, []);
+
+  // Effect to reload when filter changes (and events are empty)
+  useEffect(() => {
+    if (events.length === 0 && hasMore && !isLoadingRef.current) {
+      loadMoreEvents();
+    }
+  }, [events.length, hasMore, loadMoreEvents]);
 
   // Загрузить первую порцию событий при монтировании
   useEffect(() => {
@@ -54,6 +73,7 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
     setOffset(0);
     setHasMore(true);
     setError(null);
+    setCategoryFilterState(null);
     isLoadingRef.current = false;
   }, []);
 
@@ -63,7 +83,8 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
     error,
     hasMore,
     loadMoreEvents,
-    reset
+    reset,
+    setCategoryFilter
   };
 };
 

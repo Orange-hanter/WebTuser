@@ -48,6 +48,17 @@ export interface EventBatchResponse {
   };
 }
 
+export interface CategoryStats {
+  type: string;
+  count: number;
+  label: string;
+}
+
+export interface CategoryStatsResponse {
+  success: boolean;
+  data: CategoryStats[];
+}
+
 // User authentication types
 export interface User {
   id: string;

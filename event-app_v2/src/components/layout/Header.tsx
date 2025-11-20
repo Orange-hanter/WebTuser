@@ -5,15 +5,35 @@ import './Header.css';
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  viewMode?: 'card' | 'category';
+  onViewModeChange?: (mode: 'card' | 'category') => void;
 }
 
-const Header: FC<HeaderProps> = ({ onSettingsClick }) => {
+const Header: FC<HeaderProps> = ({ onSettingsClick, viewMode, onViewModeChange }) => {
   const { logout } = useAuthContext();
 
   return (
     <header className="app-header">
       <div className="app-header-content">
-        <h1 className="app-header-title">Афиша</h1>
+        <div className="header-left">
+          <h1 className="app-header-title">Афиша</h1>
+          {viewMode && onViewModeChange && (
+            <div className="view-mode-toggle">
+              <button 
+                className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                onClick={() => onViewModeChange('card')}
+              >
+                По слоту
+              </button>
+              <button 
+                className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
+                onClick={() => onViewModeChange('category')}
+              >
+                По категориям
+              </button>
+            </div>
+          )}
+        </div>
         <div className="app-header-buttons">
           <button 
             onClick={onSettingsClick}
