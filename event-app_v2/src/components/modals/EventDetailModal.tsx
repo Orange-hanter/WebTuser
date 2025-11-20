@@ -8,10 +8,9 @@ interface EventDetailModalProps {
   onClose: () => void;
   event: Event | undefined;
   onLike: () => void;
-  onDislike: () => void;
 }
 
-const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike, onDislike }) => {
+const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike }) => {
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -107,19 +106,11 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
           <div className="modal-buttons">
             <button 
               onClick={() => {
-                onDislike();
-                onClose();
-              }}
-              className="modal-button modal-button-dislike"
-            >
-              Не интересно
-            </button>
-            <button 
-              onClick={() => {
                 onLike();
                 onClose();
               }}
               className="modal-button modal-button-like"
+              style={{ width: '100%' }}
             >
               Участвовать
             </button>

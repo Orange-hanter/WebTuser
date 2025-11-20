@@ -9,6 +9,7 @@ import {
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import eventApi from '@/services/eventApi';
+import { userService } from '@/services/userService';
 import { useToast } from '@/contexts';
 import type { Event } from '@/types';
 import { ProfilePage } from '@/components/profile';
@@ -25,7 +26,7 @@ const MainAppContent: FC = () => {
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
@@ -96,6 +97,23 @@ const MainAppContent: FC = () => {
   const handleLike = useCallback(() => handleAction('like'), [handleAction]);
   const handleDislike = useCallback(() => handleAction('dislike'), [handleAction]);
   const handleSkip = useCallback(() => handleAction('neutral'), [handleAction]);
+
+  const handleSubscribe = useCallback(async () => {
+    if (!currentEvent || isActionLoading) return;
+
+    setIsActionLoading(true);
+    try {
+      await userService.subscribeToEvent(currentEvent.id, {
+        dietary_preferences: "vegan"
+      });
+      showSuccess('Вы успешно записались!');
+      goToNextEvent();
+    } catch (err) {
+      showError('Не удалось записаться на событие');
+    } finally {
+      setIsActionLoading(false);
+    }
+  }, [currentEvent, isActionLoading, goToNextEvent, showError, showSuccess]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
@@ -335,8 +353,7 @@ const MainAppContent: FC = () => {
         isOpen={showEventDetail}
         onClose={() => setShowEventDetail(false)}
         event={selectedEvent || currentEvent}
-        onLike={handleLike}
-        onDislike={handleDislike}
+        onLike={handleSubscribe}
       />
 
       {/* Keyboard Hints Toggle */}

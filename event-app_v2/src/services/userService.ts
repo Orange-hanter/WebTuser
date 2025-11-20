@@ -113,5 +113,22 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to cancel participation');
+  },
+
+  async subscribeToEvent(eventId: number, metadata: Record<string, any> = {}): Promise<void> {
+    const token = AuthService.getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/users/me/events/${eventId}/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ metadata }),
+    });
+
+    if (!response.ok) throw new Error('Failed to subscribe to event');
   }
 };
