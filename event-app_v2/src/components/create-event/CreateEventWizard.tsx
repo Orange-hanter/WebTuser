@@ -248,6 +248,7 @@ export const CreateEventWizard: FC<CreateEventWizardProps> = ({ isVisible, onClo
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 

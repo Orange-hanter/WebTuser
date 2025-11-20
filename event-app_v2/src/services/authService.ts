@@ -77,6 +77,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: data.email,
           password: data.password,
@@ -127,6 +128,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: data.email,
           code: data.code,
@@ -185,6 +187,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: credentials.email,
           password: credentials.password,
@@ -287,6 +290,7 @@ class AuthService {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -346,6 +350,7 @@ class AuthService {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ token }),
         });
       }

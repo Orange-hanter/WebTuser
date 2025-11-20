@@ -53,6 +53,7 @@ class TelegramService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -98,6 +99,7 @@ class TelegramService {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (response.status === 404) {
@@ -156,6 +158,7 @@ class TelegramService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {

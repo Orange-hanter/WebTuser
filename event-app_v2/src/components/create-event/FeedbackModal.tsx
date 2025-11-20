@@ -35,6 +35,7 @@ export const FeedbackModal: FC<FeedbackModalProps> = ({ currentStep }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(feedbackData),
       });
 

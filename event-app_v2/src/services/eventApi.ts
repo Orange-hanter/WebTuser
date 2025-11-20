@@ -27,6 +27,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include',
   });
 };
 
