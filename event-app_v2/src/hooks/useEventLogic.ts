@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { fetchEventsBatch } from '@services/eventApi';
 import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNavigationReturn } from '@/types';
 
@@ -12,11 +12,13 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const isLoadingRef = useRef(false);
 
   // Загрузка следующей порции событий
   const loadMoreEvents = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (isLoadingRef.current || !hasMore) return;
 
+    isLoadingRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -25,7 +27,7 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
       
       if (result.success) {
         setEvents(prev => [...prev, ...result.data]);
-        setOffset(prev => prev + 5);
+        setOffset(prev => prev + result.data.length);
         setHasMore(result.pagination.hasMore);
       }
     } catch (err) {
@@ -33,9 +35,10 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
       setError(errorMessage);
       console.error('Error loading events:', err);
     } finally {
+      isLoadingRef.current = false;
       setIsLoading(false);
     }
-  }, [offset, isLoading, hasMore]);
+  }, [offset, hasMore]);
 
   // Загрузить первую порцию событий при монтировании
   useEffect(() => {
@@ -51,6 +54,7 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn => {
     setOffset(0);
     setHasMore(true);
     setError(null);
+    isLoadingRef.current = false;
   }, []);
 
   return {
@@ -83,24 +87,24 @@ export const useEventPreferences = () => {
 /**
  * Хук для навигации по событиям (работает с массивом событий)
  */
-export const useEventNavigation = (events: Event[]): UseEventNavigationReturn => {
+export const useEventNavigation = (events: Event[], onLoadMore?: () => void): UseEventNavigationReturn => {
   const [currentIndex, setCurrentIndex] = useState(0);
   
   const goToNextEvent = useCallback(() => {
     setCurrentIndex(prev => {
       const nextIndex = prev + 1;
       // Если приближаемся к концу, загружаем еще события
-      if (nextIndex >= events.length - 2) {
-        window.dispatchEvent(new CustomEvent('loadMoreEvents'));
+      if (nextIndex >= events.length - 2 && onLoadMore) {
+        onLoadMore();
       }
       console.debug('Navigating to event index:', nextIndex, 'of', events.length);
       if (nextIndex >= events.length) {
         console.warn('No more events to navigate to.');
-        return -1;
+        return prev;
       }
-      return nextIndex < events.length ? nextIndex : prev;
+      return nextIndex;
     });
-  }, [events.length]);
+  }, [events.length, onLoadMore]);
 
   const resetToStart = useCallback(() => {
     setCurrentIndex(0);

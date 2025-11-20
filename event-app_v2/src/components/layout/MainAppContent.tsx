@@ -19,7 +19,14 @@ const MainAppContent: FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [preferences, handleSettingsChange] = useEventPreferences();
-  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events);
+  
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !isLoading) {
+      loadMoreEvents();
+    }
+  }, [hasMore, isLoading, loadMoreEvents]);
+
+  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
   const handleLike = useCallback(() => {
     if (currentEvent) {
@@ -31,18 +38,6 @@ const MainAppContent: FC = () => {
   const handleDislike = useCallback(() => {
     goToNextEvent();
   }, [currentEvent]);
-
-  // Обработчик для загрузки еще событий
-  useEffect(() => {
-    const handleLoadMore = () => {
-      if (hasMore && !isLoading) {
-        loadMoreEvents();
-      }
-    };
-
-    window.addEventListener('loadMoreEvents', handleLoadMore);
-    return () => window.removeEventListener('loadMoreEvents', handleLoadMore);
-  }, [hasMore, isLoading, loadMoreEvents]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
