@@ -1,17 +1,15 @@
 import { FC } from 'react';
-import { Settings, LogOut, Search } from 'lucide-react';
-import { useAuthContext } from '@/contexts';
+import { Settings, User } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  onProfileClick: () => void;
   viewMode?: 'card' | 'category';
   onViewModeChange?: (mode: 'card' | 'category') => void;
 }
 
-const Header: FC<HeaderProps> = ({ onSettingsClick, viewMode, onViewModeChange }) => {
-  const { logout } = useAuthContext();
-
+const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick, viewMode, onViewModeChange }) => {
   return (
     <header className="app-header">
       <div className="app-header-content">
@@ -44,19 +42,12 @@ const Header: FC<HeaderProps> = ({ onSettingsClick, viewMode, onViewModeChange }
             <Settings className="app-header-icon" />
           </button>
           <button 
+            onClick={onProfileClick}
             className="app-header-button"
-            aria-label="Поиск"
-            title="Поиск"
+            aria-label="Профиль"
+            title="Профиль"
           >
-            <Search className="app-header-icon" />
-          </button>
-          <button 
-            onClick={logout}
-            className="app-header-button app-header-logout"
-            aria-label="Выход"
-            title="Выход"
-          >
-            <LogOut className="app-header-icon" />
+            <User className="app-header-icon" />
           </button>
         </div>
       </div>

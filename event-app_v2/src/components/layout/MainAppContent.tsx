@@ -10,6 +10,7 @@ import {
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
 import type { Event } from '@/types';
+import { ProfilePage } from '@/components/profile';
 import './MainAppContent.css';
 
 const MainAppContent: FC = () => {
@@ -17,6 +18,7 @@ const MainAppContent: FC = () => {
   const [likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
@@ -64,6 +66,11 @@ const MainAppContent: FC = () => {
       loadMoreEvents();
     }
   }, [hasMore, isLoading, loadMoreEvents]);
+
+  const handleTabChange = (tab: NavTab) => {
+    setActiveTab(tab);
+    setShowProfile(false);
+  };
 
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
@@ -135,6 +142,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onProfileClick={() => setShowProfile(true)}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
@@ -156,6 +164,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onProfileClick={() => setShowProfile(true)}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
@@ -168,70 +177,84 @@ const MainAppContent: FC = () => {
 
   return (
     <div className="app-container">
-      {/* Основной контент - показываем в зависимости от activeTab */}
-      {activeTab === 'discover' && (
+      {showProfile ? (
         <>
           <Header 
             onSettingsClick={() => setShowSettings(true)} 
+            onProfileClick={() => setShowProfile(true)}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          
-          <main 
-            className="app-main"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {viewMode === 'category' ? (
-              <EventByCategory 
-                isActive={viewMode === 'category'}
-                onCategorySelect={handleCategorySelect}
-              />
-            ) : (
-              <>
-                {/* Контент события */}
-                <div className="event-content">
-                  {showEmptyCard ? (
-                    <EmptyEventCard />
-                  ) : currentEvent ? (
-                    <EventCard 
-                      event={currentEvent} 
-                      onClick={() => setShowEventDetail(true)} 
-                    />
-                  ) : (
-                    <LoadingSpinner />
-                  )}
-                </div>
-
-                {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
-                {currentEvent && !showEmptyCard && (
-                  <ActionButtons 
-                    onLike={handleLike} 
-                    onDislike={handleDislike} 
-                  />
-                )}
-
-                {/* Информация о прогрессе */}
-                <div className="events-footer">
-                  {isLoading && events.length > 0 && (
-                    <div className="loading-indicator">
-                      <span className="loading-dot"></span>
-                      <span className="loading-dot"></span>
-                      <span className="loading-dot"></span>
-                    </div>
-                  )}
-
-                  {events.length > 0 && (
-                    <div className="events-progress">
-                      Событие {currentIndex + 1} из {events.length}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+          <main className="app-main">
+            <ProfilePage onBack={() => setShowProfile(false)} />
           </main>
         </>
+      ) : (
+        activeTab === 'discover' && (
+          <>
+            <Header 
+              onSettingsClick={() => setShowSettings(true)} 
+              onProfileClick={() => setShowProfile(true)}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+            
+            <main 
+              className="app-main"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              {viewMode === 'category' ? (
+                <EventByCategory 
+                  isActive={viewMode === 'category'}
+                  onCategorySelect={handleCategorySelect}
+                />
+              ) : (
+                <>
+                  {/* Контент события */}
+                  <div className="event-content">
+                    {showEmptyCard ? (
+                      <EmptyEventCard />
+                    ) : currentEvent ? (
+                      <EventCard 
+                        event={currentEvent} 
+                        onClick={() => setShowEventDetail(true)} 
+                      />
+                    ) : (
+                      <LoadingSpinner />
+                    )}
+                  </div>
+
+                  {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
+                  {currentEvent && !showEmptyCard && (
+                    <ActionButtons 
+                      onLike={handleLike} 
+                      onDislike={handleDislike} 
+                    />
+                  )}
+
+                  {/* Информация о прогрессе */}
+                  <div className="events-footer">
+                    {isLoading && events.length > 0 && (
+                      <div className="loading-indicator">
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                      </div>
+                    )}
+
+                    {events.length > 0 && (
+                      <div className="events-progress">
+                        Событие {currentIndex + 1} из {events.length}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </main>
+          </>
+        )
       )}
 
       {/* Модали */}
