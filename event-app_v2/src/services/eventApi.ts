@@ -278,10 +278,43 @@ export const getCategoryStats = async (): Promise<import('@/types').CategoryStat
   }
 };
 
-export default {
+/**
+ * Event API object
+ */
+const eventApi = {
   fetchEventsBatch,
   fetchEventDetails,
   createEvent,
   deleteEvent,
   getCategoryStats,
+
+  /**
+   * Send discovery action (like, dislike, neutral) for an event
+   * POST /v1/api/discovery/action
+   * @param {number} eventId - Event ID
+   * @param {'like' | 'dislike' | 'neutral'} action - Action type
+   */
+  async sendDiscoveryAction(eventId: number, action: 'like' | 'dislike' | 'neutral'): Promise<void> {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/discovery/action`, {
+        method: 'POST',
+        body: JSON.stringify({
+          action,
+          eventId: eventId.toString()
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 409 || response.status === 404) {
+          throw new Error('Event unavailable');
+        }
+        throw new Error(`Discovery action failed: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Error sending discovery action ${action} for event ${eventId}:`, error);
+      throw error;
+    }
+  }
 };
+
+export default eventApi;

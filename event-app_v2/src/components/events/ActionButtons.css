@@ -2,72 +2,84 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   width: 100%;
+  padding: 0 1rem;
 }
 
 .action-button {
-  width: 64px;
-  height: 64px;
   border: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: all 0.3s ease;
-  transform: scale(1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.action-button:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.action-button:not(:disabled):hover {
   transform: scale(1.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.action-button:active {
-  transform: scale(0.95);
+.action-button:not(:disabled):active {
+  transform: scale(0.9);
+  opacity: 0.8;
 }
 
+/* Dislike - Small */
 .action-button-dislike {
-  background-color: var(--white);
+  width: 48px;
+  height: 48px;
+  color: #ef4444; /* Red-500 */
 }
 
-.action-button-dislike-icon {
-  color: var(--red-500);
-  width: 32px;
-  height: 32px;
+/* Skip - Medium */
+.action-button-skip {
+  width: 64px;
+  height: 64px;
+  color: #6b7280; /* Gray-500 */
 }
 
+/* Like - Small */
 .action-button-like {
-  background: linear-gradient(135deg, var(--purple-500), var(--pink-500));
+  width: 48px;
+  height: 48px;
+  color: #22c55e; /* Green-500 */
 }
 
-.action-button-like-icon {
-  color: var(--white);
-  width: 32px;
-  height: 32px;
-  fill: currentColor;
+.action-button-icon {
+  stroke-width: 2.5px;
 }
 
 /* Small phones optimization (iPhone SE) */
 @media (max-width: 375px) {
   .action-buttons {
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 1.5rem;
   }
 
-  .action-button {
+  .action-button-skip {
     width: 56px;
     height: 56px;
   }
 
-  .action-button-dislike-icon,
-  .action-button-like-icon {
-    width: 28px;
-    height: 28px;
+  .action-button-dislike,
+  .action-button-like {
+    width: 42px;
+    height: 42px;
   }
 }
 
@@ -77,6 +89,10 @@
     flex-direction: column;
     justify-content: flex-start;
     gap: 1rem;
-    width: 0;
+    width: auto;
+    position: absolute;
+    right: -80px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }

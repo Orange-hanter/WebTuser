@@ -8,6 +8,8 @@ import {
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
+import eventApi from '@/services/eventApi';
+import { useToast } from '@/contexts';
 import type { Event } from '@/types';
 import { ProfilePage } from '@/components/profile';
 import './MainAppContent.css';
@@ -22,6 +24,8 @@ const MainAppContent: FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const { error: showError } = useToast();
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
@@ -69,14 +73,29 @@ const MainAppContent: FC = () => {
 
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
-  const handleLike = useCallback(() => {
-    // TODO: Implement like logic (e.g. API call)
-    goToNextEvent();
-  }, [goToNextEvent]);
+  const handleAction = useCallback(async (action: 'like' | 'dislike' | 'neutral') => {
+    if (!currentEvent || isActionLoading) return;
 
-  const handleDislike = useCallback(() => {
-    goToNextEvent();
-  }, [currentEvent]);
+    setIsActionLoading(true);
+    try {
+      await eventApi.sendDiscoveryAction(currentEvent.id, action);
+      goToNextEvent();
+    } catch (err) {
+      if (err instanceof Error && err.message === 'Event unavailable') {
+        showError('Событие недоступно');
+        goToNextEvent();
+      } else {
+        showError('Ошибка при выполнении действия');
+        // Keep current card visible on network error
+      }
+    } finally {
+      setIsActionLoading(false);
+    }
+  }, [currentEvent, isActionLoading, goToNextEvent, showError]);
+
+  const handleLike = useCallback(() => handleAction('like'), [handleAction]);
+  const handleDislike = useCallback(() => handleAction('dislike'), [handleAction]);
+  const handleSkip = useCallback(() => handleAction('neutral'), [handleAction]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
@@ -145,6 +164,10 @@ const MainAppContent: FC = () => {
               Повторить попытку
             </button>
           </div>
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       </div>
     );
@@ -160,6 +183,10 @@ const MainAppContent: FC = () => {
         />
         <main className="app-main">
           <LoadingSpinner />
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       </div>
     );
@@ -175,6 +202,10 @@ const MainAppContent: FC = () => {
           />
           <main className="app-main">
             <ProfilePage onBack={() => setShowProfile(false)} />
+            <BottomNavigation 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
           </main>
         </>
       ) : (
@@ -236,7 +267,9 @@ const MainAppContent: FC = () => {
                   {currentEvent && !showEmptyCard && (
                     <ActionButtons 
                       onLike={handleLike} 
-                      onDislike={handleDislike} 
+                      onDislike={handleDislike}
+                      onSkip={handleSkip}
+                      disabled={isActionLoading}
                     />
                   )}
 
@@ -258,6 +291,10 @@ const MainAppContent: FC = () => {
                   </div>
                 </>
               )}
+              <BottomNavigation 
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
             </main>
           </>
         )
@@ -280,6 +317,10 @@ const MainAppContent: FC = () => {
             }}
             onGoToDiscovery={() => setActiveTab('discover')}
           />
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       )}
 
@@ -296,12 +337,6 @@ const MainAppContent: FC = () => {
         event={selectedEvent || currentEvent}
         onLike={handleLike}
         onDislike={handleDislike}
-      />
-
-      {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
       />
 
       {/* Keyboard Hints Toggle */}
