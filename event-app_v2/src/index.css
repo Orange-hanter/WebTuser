@@ -96,6 +96,10 @@ input[type="checkbox"] {
   --gray-600: #4b5563;
   --gray-700: #374151;
   --gray-800: #1f2937;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+  --dark-green-900: #114022;
   --white: #ffffff;
   --black: #000000;
 }
