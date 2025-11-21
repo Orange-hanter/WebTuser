@@ -1,25 +1,32 @@
 import { FC, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, EmptyEventCard, ActionButtons, EventByCategory } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons, EventByCategory, UpcomingEventsView } from '@components/events';
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
-  EventDetailModal, 
-  SubscribedEventsModal 
+  EventDetailModal
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
+import eventApi from '@/services/eventApi';
+import { userService } from '@/services/userService';
+import { useToast } from '@/contexts';
 import type { Event } from '@/types';
+import { ProfilePage } from '@/components/profile';
 import './MainAppContent.css';
+import './ViewModeToggle.css';
 
 const MainAppContent: FC = () => {
   const { events, isLoading, error, hasMore, loadMoreEvents, setCategoryFilter } = useInfiniteEventScroll();
-  const [likedEvents, setLikedEvents] = useState<Event[]>([]);
   const [showEventDetail, setShowEventDetail] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const { error: showError, success: showSuccess } = useToast();
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
@@ -67,16 +74,46 @@ const MainAppContent: FC = () => {
 
   const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
 
-  const handleLike = useCallback(() => {
-    if (currentEvent) {
-      setLikedEvents(prev => [...prev, currentEvent]);
-    }
-    goToNextEvent();
-  }, [currentEvent]);
+  const handleAction = useCallback(async (action: 'like' | 'dislike' | 'neutral') => {
+    if (!currentEvent || isActionLoading) return;
 
-  const handleDislike = useCallback(() => {
-    goToNextEvent();
-  }, [currentEvent]);
+    setIsActionLoading(true);
+    try {
+      await eventApi.sendDiscoveryAction(currentEvent.id, action);
+      goToNextEvent();
+    } catch (err) {
+      if (err instanceof Error && err.message === 'Event unavailable') {
+        showError('Событие недоступно');
+        goToNextEvent();
+      } else {
+        showError('Ошибка при выполнении действия');
+        // Keep current card visible on network error
+      }
+    } finally {
+      setIsActionLoading(false);
+    }
+  }, [currentEvent, isActionLoading, goToNextEvent, showError]);
+
+  const handleLike = useCallback(() => handleAction('like'), [handleAction]);
+  const handleDislike = useCallback(() => handleAction('dislike'), [handleAction]);
+  const handleSkip = useCallback(() => handleAction('neutral'), [handleAction]);
+
+  const handleSubscribe = useCallback(async () => {
+    if (!currentEvent || isActionLoading) return;
+
+    setIsActionLoading(true);
+    try {
+      await userService.subscribeToEvent(currentEvent.id, {
+        dietary_preferences: "vegan"
+      });
+      showSuccess('Вы успешно записались!');
+      goToNextEvent();
+    } catch (err) {
+      showError('Не удалось записаться на событие');
+    } finally {
+      setIsActionLoading(false);
+    }
+  }, [currentEvent, isActionLoading, goToNextEvent, showError, showSuccess]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
@@ -97,6 +134,7 @@ const MainAppContent: FC = () => {
         case 'KeyD':
           event.preventDefault();
           if (currentEvent) {
+            setSelectedEvent(currentEvent);
             setShowEventDetail(true);
           }
           break;
@@ -135,8 +173,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
           <div className="error-message">
@@ -145,6 +182,10 @@ const MainAppContent: FC = () => {
               Повторить попытку
             </button>
           </div>
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       </div>
     );
@@ -156,11 +197,14 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
           <LoadingSpinner />
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       </div>
     );
@@ -168,70 +212,106 @@ const MainAppContent: FC = () => {
 
   return (
     <div className="app-container">
-      {/* Основной контент - показываем в зависимости от activeTab */}
-      {activeTab === 'discover' && (
+      {showProfile ? (
         <>
           <Header 
             onSettingsClick={() => setShowSettings(true)} 
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            onProfileClick={() => setShowProfile(true)}
           />
-          
-          <main 
-            className="app-main"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {viewMode === 'category' ? (
-              <EventByCategory 
-                isActive={viewMode === 'category'}
-                onCategorySelect={handleCategorySelect}
-              />
-            ) : (
-              <>
-                {/* Контент события */}
-                <div className="event-content">
-                  {showEmptyCard ? (
-                    <EmptyEventCard />
-                  ) : currentEvent ? (
-                    <EventCard 
-                      event={currentEvent} 
-                      onClick={() => setShowEventDetail(true)} 
-                    />
-                  ) : (
-                    <LoadingSpinner />
-                  )}
-                </div>
-
-                {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
-                {currentEvent && !showEmptyCard && (
-                  <ActionButtons 
-                    onLike={handleLike} 
-                    onDislike={handleDislike} 
-                  />
-                )}
-
-                {/* Информация о прогрессе */}
-                <div className="events-footer">
-                  {isLoading && events.length > 0 && (
-                    <div className="loading-indicator">
-                      <span className="loading-dot"></span>
-                      <span className="loading-dot"></span>
-                      <span className="loading-dot"></span>
-                    </div>
-                  )}
-
-                  {events.length > 0 && (
-                    <div className="events-progress">
-                      Событие {currentIndex + 1} из {events.length}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+          <main className="app-main">
+            <ProfilePage onBack={() => setShowProfile(false)} />
           </main>
         </>
+      ) : (
+        activeTab === 'discover' && (
+          <>
+            <Header 
+              onSettingsClick={() => setShowSettings(true)} 
+              onProfileClick={() => setShowProfile(true)}
+            />
+            
+            <main 
+              className="app-main"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              <div className="view-mode-toggle-container">
+                <div className="view-mode-toggle">
+                  <button 
+                    className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                    onClick={() => setViewMode('card')}
+                  >
+                    По слоту
+                  </button>
+                  <button 
+                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
+                    onClick={() => setViewMode('category')}
+                  >
+                    По категориям
+                  </button>
+                </div>
+              </div>
+
+              {viewMode === 'category' ? (
+                <EventByCategory 
+                  isActive={viewMode === 'category'}
+                  onCategorySelect={handleCategorySelect}
+                />
+              ) : (
+                <>
+                  {/* Контент события */}
+                  <div className="event-content">
+                    {showEmptyCard ? (
+                      <EmptyEventCard />
+                    ) : currentEvent ? (
+                      <EventCard 
+                        event={currentEvent} 
+                        onClick={() => {
+                          setSelectedEvent(currentEvent);
+                          setShowEventDetail(true);
+                        }} 
+                      />
+                    ) : (
+                      <LoadingSpinner />
+                    )}
+                  </div>
+
+                  {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
+                  {currentEvent && !showEmptyCard && (
+                    <ActionButtons 
+                      onLike={handleLike} 
+                      onDislike={handleDislike}
+                      onSkip={handleSkip}
+                      disabled={isActionLoading}
+                    />
+                  )}
+
+                  {/* Информация о прогрессе */}
+                  <div className="events-footer">
+                    {isLoading && events.length > 0 && (
+                      <div className="loading-indicator">
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                      </div>
+                    )}
+
+                    {events.length > 0 && (
+                      <div className="events-progress">
+                        Событие {currentIndex + 1} из {events.length}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              <BottomNavigation 
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+            </main>
+          </>
+        )
       )}
 
       {/* Модали */}
@@ -242,11 +322,21 @@ const MainAppContent: FC = () => {
         />
       )}
       
-      <SubscribedEventsModal 
-        isVisible={activeTab === 'subscribed'} 
-        likedEvents={likedEvents}
-        onRemove={(eventId) => setLikedEvents(prev => prev.filter(e => e.id !== eventId))}
-      />
+      {activeTab === 'upcoming' && (
+        <main className="app-main" style={{ overflowY: 'auto' }}>
+          <UpcomingEventsView 
+            onEventClick={(event) => {
+              setSelectedEvent(event);
+              setShowEventDetail(true);
+            }}
+            onGoToDiscovery={() => setActiveTab('discover')}
+          />
+          <BottomNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </main>
+      )}
 
       <SettingsModal 
         isOpen={showSettings}
@@ -258,15 +348,8 @@ const MainAppContent: FC = () => {
       <EventDetailModal 
         isOpen={showEventDetail}
         onClose={() => setShowEventDetail(false)}
-        event={currentEvent}
-        onLike={handleLike}
-        onDislike={handleDislike}
-      />
-
-      {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        event={selectedEvent || currentEvent}
+        onLike={handleSubscribe}
       />
 
       {/* Keyboard Hints Toggle */}

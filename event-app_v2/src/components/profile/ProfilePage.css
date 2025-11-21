@@ -1,0 +1,628 @@
+.profile-page {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-back-button {
+  background: none;
+  border: none;
+  color: var(--purple-800);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.profile-section {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+/* Personal Info Block */
+.personal-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-btn { color: #4ade80; }
+.cancel-btn { color: #f87171; }
+
+.personal-info-content {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.avatar-column {
+  flex-shrink: 0;
+}
+
+.profile-avatar-compact {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-column {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0; /* Prevent overflow */
+}
+
+.read-only-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.main-info {
+  margin-bottom: 2px;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.secondary-info {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.user-phone::after {
+  content: "•";
+  margin-left: 8px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.user-phone:last-child::after {
+  content: none;
+}
+
+/* Edit Form */
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.compact-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.compact-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+/* Telegram Compact */
+.telegram-status-row {
+  margin-top: 4px;
+}
+
+.telegram-section-compact {
+  font-size: 13px;
+}
+
+.telegram-connected-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telegram-status-text.active {
+  color: #34d399;
+  font-weight: 500;
+}
+
+.telegram-status-text.inactive {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.telegram-text-action {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.telegram-text-action:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.telegram-text-action.connect {
+  color: #60a5fa;
+}
+
+.telegram-disconnected-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.telegram-connect-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telegram-binding-active-compact {
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.telegram-instruction-compact {
+  margin: 0 0 8px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.telegram-actions-compact {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.telegram-btn-compact {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+}
+
+.telegram-btn-compact.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.telegram-btn-compact.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.telegram-timer-compact {
+  font-size: 11px;
+  color: #60a5fa;
+  text-align: center;
+}
+
+/* History Block */
+.history-block {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Take remaining space */
+  min-height: 0; /* Allow shrinking */
+  padding-bottom: 0; /* Remove bottom padding for scroll area */
+  overflow: hidden;
+}
+
+.history-header {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.history-tabs-compact {
+  display: flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.tab-pill {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-pill.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 500;
+}
+
+.history-list-scrollable {
+  overflow-y: auto;
+  padding-right: 4px; /* Space for scrollbar */
+  padding-bottom: 16px;
+  /* Custom Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  max-height: 40vh; /* As requested */
+}
+
+.history-list-scrollable::-webkit-scrollbar {
+  width: 4px;
+}
+
+.history-list-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-list-scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.history-card-compact {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.history-card-compact:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.history-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-event-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.history-event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.history-date {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.status-badge-compact {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.status-confirmed { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.status-waitlisted { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+.status-attended { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.status-cancelled { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+.history-card-actions {
+  flex-shrink: 0;
+}
+
+.text-action-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #60a5fa;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.text-action-btn:hover {
+  text-decoration: underline;
+}
+
+.text-action-btn.danger {
+  color: #f87171;
+}
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  color: rgba(255, 255, 255, 0.3);
+  gap: 8px;
+  font-size: 14px;
+}
+
+.profile-footer {
+  margin-top: auto; /* Push to bottom */
+  padding-top: 16px;
+  flex-shrink: 0;
+}
+
+.logout-button-compact {
+  width: 100%;
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.logout-button-compact:hover {
+  background: rgba(248, 113, 113, 0.2);
+}
+
+/* Responsive adjustments */
+@media (min-width: 600px) {
+  .edit-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .compact-input:last-child {
+    grid-column: span 2;
+  }
+}
+
+.profile-section {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.profile-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.profile-form-group {
+  margin-bottom: 16px;
+}
+
+.profile-label {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.profile-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+}
+
+.history-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-tab {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 12px 0;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.history-tab.active {
+  color: #fff;
+  font-weight: 600;
+}
+
+.history-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #6366f1;
+}
+
+.event-card-compact {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+
+.event-meta {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.status-confirmed { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.status-waitlisted { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+.status-attended { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.status-cancelled { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+.telegram-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 16px;
+}
