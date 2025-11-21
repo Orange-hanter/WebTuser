@@ -1,7 +1,8 @@
 import { FC } from 'react';
-import { MapPin, Star, Clock } from 'lucide-react';
+import { MapPin, Star, Clock, Share2 } from 'lucide-react';
 import type { Event } from '@/types';
 import { AvatarWithPopover } from '@/components/common';
+import { useToast } from '@/contexts';
 import './EventCard.css';
 
 interface EventCardProps {
@@ -18,22 +19,43 @@ const EventCard: FC<EventCardProps> = ({
   creatorId,
   creatorName,
   creatorAvatar 
-}) => (
-  <div 
-    className="event-card"
-    onClick={onClick}
-  >
-    <div className="event-card-image-container">
-      <img 
-        src={event.image} 
-        alt={event.title}
-        className="event-card-image"
-        loading="lazy"
-      />
-      <div className="event-card-type-badge">
-        {event.type}
-      </div>
-      <div className="event-card-overlay">
+}) => {
+  const { success: showSuccess } = useToast();
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/e/${event.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      showSuccess('Ссылка скопирована!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <div 
+      className="event-card"
+      onClick={onClick}
+    >
+      <div className="event-card-image-container">
+        <img 
+          src={event.image} 
+          alt={event.title}
+          className="event-card-image"
+          loading="lazy"
+        />
+        <div className="event-card-type-badge">
+          {event.type}
+        </div>
+        <button 
+          className="event-card-share-button"
+          onClick={handleShare}
+          title="Поделиться"
+        >
+          <Share2 size={18} />
+        </button>
+        <div className="event-card-overlay">
         <h2 className="event-card-title">
           {event.title}
         </h2>
@@ -85,6 +107,7 @@ const EventCard: FC<EventCardProps> = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default EventCard;

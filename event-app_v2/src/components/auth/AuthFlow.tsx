@@ -24,6 +24,15 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
       await login(credentials);
       console.log('🔵 AuthFlow.handleLogin: Login successful');
       showSuccess('Успешный вход!');
+
+      // Check for next param
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next');
+      if (next) {
+        window.location.href = next;
+        return;
+      }
+
       if (onAuthSuccess) {
         console.log('🔵 AuthFlow.handleLogin: Calling onAuthSuccess');
         onAuthSuccess();
@@ -94,6 +103,15 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
       // После успешного обновления профиля произойдет автоматический логин в AuthContext
       console.log('🔵 AuthFlow.handleProfileStep2: Profile updated successfully');
       showSuccess('Профиль успешно создан!');
+
+      // Check for next param
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next');
+      if (next) {
+        window.location.href = next;
+        return;
+      }
+
       if (onAuthSuccess) {
         console.log('🔵 AuthFlow.handleProfileStep2: Calling onAuthSuccess');
         onAuthSuccess();
