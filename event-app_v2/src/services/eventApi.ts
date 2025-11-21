@@ -314,7 +314,27 @@ const eventApi = {
       console.error(`Error sending discovery action ${action} for event ${eventId}:`, error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Subscribe to an event
+   * POST /v1/api/users/me/events/{id}/subscribe
+   * @param {number} eventId - Event ID
+   */
+  async subscribeToEvent(eventId: number): Promise<void> {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/users/me/events/${eventId}/subscribe`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Subscription failed: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Error subscribing to event ${eventId}:`, error);
+      throw error;
+    }
+  },
 };
 
 export default eventApi;
