@@ -55,7 +55,7 @@
 }
 
 .radar-count {
-  fill: var(#114022);
+  fill: var(--dark-green-900);
   font-size: 10px;
 }
 
