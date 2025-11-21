@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, AlertCircle, XCircle, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, AlertCircle, XCircle } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { LoadingSpinner } from '@/components/common';
 import './UpcomingEventsView.css';

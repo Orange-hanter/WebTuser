@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Heart, X, SkipForward } from 'lucide-react';
+import { Heart, X, ChevronRight } from 'lucide-react';
 import './ActionButtons.css';
 
 interface ActionButtonsProps {
@@ -26,7 +26,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ onLike, onDislike, onSkip, disa
       aria-label="Пропустить"
       disabled={disabled}
     >
-      <SkipForward className="action-button-icon" size={28} />
+      <ChevronRight className="action-button-icon-back" size={28} />
     </button>
 
     <button 

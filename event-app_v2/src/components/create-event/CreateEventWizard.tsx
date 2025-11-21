@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback, useRef } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { FeedbackModal } from './FeedbackModal';
 import type { CreateEventData } from '@/types';
