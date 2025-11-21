@@ -1,0 +1,147 @@
+/* User Profile Popover */
+
+.user-profile-popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.user-profile-popover {
+  position: fixed;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px 20px;
+  width: 280px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: popoverIn 0.2s ease-out;
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.popover-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popover-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.popover-avatar-container {
+  margin-bottom: 16px;
+}
+
+.popover-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(99, 102, 241, 0.4);
+}
+
+.popover-avatar-fallback {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.popover-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 12px 0;
+  text-align: center;
+}
+
+.role-badge {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.telegram-status {
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.telegram-status.active {
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+}
+
+.telegram-status.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: #9ca3af;
+}
+
+.write-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.write-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}

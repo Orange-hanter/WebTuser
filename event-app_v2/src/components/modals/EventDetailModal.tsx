@@ -1,6 +1,7 @@
 import { FC, useEffect } from 'react';
 import { X, MapPin, Clock, Users, Star } from 'lucide-react';
 import type { Event } from '@/types';
+import { ParticipantAvatarStrip, AvatarWithPopover } from '@/components/common';
 import './EventDetailModal.css';
 
 interface EventDetailModalProps {
@@ -67,12 +68,24 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
               <h2>{event.title}</h2>
               <span className="modal-type">{event.type}</span>
             </div>
-            <div className="modal-rating-section">
-              <div className="modal-rating">
-                <Star className="modal-rating-star" />
-                <span className="modal-rating-value">{event.rating}</span>
+            <div className="modal-header-right">
+              {event.creator && (
+                <div className="modal-creator">
+                  <AvatarWithPopover
+                    userId={event.creator.id}
+                    name={event.creator.name}
+                    avatarUrl={event.creator.avatar}
+                    size="md"
+                  />
+                </div>
+              )}
+              <div className="modal-rating-section">
+                <div className="modal-rating">
+                  <Star className="modal-rating-star" />
+                  <span className="modal-rating-value">{event.rating}</span>
+                </div>
+                <span className="modal-date">{event.date}</span>
               </div>
-              <span className="modal-date">{event.date}</span>
             </div>
           </div>
 
@@ -102,6 +115,16 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
               </span>
             ))}
           </div>
+
+          {typeof event.id === 'number' && (
+            <ParticipantAvatarStrip 
+              eventId={event.id} 
+              onSubscribeClick={() => {
+                onLike();
+                onClose();
+              }}
+            />
+          )}
 
           <div className="modal-buttons">
             <button 

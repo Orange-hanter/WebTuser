@@ -220,10 +220,6 @@ const MainAppContent: FC = () => {
           />
           <main className="app-main">
             <ProfilePage onBack={() => setShowProfile(false)} />
-            <BottomNavigation 
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
           </main>
         </>
       ) : (

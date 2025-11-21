@@ -10,6 +10,29 @@ export interface EventWithSubscription extends Event {
   subscriptionId?: string;
 }
 
+export interface PublicUserProfile {
+  id: string | number;
+  firstName: string;
+  lastName: string;
+  avatar_url?: string;
+  telegram_public?: boolean;
+  telegram_username?: string;
+  role?: 'creator' | 'user';
+}
+
+export interface Participant {
+  user_id: string | number;
+  public_name: string;
+  avatar_url?: string;
+  status: 'confirmed' | 'waitlisted' | 'cancelled';
+}
+
+// Simple in-memory cache for public user profiles
+const userProfileCache = new Map<string | number, { data: PublicUserProfile; timestamp: number }>();
+const eventParticipantsCache = new Map<number, { data: Participant[]; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const PARTICIPANTS_CACHE_TTL = 60 * 1000; // 1 minute
+
 export const userService = {
   async getProfile(): Promise<User> {
     const token = AuthService.getAuthToken();
@@ -130,5 +153,55 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to subscribe to event');
+  },
+
+  async getPublicUserProfile(userId: string | number): Promise<PublicUserProfile> {
+    // Check cache first
+    const cached = userProfileCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/users/public/${userId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch public user profile');
+    }
+
+    const data: PublicUserProfile = await response.json();
+    userProfileCache.set(userId, { data, timestamp: Date.now() });
+    return data;
+  },
+
+  async getEventParticipants(eventId: number): Promise<Participant[]> {
+    // Check cache first
+    const cached = eventParticipantsCache.get(eventId);
+    if (cached && Date.now() - cached.timestamp < PARTICIPANTS_CACHE_TTL) {
+      return cached.data;
+    }
+
+    const token = AuthService.getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/events/${eventId}/participants`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch event participants');
+    }
+
+    const data = await response.json();
+    eventParticipantsCache.set(eventId, { data, timestamp: Date.now() });
+    return data;
   }
 };

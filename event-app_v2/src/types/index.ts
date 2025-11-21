@@ -14,6 +14,11 @@ export interface Event {
   description: string;
   image: string;
   tags: string[];
+  creator?: {
+    id: number | string;
+    name: string;
+    avatar?: string;
+  };
 }
 
 export interface EventDetails extends Event {

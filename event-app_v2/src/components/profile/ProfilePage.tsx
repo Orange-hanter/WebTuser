@@ -1,9 +1,8 @@
 import { FC, useState, useEffect } from 'react';
-import { User, Bell, Calendar, Clock, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
+import { User, Calendar, LogOut, ArrowLeft, Pencil, X, Check } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { useAuthContext } from '@/contexts';
 import { LoadingSpinner } from '@/components/common';
-import { ChangePasswordModal } from './ChangePasswordModal';
 import TelegramService from '@/services/telegramService';
 import type { User as UserType, TelegramBindingLink } from '@/types';
 import './ProfilePage.css';
@@ -14,7 +13,7 @@ interface ProfilePageProps {
 
 // Telegram Binding Section Component
 const TelegramBindingSection: FC = () => {
-  const { user, refreshTelegramStatus, bindTelegram, unbindTelegram } = useAuthContext();
+  const { user, bindTelegram, unbindTelegram } = useAuthContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bindingLink, setBindingLink] = useState<TelegramBindingLink | null>(null);
@@ -38,17 +37,7 @@ const TelegramBindingSection: FC = () => {
     return () => clearInterval(interval);
   }, [bindingLink]);
 
-  // Auto-refresh status when modal opens or after binding
-  useEffect(() => {
-    if (user && !user.telegram_registered) {
-      const checkInterval = setInterval(async () => {
-        await refreshTelegramStatus();
-      }, 5000); // Check every 5 seconds
-      
-      return () => clearInterval(checkInterval);
-    }
-    return undefined;
-  }, [user, refreshTelegramStatus]);
+
 
   const handleBindTelegram = async () => {
     setIsLoading(true);
@@ -100,11 +89,7 @@ const TelegramBindingSection: FC = () => {
   const isBound = user?.telegram_registered === true;
 
   return (
-    <div className="telegram-section">
-      <div className="telegram-divider"></div>
-      
-      <label className="settings-section-title">Уведомления Telegram</label>
-      
+    <div className="telegram-section-compact">
       {error && (
         <div className="telegram-error">
           {error}
@@ -112,66 +97,52 @@ const TelegramBindingSection: FC = () => {
       )}
 
       {isBound && user?.telegram_info ? (
-        <div className="telegram-connected">
-          <div className="telegram-info">
-            <div className="telegram-status-badge telegram-status-active">
-              ✓ Подключено
-            </div>
-            {user.telegram_info.username && (
-              <div className="telegram-username">
-                @{user.telegram_info.username}
-              </div>
-            )}
-            <div className="telegram-updated">
-              Обновлено: {new Date(user.telegram_info.updated_at).toLocaleString('ru-RU')}
-            </div>
-          </div>
-          
-          <button
+        <div className="telegram-connected-compact">
+           <span className="telegram-status-text active">✓ Telegram подключен</span>
+           <button
             onClick={handleUnbindTelegram}
             disabled={isLoading}
-            className="telegram-button telegram-button-disconnect"
+            className="telegram-text-action"
           >
-            {isLoading ? 'Отключение...' : 'Отключить Telegram'}
+            {isLoading ? '...' : 'Отключить'}
           </button>
         </div>
       ) : (
-        <div className="telegram-disconnected">
-          <p className="telegram-description">
-            Получайте уведомления о мероприятиях в Telegram
-          </p>
-          
+        <div className="telegram-disconnected-compact">
           {bindingLink ? (
-            <div className="telegram-binding-active">
-              <p className="telegram-binding-instruction">
-                Ссылка для привязки создана. Перейдите по ней и нажмите /start в боте.
+            <div className="telegram-binding-active-compact">
+              <p className="telegram-instruction-compact">
+                Перейдите в бот:
               </p>
-              <div className="telegram-timer">
-                Ссылка действительна: {TelegramService.formatTimeRemaining(timeRemaining)}
-              </div>
-              <div className="telegram-actions">
+              <div className="telegram-actions-compact">
                 <button
                   onClick={() => TelegramService.openTelegramLink(bindingLink.deeplink)}
-                  className="telegram-button telegram-button-primary"
+                  className="telegram-btn-compact primary"
                 >
-                  Открыть Telegram
+                  Открыть
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="telegram-button telegram-button-secondary"
+                  className="telegram-btn-compact secondary"
                 >
-                  Копировать ссылку
+                  Копия
                 </button>
+              </div>
+              <div className="telegram-timer-compact">
+                {TelegramService.formatTimeRemaining(timeRemaining)}
               </div>
             </div>
           ) : (
-            <button
-              onClick={handleBindTelegram}
-              disabled={isLoading}
-              className="telegram-button telegram-button-connect"
-            >
-              {isLoading ? 'Создание ссылки...' : 'Подключить Telegram'}
-            </button>
+            <div className="telegram-connect-row">
+                <span className="telegram-status-text inactive">Telegram не подключен</span>
+                <button
+                onClick={handleBindTelegram}
+                disabled={isLoading}
+                className="telegram-text-action connect"
+                >
+                {isLoading ? '...' : 'Подключить'}
+                </button>
+            </div>
           )}
         </div>
       )}
@@ -186,6 +157,9 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // UI State
+  const [isEditing, setIsEditing] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     firstName: '',
@@ -196,7 +170,6 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
   // History state
   const [historyEvents, setHistoryEvents] = useState<EventWithSubscription[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -244,6 +217,7 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
     try {
       const updatedUser = await userService.updateProfile(formData);
       setUser(updatedUser);
+      setIsEditing(false);
       // Show success toast (omitted for brevity)
     } catch (err) {
       setError('Не удалось сохранить изменения');
@@ -251,6 +225,23 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
       setIsSaving(false);
     }
   };
+
+  const handleCancel = () => {
+    if (user) {
+        setFormData({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            phone: user.phone || '',
+        });
+    }
+    setIsEditing(false);
+  };
+
+  const filteredEvents = historyEvents.filter(event => {
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    return eventDate < now;
+  });
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -274,158 +265,138 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
         <button 
           onClick={onBack} 
           className="profile-back-button"
-          style={{ 
-            background: 'none', 
-            border: 'none', 
-              color: 'var(--purple-800);', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            marginBottom: '16px', 
-            cursor: 'pointer',
-            padding: 0,
-            fontSize: '16px'
-          }}
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} />
           Назад
         </button>
       )}
 
-      {/* Personal Info Section */}
-      <section className="profile-section">
-        <div className="profile-header">
-          <div className="profile-avatar">
-                      <User size={32} color="var(--purple-800);" />
-          </div>
-          <div>
-            <h2 className="profile-title">{user?.firstName} {user?.lastName}</h2>
-            <div className="profile-label">{user?.email}</div>
-          </div>
-        </div>
-
-        <div className="profile-form-group">
-          <label className="profile-label">Имя</label>
-          <input
-            className="profile-input"
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-          />
-        </div>
-
-        <div className="profile-form-group">
-          <label className="profile-label">Фамилия</label>
-          <input
-            className="profile-input"
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-          />
-        </div>
-
-        <div className="profile-form-group">
-          <label className="profile-label">Телефон</label>
-          <input
-            className="profile-input"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="+7 (999) 000-00-00"
-          />
-        </div>
-
-        {user?.telegram_registered && (
-          <div className="telegram-badge">
-            <Bell size={16} />
-            Уведомления включены
-          </div>
-        )}
-
-        <TelegramBindingSection />
-
-        <div className="profile-actions">
-          <button 
-            className="btn-secondary"
-            onClick={() => setIsPasswordModalOpen(true)}
-          >
-            Сменить пароль
-          </button>
-          <button 
-            className="btn-primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Сохранение...' : 'Сохранить'}
-          </button>
-        </div>
-
-        <button 
-          className="btn-secondary"
-          onClick={logout}
-          style={{ 
-            marginTop: '12px', 
-            width: '100%', 
-            color: '#f87171', 
-            background: 'rgba(248, 113, 113, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-        >
-          <LogOut size={18} />
-          Выйти из аккаунта
-        </button>
-      </section>
-
-      {/* Participation History Section */}
-      <section className="profile-section">
-        <h3 className="profile-subtitle">История участия</h3>
-
-        {isLoadingEvents ? (
-          <LoadingSpinner />
-        ) : (
-          <div className="events-list">
-            {historyEvents.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.5)' }}>
-                История пуста
-              </div>
+      {/* Personal Info Block */}
+      <section className="profile-section personal-info-block">
+        <div className="section-header">
+            <h2 className="section-title">Личные данные</h2>
+            {!isEditing ? (
+                <button className="icon-btn edit-trigger" onClick={() => setIsEditing(true)}>
+                    <Pencil size={18} />
+                </button>
             ) : (
-              historyEvents.map(event => (
-                <div key={event.id} className="event-card-compact">
-                  <div className="event-info">
-                    <h4>{event.title}</h4>
-                    <div className="event-meta">
-                      <Calendar size={14} style={{ display: 'inline', marginRight: 4 }} />
-                      {new Date(event.date).toLocaleDateString()}
-                      <span style={{ margin: '0 8px' }}>•</span>
-                      <Clock size={14} style={{ display: 'inline', marginRight: 4 }} />
-                      {event.time}
-                    </div>
-                    <div className={`status-badge status-${event.subscriptionStatus}`}>
-                      {event.subscriptionStatus === 'confirmed' && 'Подтверждено'}
-                      {event.subscriptionStatus === 'waitlisted' && 'В листе ожидания'}
-                      {event.subscriptionStatus === 'attended' && 'Посещено'}
-                      {event.subscriptionStatus === 'cancelled' && 'Отменено'}
-                    </div>
-                  </div>
-                  <div className="event-actions">
-                    <button 
-                      style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', marginLeft: 8 }}
-                      title="Подробнее"
-                    >
-                      <ChevronRight size={24} />
+                <div className="edit-actions">
+                    <button className="icon-btn save-btn" onClick={handleSave} disabled={isSaving}>
+                        <Check size={18} />
                     </button>
-                  </div>
+                    <button className="icon-btn cancel-btn" onClick={handleCancel} disabled={isSaving}>
+                        <X size={18} />
+                    </button>
                 </div>
-              ))
             )}
-          </div>
-        )}
+        </div>
+
+        <div className="personal-info-content">
+            <div className="avatar-column">
+                <div className="profile-avatar-compact">
+                    <User size={24} color="#fff" />
+                </div>
+            </div>
+            
+            <div className="info-column">
+                {isEditing ? (
+                    <div className="edit-form-grid">
+                        <input 
+                            type="text" 
+                            className="compact-input"
+                            placeholder="Имя"
+                            value={formData.firstName}
+                            onChange={e => setFormData({...formData, firstName: e.target.value})}
+                        />
+                        <input 
+                            type="text" 
+                            className="compact-input"
+                            placeholder="Фамилия"
+                            value={formData.lastName}
+                            onChange={e => setFormData({...formData, lastName: e.target.value})}
+                        />
+                        <input 
+                            type="tel" 
+                            className="compact-input"
+                            placeholder="Телефон"
+                            value={formData.phone}
+                            onChange={e => setFormData({...formData, phone: e.target.value})}
+                        />
+                    </div>
+                ) : (
+                    <div className="read-only-grid">
+                        <div className="info-row main-info">
+                            <span className="user-name">
+                                {user?.firstName} {user?.lastName}
+                            </span>
+                        </div>
+                        <div className="info-row secondary-info">
+                            <span className="user-phone">{user?.phone || 'Телефон не указан'}</span>
+                            <span className="user-email">{user?.email}</span>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Telegram Status integrated here */}
+                <div className="telegram-status-row">
+                    <TelegramBindingSection />
+                </div>
+            </div>
+        </div>
       </section>
 
-      <ChangePasswordModal 
-        isOpen={isPasswordModalOpen} 
-        onClose={() => setIsPasswordModalOpen(false)} 
-      />
+      {/* Participation History Block */}
+      <section className="profile-section history-block">
+        <div className="history-header">
+            <h3 className="section-title">История</h3>
+        </div>
+
+        <div className="history-list-scrollable">
+            {isLoadingEvents ? (
+                <div className="loading-placeholder">Загрузка...</div>
+            ) : filteredEvents.length > 0 ? (
+                filteredEvents.map(event => (
+                    <div key={event.id} className="history-card-compact">
+                        <div className="history-card-main">
+                            <h4 className="history-event-title">{event.title}</h4>
+                            <div className="history-event-meta">
+                                <span className="history-date">
+                                    {new Date(event.date).toLocaleDateString('ru-RU', {
+                                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                    })}
+                                </span>
+                                <span className={`status-badge-compact status-${event.subscriptionStatus}`}>
+                                    {event.subscriptionStatus === 'confirmed' ? 'Подтверждено' : 
+                                     event.subscriptionStatus === 'waitlisted' ? 'В ожидании' : 
+                                     event.subscriptionStatus === 'attended' ? 'Посетил' : 'Отменено'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="history-card-actions">
+                            {event.subscriptionStatus === 'attended' && (
+                                <button className="text-action-btn">Отзыв</button>
+                            )}
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <div className="empty-history">
+                    <Calendar size={24} className="empty-icon" />
+                    <p>Нет событий</p>
+                </div>
+            )}
+        </div>
+      </section>
+      
+      <div className="profile-footer">
+          <button onClick={logout} className="logout-button-compact">
+              <LogOut size={16} />
+              Выйти
+          </button>
+      </div>
     </div>
   );
 };
+
+
+
