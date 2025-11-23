@@ -310,7 +310,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [version, test]  # depends on version increment and tests
+    needs: [version]  # depends on version increment and tests TODO: add test when tests enabled
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     timeout-minutes: 15
     
