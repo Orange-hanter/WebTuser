@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: '22.x'
   APP_NAME: event-app-v2
@@ -18,6 +22,7 @@ jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
       - name: Checkout code
@@ -30,34 +35,35 @@ jobs:
           cache: 'npm'
           cache-dependency-path: event-app_v2/package-lock.json
 
-      - name: Cache node_modules
+      - name: Restore `node_modules` cache
         uses: actions/cache@v4
-        id: npm-cache
+        id: node-modules-cache
         with:
           path: event-app_v2/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}-${{ env.NODE_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
 
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies (only if cache miss)
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         working-directory: ./event-app_v2
         run: npm ci --prefer-offline --no-audit
 
       - name: Run TypeScript check
         working-directory: ./event-app_v2
-        run: npm run type-check || npx tsc --noEmit
+        run: npm run type-check
 
       - name: Run linter
         working-directory: ./event-app_v2
-        run: npm run lint || echo "Linting completed with warnings"
+        run: npm run lint
 
   # Job 2: Сборка приложения (после lint)
   build:
     name: Build Application
     runs-on: ubuntu-latest
     needs: [lint]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    timeout-minutes: 15
+    # Run on all triggers (PRs and Pushes to protected branches)
     
     steps:
       - name: Checkout code
@@ -70,17 +76,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: event-app_v2/package-lock.json
 
-      - name: Cache node_modules
+      - name: Restore `node_modules` cache
         uses: actions/cache@v4
-        id: npm-cache
+        id: node-modules-cache
         with:
           path: event-app_v2/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}-${{ env.NODE_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
 
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies (only if cache miss)
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         working-directory: ./event-app_v2
         run: npm ci --prefer-offline --no-audit
 
@@ -109,6 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    timeout-minutes: 5
     outputs:
       new_version: ${{ steps.version.outputs.new_version }}
       new_tag: ${{ steps.version.outputs.new_tag }}
@@ -162,28 +169,13 @@ jobs:
         id: version
         working-directory: ./event-app_v2
         run: |
-          CURRENT_VERSION="${{ steps.current_version.outputs.current_version }}"
           BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          echo "Bump type: $BUMP_TYPE"
 
-          # Parse current version
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          # Use npm to bump the version in package.json / package-lock.json without creating a git tag
+          npm --no-git-tag-version version "$BUMP_TYPE"
 
-          # Increment based on bump type
-          case $BUMP_TYPE in
-            major)
-              NEW_MAJOR=$((MAJOR + 1))
-              NEW_VERSION="$NEW_MAJOR.0.0"
-              ;;
-            minor)
-              NEW_MINOR=$((MINOR + 1))
-              NEW_VERSION="$MAJOR.$NEW_MINOR.0"
-              ;;
-            patch)
-              NEW_PATCH=$((PATCH + 1))
-              NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-              ;;
-          esac
-
+          NEW_VERSION=$(node -p "require('./package.json').version")
           NEW_TAG="v$NEW_VERSION"
 
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -191,28 +183,25 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "New tag: $NEW_TAG"
 
-      - name: Update package.json
-        working-directory: ./event-app_v2
-        run: |
-          NEW_VERSION="${{ steps.version.outputs.new_version }}"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
-          echo "Updated package.json to version $NEW_VERSION"
-
       - name: Commit version update
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add event-app_v2/package.json
+          git add event-app_v2/package.json event-app_v2/package-lock.json || true
           git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}" || echo "No changes to commit"
+          # Push the commit back to the branch (uses token from checkout)
+          git push origin HEAD:${{ github.ref_name }} || echo "Push failed or not required"
 
-      - name: Create git tag
+      - name: Create git tag (for feat/minor and breaking/major)
+        if: steps.bump_type.outputs.bump_type == 'minor' || steps.bump_type.outputs.bump_type == 'major'
         run: |
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
           git tag "$NEW_TAG"
           git push origin "$NEW_TAG"
           echo "Created and pushed tag: $NEW_TAG"
 
-      - name: Create release
+      - name: Create release (only for breaking changes / major)
+        if: steps.bump_type.outputs.bump_type == 'major'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -223,7 +212,7 @@ jobs:
             🚀 **Version ${{ steps.version.outputs.new_version }}**
 
             **Changes:**
-            - Auto-incremented version based on commit message
+            - Auto-incremented version (breaking change)
             - Build: ${{ github.run_id }}
             - Branch: ${{ github.ref_name }}
 
@@ -231,12 +220,14 @@ jobs:
           draft: false
           prerelease: false
 
-  # Job 4: E2E тесты (после build) - TEMPORARILY DISABLED
+  # Job 4: E2E тесты (после build)
   test:
-    name: E2E Tests (Disabled)
+    name: E2E Tests
     runs-on: ubuntu-latest
     needs: [build]
-    if: false  # Set to 'github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')' to enable
+    timeout-minutes: 20
+    if: false # disable for now
+    # Run on all triggers (PRs and Pushes to protected branches)
     
     steps:
       - name: Checkout code
@@ -249,26 +240,33 @@ jobs:
           cache: 'npm'
           cache-dependency-path: event-app_v2/package-lock.json
 
-      - name: Cache node_modules
+      - name: Restore `node_modules` cache
         uses: actions/cache@v4
-        id: npm-cache
+        id: node-modules-cache
         with:
           path: event-app_v2/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('event-app_v2/package-lock.json') }}-${{ env.NODE_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
 
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies (only if cache miss)
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         working-directory: ./event-app_v2
         run: npm ci --prefer-offline --no-audit
+
+      - name: Get Playwright version
+        id: playwright-version
+        working-directory: ./event-app_v2
+        run: |
+          PLAYWRIGHT_VERSION=$(npm list @playwright/test --depth=0 --json | jq -r '.dependencies["@playwright/test"].version')
+          echo "PLAYWRIGHT_VERSION=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('event-app_v2/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
           restore-keys: |
             ${{ runner.os }}-playwright-
 
@@ -312,8 +310,9 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [version]  # depends on version increment
+    needs: [version, test]  # depends on version increment and tests
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    timeout-minutes: 15
     
     steps:
       - name: Download build artifact
@@ -380,8 +379,9 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [version]  # depends on version increment
+    needs: [version, test]  # depends on version increment and tests
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 15
     
     steps:
       - name: Download build artifact
