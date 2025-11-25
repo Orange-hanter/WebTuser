@@ -3,7 +3,7 @@
  */
 
 export interface Event {
-  id: number;
+  id: string;
   title: string;
   type: string;
   location: string;

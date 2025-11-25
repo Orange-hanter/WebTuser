@@ -92,8 +92,11 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
     || backendEvent.details?.image 
     || getPlaceholderImage(title, backendEvent.type);
   console.log('time:', time, 'formattedDate:', formattedDate);
+  if (backendEvent.id === undefined) {
+    console.error('Backend event missing id:', backendEvent);
+  }
   return {
-    id: parseInt(backendEvent.id, 10) || 0,
+    id: backendEvent.id ,
     title: title,
     type: backendEvent.type,
     location: backendEvent.place || 'Location TBD',
@@ -114,13 +117,14 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
  */
 export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE, type?: string): Promise<EventBatchResponse> => {
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/events`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/events/approved`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const backendEvents: BackendEvent[] = await response.json();
+    console.log('Fetched backend events:', backendEvents);
     
     // Transform backend events to frontend format
     let allEvents = backendEvents.map(transformBackendEvent);
@@ -156,7 +160,7 @@ export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENT
  * @param {number} eventId - Event ID
  * @returns {Promise<EventDetailsResponse>} Full event information
  */
-export const fetchEventDetails = async (eventId: number): Promise<EventDetailsResponse> => {
+export const fetchEventDetails = async (eventId: string): Promise<EventDetailsResponse> => {
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`);
 
@@ -226,7 +230,7 @@ export const createEvent = async (eventData: {
  * Delete an event
  * DELETE /v1/api/events/{id}
  */
-export const deleteEvent = async (eventId: number): Promise<void> => {
+export const deleteEvent = async (eventId: string): Promise<void> => {
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`, {
       method: 'DELETE',
@@ -294,13 +298,13 @@ const eventApi = {
    * @param {number} eventId - Event ID
    * @param {'like' | 'dislike' | 'neutral'} action - Action type
    */
-  async sendDiscoveryAction(eventId: number, action: 'like' | 'dislike' | 'neutral'): Promise<void> {
+  async sendDiscoveryAction(eventId:  string, action: 'like' | 'dislike' | 'neutral'): Promise<void> {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/discovery/action`, {
         method: 'POST',
         body: JSON.stringify({
           action,
-          eventId: eventId.toString()
+          eventId: eventId
         })
       });
 
@@ -321,7 +325,7 @@ const eventApi = {
    * POST /v1/api/users/me/events/{id}/subscribe
    * @param {number} eventId - Event ID
    */
-  async subscribeToEvent(eventId: number): Promise<void> {
+  async subscribeToEvent(eventId: string): Promise<void> {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/users/me/events/${eventId}/subscribe`, {
         method: 'POST'

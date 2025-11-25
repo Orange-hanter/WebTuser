@@ -4,7 +4,7 @@ import AvatarWithPopover from './AvatarWithPopover';
 import './ParticipantAvatarStrip.css';
 
 interface ParticipantAvatarStripProps {
-  eventId: number;
+  eventId: string;
   onSubscribeClick?: () => void;
 }
 

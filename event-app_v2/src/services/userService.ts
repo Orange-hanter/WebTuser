@@ -29,7 +29,7 @@ export interface Participant {
 
 // Simple in-memory cache for public user profiles
 const userProfileCache = new Map<string | number, { data: PublicUserProfile; timestamp: number }>();
-const eventParticipantsCache = new Map<number, { data: Participant[]; timestamp: number }>();
+const eventParticipantsCache = new Map<string, { data: Participant[]; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const PARTICIPANTS_CACHE_TTL = 60 * 1000; // 1 minute
 
@@ -122,7 +122,7 @@ export const userService = {
     return response.json();
   },
 
-  async cancelParticipation(eventId: number): Promise<void> {
+  async cancelParticipation(eventId: string): Promise<void> {
     const token = AuthService.getAuthToken();
     if (!token) throw new Error('Not authenticated');
 
@@ -138,7 +138,7 @@ export const userService = {
     if (!response.ok) throw new Error('Failed to cancel participation');
   },
 
-  async subscribeToEvent(eventId: number, metadata: Record<string, any> = {}): Promise<void> {
+  async subscribeToEvent(eventId: string, metadata: Record<string, any> = {}): Promise<void> {
     const token = AuthService.getAuthToken();
     if (!token) throw new Error('Not authenticated');
 
@@ -178,7 +178,7 @@ export const userService = {
     return data;
   },
 
-  async getEventParticipants(eventId: number): Promise<Participant[]> {
+  async getEventParticipants(eventId: string): Promise<Participant[]> {
     // Check cache first
     const cached = eventParticipantsCache.get(eventId);
     if (cached && Date.now() - cached.timestamp < PARTICIPANTS_CACHE_TTL) {

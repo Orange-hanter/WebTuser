@@ -7,7 +7,7 @@ import { useAuthContext, useToast } from '@/contexts';
 import './PublicEventPage.css';
 
 interface PublicEventPageProps {
-  eventId: number;
+  eventId: string;
 }
 
 const PublicEventPage: FC<PublicEventPageProps> = ({ eventId }) => {
