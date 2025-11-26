@@ -200,3 +200,31 @@
     margin-top: 0;
   }
 }
+
+/* Expanded Mode Banner */
+.expanded-mode-banner {
+  background-color: var(--purple-100);
+  color: var(--purple-800);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  width: 90%;
+  max-width: 400px;
+}
+
+.close-banner {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--purple-800);
+  cursor: pointer;
+  padding: 0 0.25rem;
+  margin-left: 0.5rem;
+}

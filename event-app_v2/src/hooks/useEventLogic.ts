@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { fetchEventsBatch } from '@services/eventApi';
+import { fetchEventsBatch, fetchNextDiscoveryEvent, sendDiscoveryAction, bookEvent } from '@services/eventApi';
 import type { Event, EventPreferences, UseInfiniteEventScrollReturn, UseEventNavigationReturn } from '@/types';
 
 /**
@@ -137,5 +137,137 @@ export const useEventNavigation = (events: Event[], onLoadMore?: () => void): Us
     goToNextEvent, 
     resetToStart,
     totalEvents: events.length
+  };
+};
+
+/**
+ * Хук для режима Discovery (очередь событий на сервере)
+ * Реализует Dual Discovery Mode Architecture:
+ * 1. Queue-Based Discovery (Default) - обычная очередь
+ * 2. Expanded Service Discovery (Category seeded) - расширенная очередь по категории
+ */
+export const useDiscoveryQueue = () => {
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [hasNoEvents, setHasNoEvents] = useState(false);
+
+  // Загрузка следующего события из очереди (GET /next)
+  const fetchNext = useCallback(async (categoryOverride?: string | null) => {
+    setIsLoading(true);
+    setError(null);
+    setHasNoEvents(false);
+
+    try {
+      // Если категория передана явно (при инициализации), используем её.
+      // Иначе используем сохраненную категорию (режим Expanded) или undefined (режим Default).
+      // Note: expandedCategory state might not be updated yet if called immediately after setExpandedCategory
+      const categoryToUse = categoryOverride !== undefined ? categoryOverride : expandedCategory;
+      
+      const event = await fetchNextDiscoveryEvent(categoryToUse);
+      console.debug("Fetching next discovery event with category:", event);
+
+      if (event) {
+        setCurrentEvent(event);
+      } else {
+        setCurrentEvent(null);
+        setHasNoEvents(true);
+      }
+    } catch (err) {
+      console.error('Discovery fetch error:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load event'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [expandedCategory]);
+
+  // Инициализация режима (смена категории или сброс)
+  const initialize = useCallback((category?: string) => {
+    const newCategory = category || null;
+    setExpandedCategory(newCategory);
+    setCurrentEvent(null);
+    setError(null);
+    setHasNoEvents(false);
+    // Запускаем загрузку с новой категорией (или без неё)
+    fetchNext(newCategory);
+  }, [fetchNext]);
+
+  // Обработка действий (like, dislike, neutral)
+  const handleAction = useCallback(async (action: 'like' | 'dislike' | 'neutral') => {
+    if (!currentEvent) return;
+
+    // Optimistic update: we don't wait for the action to complete to show loading state
+    setIsLoading(true);
+
+    try {
+      await sendDiscoveryAction(currentEvent.id || 'ni-hu-ya', action);
+      // On success (2xx), immediately fetch next
+      await fetchNext();
+    } catch (err: any) {
+      console.error('Action error:', err);
+      
+      // Handle 409/404 - treat as stale, reload next
+      if (err.message === 'Event unavailable' || err.message.includes('409') || err.message.includes('404')) {
+        console.warn('Event unavailable, fetching next...');
+        await fetchNext();
+      } else {
+        // Network error or other - show retry
+        setError(err instanceof Error ? err : new Error('Action failed'));
+        setIsLoading(false); // Stop loading to show error state
+      }
+    }
+  }, [currentEvent, fetchNext]);
+
+  // Обработка бронирования
+  const handleBook = useCallback(async () => {
+    if (!currentEvent) return;
+
+    setIsLoading(true);
+
+    try {
+      await bookEvent(currentEvent.id);
+      // On success, fetch next
+      await fetchNext();
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      
+      if (err.message === 'Event unavailable' || err.message.includes('409') || err.message.includes('404')) {
+        console.warn('Event unavailable, fetching next...');
+        await fetchNext();
+      } else {
+        setError(err instanceof Error ? err : new Error('Booking failed'));
+        setIsLoading(false);
+      }
+    }
+  }, [currentEvent, fetchNext]);
+
+  // Retry handler
+  const retry = useCallback(() => {
+    if (error?.message === 'Failed to load event' || !currentEvent) {
+      fetchNext();
+    } else {
+      // Action failed. Clear error so user can try again.
+      setError(null);
+      setIsLoading(false);
+    }
+  }, [currentEvent, error, fetchNext]);
+
+  // Initial load
+  useEffect(() => {
+    fetchNext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return {
+    currentEvent,
+    isLoading,
+    error,
+    hasNoEvents,
+    expandedCategory,
+    initialize,
+    handleAction,
+    handleBook,
+    retry
   };
 };
