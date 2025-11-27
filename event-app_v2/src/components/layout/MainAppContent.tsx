@@ -7,9 +7,7 @@ import {
   EventDetailModal
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
-import { useEventPreferences, useEventNavigation, useInfiniteEventScroll } from '@hooks/useEventLogic';
-import eventApi from '@/services/eventApi';
-import { userService } from '@/services/userService';
+import { useEventPreferences, useDiscoveryQueue } from '@hooks/useEventLogic';
 import { useToast } from '@/contexts';
 import type { Event } from '@/types';
 import { ProfilePage } from '@/components/profile';
@@ -17,7 +15,18 @@ import './MainAppContent.css';
 import './ViewModeToggle.css';
 
 const MainAppContent: FC = () => {
-  const { events, isLoading, error, hasMore, loadMoreEvents, setCategoryFilter } = useInfiniteEventScroll();
+  const { 
+    currentEvent, 
+    isLoading, 
+    error, 
+    hasNoEvents, 
+    expandedCategory, 
+    initialize, 
+    handleAction, 
+    handleBook, 
+    retry 
+  } = useDiscoveryQueue();
+
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -25,8 +34,7 @@ const MainAppContent: FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
-  const [isActionLoading, setIsActionLoading] = useState(false);
-  const { error: showError, success: showSuccess } = useToast();
+  const { success: showSuccess } = useToast();
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
@@ -62,58 +70,20 @@ const MainAppContent: FC = () => {
   };
 
   const handleCategorySelect = useCallback((category: string) => {
-    setCategoryFilter(category);
+    initialize(category);
     setViewMode('card');
-  }, [setCategoryFilter]);
+  }, [initialize]);
   
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !isLoading) {
-      loadMoreEvents();
-    }
-  }, [hasMore, isLoading, loadMoreEvents]);
+  // Removed handleLoadMore and useEventNavigation as we use useDiscoveryQueue now
 
-  const { currentIndex, currentEvent, goToNextEvent } = useEventNavigation(events, handleLoadMore);
-
-  const handleAction = useCallback(async (action: 'like' | 'dislike' | 'neutral') => {
-    if (!currentEvent || isActionLoading) return;
-
-    setIsActionLoading(true);
-    try {
-      await eventApi.sendDiscoveryAction(currentEvent.id, action);
-      goToNextEvent();
-    } catch (err) {
-      if (err instanceof Error && err.message === 'Event unavailable') {
-        showError('Событие недоступно');
-        goToNextEvent();
-      } else {
-        showError('Ошибка при выполнении действия');
-        // Keep current card visible on network error
-      }
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [currentEvent, isActionLoading, goToNextEvent, showError]);
-
-  const handleLike = useCallback(() => handleAction('like'), [handleAction]);
-  const handleDislike = useCallback(() => handleAction('dislike'), [handleAction]);
-  const handleSkip = useCallback(() => handleAction('neutral'), [handleAction]);
+  const onLike = useCallback(() => handleAction('like'), [handleAction]);
+  const onDislike = useCallback(() => handleAction('dislike'), [handleAction]);
+  const onSkip = useCallback(() => handleAction('neutral'), [handleAction]);
 
   const handleSubscribe = useCallback(async () => {
-    if (!currentEvent || isActionLoading) return;
-
-    setIsActionLoading(true);
-    try {
-      await userService.subscribeToEvent(currentEvent.id, {
-        dietary_preferences: "vegan"
-      });
-      showSuccess('Вы успешно записались!');
-      goToNextEvent();
-    } catch (err) {
-      showError('Не удалось записаться на событие');
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [currentEvent, isActionLoading, goToNextEvent, showError, showSuccess]);
+    await handleBook();
+    showSuccess('Вы успешно записались!');
+  }, [handleBook, showSuccess]);
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
@@ -125,11 +95,11 @@ const MainAppContent: FC = () => {
       switch (event.code) {
         case 'KeyX':
           event.preventDefault();
-          handleDislike();
+          onDislike();
           break;
         case 'KeyA':
           event.preventDefault();
-          handleLike();
+          onLike();
           break;
         case 'KeyD':
           event.preventDefault();
@@ -149,26 +119,14 @@ const MainAppContent: FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentEvent, handleLike, handleDislike]);
+  }, [currentEvent, onLike, onDislike]);
 
   const showEmptyCard = useMemo(() => {
-    // Show empty card if:
-    // 1. We have no current event (either finished list or empty list)
-    // 2. We are not loading
-    // 3. We have no more events to load
-    const shouldShow = !currentEvent && !isLoading && !hasMore;
-    console.debug('[MainAppContent] showEmptyCard debug', {
-      hasCurrentEvent: Boolean(currentEvent),
-      isLoading,
-      hasMore,
-      eventsLength: events.length,
-      shouldShow,
-    });
-    return shouldShow;
-  }, [currentEvent, isLoading, hasMore]);
+    return hasNoEvents && !isLoading;
+  }, [hasNoEvents, isLoading]);
 
   // Если ошибка при загрузке
-  if (error && events.length === 0 && viewMode === 'card') {
+  if (error && !currentEvent && viewMode === 'card') {
     return (
       <div className="app-container">
         <Header 
@@ -177,8 +135,8 @@ const MainAppContent: FC = () => {
         />
         <main className="app-main">
           <div className="error-message">
-            <p>Ошибка при загрузке событий: {error}</p>
-            <button onClick={loadMoreEvents} className="retry-button">
+            <p>Ошибка при загрузке событий: {error.message}</p>
+            <button onClick={retry} className="retry-button">
               Повторить попытку
             </button>
           </div>
@@ -192,7 +150,7 @@ const MainAppContent: FC = () => {
   }
 
   // Если событий еще нет и идет загрузка
-  if (events.length === 0 && isLoading && viewMode === 'card') {
+  if (!currentEvent && isLoading && viewMode === 'card') {
     return (
       <div className="app-container">
         <Header 
@@ -260,6 +218,14 @@ const MainAppContent: FC = () => {
                 />
               ) : (
                 <>
+                  {/* Expanded Mode Banner */}
+                  {expandedCategory && (
+                    <div className="expanded-mode-banner">
+                      <span>Фильтр: {expandedCategory}</span>
+                      <button onClick={() => initialize()} className="close-banner">×</button>
+                    </div>
+                  )}
+
                   {/* Контент события */}
                   <div className="event-content">
                     {showEmptyCard ? (
@@ -280,29 +246,13 @@ const MainAppContent: FC = () => {
                   {/* ActionButtons - на уровне приложения, независимые от обертки карточки */}
                   {currentEvent && !showEmptyCard && (
                     <ActionButtons 
-                      onLike={handleLike} 
-                      onDislike={handleDislike}
-                      onSkip={handleSkip}
-                      disabled={isActionLoading}
+                      onLike={onLike} 
+                      onDislike={onDislike}
+                      onSkip={onSkip}
+                      disabled={isLoading}
+                      eventId={currentEvent.id}
                     />
                   )}
-
-                  {/* Информация о прогрессе */}
-                  <div className="events-footer">
-                    {isLoading && events.length > 0 && (
-                      <div className="loading-indicator">
-                        <span className="loading-dot"></span>
-                        <span className="loading-dot"></span>
-                        <span className="loading-dot"></span>
-                      </div>
-                    )}
-
-                    {events.length > 0 && (
-                      <div className="events-progress">
-                        Событие {currentIndex + 1} из {events.length}
-                      </div>
-                    )}
-                  </div>
                 </>
               )}
               <BottomNavigation 
@@ -348,7 +298,7 @@ const MainAppContent: FC = () => {
       <EventDetailModal 
         isOpen={showEventDetail}
         onClose={() => setShowEventDetail(false)}
-        event={selectedEvent || currentEvent}
+        event={selectedEvent || currentEvent || undefined}
         onLike={handleSubscribe}
       />
 

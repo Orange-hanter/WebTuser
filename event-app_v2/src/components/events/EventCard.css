@@ -215,6 +215,18 @@
   font-size: 0.75rem;
 }
 
+.event-card-participants {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--gray-200);
+  padding-top: 0.75rem;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
 .star-icon {
   color: var(--yellow-400);
   fill: var(--yellow-400);
@@ -244,6 +256,35 @@
   transform: scale(1.1);
   background-color: var(--white);
   color: var(--primary-color);
+}
+
+/* Participant Strip styling within Event Card */
+.event-card .participant-strip {
+  padding: 0;
+  border-top: 1px solid var(--gray-200);
+  margin-top: 0;
+}
+
+.event-card .participant-count {
+  font-size: 12px;
+  color: var(--gray-600);
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.event-card .avatars-container {
+  padding: 0;
+}
+
+.event-card .empty-message {
+  color: var(--gray-500);
+}
+
+.event-card .avatar-overflow-badge {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-700);
 }
 
 /* Small phones (iPhone SE - 375px) */

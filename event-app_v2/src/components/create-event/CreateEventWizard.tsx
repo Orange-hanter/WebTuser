@@ -1,6 +1,7 @@
 import { FC, useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { FeedbackModal } from './FeedbackModal';
+import { CreatorEventsPage } from './CreatorEventsPage';
 import type { CreateEventData } from '@/types';
 import './CreateEventWizard.css';
 
@@ -68,6 +69,7 @@ export const CreateEventWizard: FC<CreateEventWizardProps> = ({ isVisible, onClo
   const [draftRestored, setDraftRestored] = useState<{ timestamp: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMyEvents, setShowMyEvents] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Load draft on mount
@@ -272,6 +274,20 @@ export const CreateEventWizard: FC<CreateEventWizardProps> = ({ isVisible, onClo
   };
 
   if (!isVisible) return null;
+
+  // По умолчанию показываем страницу "Мои мероприятия"
+  // Wizard открывается при нажатии "Создать мероприятие"
+  if (!showMyEvents) {
+    return (
+      <CreatorEventsPage 
+        onClose={onClose}
+        onCreateNew={() => {
+          handleResetDraft();
+          setShowMyEvents(true);
+        }}
+      />
+    );
+  }
 
   const renderStepContent = () => {
     switch (step) {
@@ -506,6 +522,13 @@ export const CreateEventWizard: FC<CreateEventWizardProps> = ({ isVisible, onClo
   return (
     <div className="wizard-container">
       <div className="wizard-header">
+        <button 
+          className="wizard-back-button" 
+          onClick={() => setShowMyEvents(false)}
+          title="Назад к списку"
+        >
+          <ChevronLeft size={24} />
+        </button>
         <h1 className="wizard-title">Создание события</h1>
         <button className="wizard-close-button" onClick={onClose}>
           <X size={24} />

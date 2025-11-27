@@ -46,6 +46,31 @@ interface BackendEvent {
   imgUrl?: string;
 }
 
+// Discovery API Response Schemas
+interface DiscoveryEvent {
+  id: string;
+  title: string;
+  description: string;
+  slot: {
+    start: string;
+    end: string;
+  };
+  metadata: Record<string, any>;
+}
+
+interface DiscoveryResponse {
+  conflict: boolean;
+  conflictFlag?: {
+    activatedAt: string;
+    active: boolean;
+    bookedEvent: string;
+    reason: string;
+  };
+  event: DiscoveryEvent;
+  remainingConflicts: number;
+  remainingPrimary: number;
+}
+
 // Color mapping for event types
 const getColorForType = (type: string): string => {
   const colors: Record<string, string> = {
@@ -92,8 +117,11 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
     || backendEvent.details?.image 
     || getPlaceholderImage(title, backendEvent.type);
   console.log('time:', time, 'formattedDate:', formattedDate);
+  if (backendEvent.id === undefined) {
+    console.error('Backend event missing id:', backendEvent);
+  }
   return {
-    id: parseInt(backendEvent.id, 10) || 0,
+    id: backendEvent.id ,
     title: title,
     type: backendEvent.type,
     location: backendEvent.place || 'Location TBD',
@@ -107,6 +135,40 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
   };
 };
 
+const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent): Event => {
+  const startDate = new Date(discoveryEvent.slot.start);
+  const formattedDate = startDate.toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+
+  const time = startDate.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  });
+
+  const type = discoveryEvent.metadata?.type || 'Развлечения';
+  const image = discoveryEvent.metadata?.image 
+    || getPlaceholderImage(discoveryEvent.title, type);
+
+  return {
+    id: discoveryEvent.id,
+    title: discoveryEvent.title,
+    type: type,
+    location: discoveryEvent.metadata?.place || 'Location TBD',
+    time: time,
+    date: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1),
+    attendees: discoveryEvent.metadata?.attendees || 0,
+    rating: discoveryEvent.metadata?.rating || 0,
+    description: discoveryEvent.description,
+    image: image,
+    tags: discoveryEvent.metadata?.tags || [type],
+  };
+};
+
 /**
  * Endpoint 1: Fetch events list
  * GET /v1/api/events
@@ -114,13 +176,14 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
  */
 export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENTS_BATCH_SIZE, type?: string): Promise<EventBatchResponse> => {
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/events`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/events/approved`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const backendEvents: BackendEvent[] = await response.json();
+    console.log('Fetched backend events:', backendEvents);
     
     // Transform backend events to frontend format
     let allEvents = backendEvents.map(transformBackendEvent);
@@ -156,7 +219,7 @@ export const fetchEventsBatch = async (offset: number = 0, limit: number = EVENT
  * @param {number} eventId - Event ID
  * @returns {Promise<EventDetailsResponse>} Full event information
  */
-export const fetchEventDetails = async (eventId: number): Promise<EventDetailsResponse> => {
+export const fetchEventDetails = async (eventId: string): Promise<EventDetailsResponse> => {
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`);
 
@@ -226,7 +289,7 @@ export const createEvent = async (eventData: {
  * Delete an event
  * DELETE /v1/api/events/{id}
  */
-export const deleteEvent = async (eventId: number): Promise<void> => {
+export const deleteEvent = async (eventId: string): Promise<void> => {
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/events/${eventId}`, {
       method: 'DELETE',
@@ -279,6 +342,85 @@ export const getCategoryStats = async (): Promise<import('@/types').CategoryStat
 };
 
 /**
+ * Fetch next event for discovery queue
+ * GET /v1/api/discovery/next
+ * @param {string} [category] - Optional category filter for Expanded Discovery Mode
+ */
+export const fetchNextDiscoveryEvent = async (category?: string | null): Promise<Event | null> => {
+  try {
+    const url = new URL(`${API_BASE_URL}/discovery/next`);
+    if (category) {
+      url.searchParams.append('category', category);
+    }
+
+    const response = await fetchWithAuth(url.toString());
+
+    if (response.status === 204) {
+      return null; // No more events
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const discoveryResponse: DiscoveryResponse = await response.json();
+    return transformDiscoveryEvent(discoveryResponse.event);
+  } catch (error) {
+    console.error('Error fetching next discovery event:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send discovery action (like, dislike, neutral) for an event
+ * POST /v1/api/discovery/action
+ */
+export const sendDiscoveryAction = async (eventId: string, action: 'like' | 'dislike' | 'neutral'): Promise<void> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/discovery/action`, {
+      method: 'POST',
+      body: JSON.stringify({
+        action,
+        eventId: eventId
+      })
+    });
+
+    if (!response.ok) {
+      if (response.status === 409 || response.status === 404) {
+        throw new Error('Event unavailable');
+      }
+      throw new Error(`Discovery action failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Error sending discovery action ${action} for event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Book an event
+ * POST /v1/api/discovery/book
+ */
+export const bookEvent = async (eventId: string): Promise<void> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/discovery/book`, {
+      method: 'POST',
+      body: JSON.stringify({ eventId })
+    });
+
+    if (!response.ok) {
+      if (response.status === 409 || response.status === 404) {
+        throw new Error('Event unavailable');
+      }
+      throw new Error(`Booking failed: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Error booking event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Event API object
  */
 const eventApi = {
@@ -287,41 +429,16 @@ const eventApi = {
   createEvent,
   deleteEvent,
   getCategoryStats,
-
-  /**
-   * Send discovery action (like, dislike, neutral) for an event
-   * POST /v1/api/discovery/action
-   * @param {number} eventId - Event ID
-   * @param {'like' | 'dislike' | 'neutral'} action - Action type
-   */
-  async sendDiscoveryAction(eventId: number, action: 'like' | 'dislike' | 'neutral'): Promise<void> {
-    try {
-      const response = await fetchWithAuth(`${API_BASE_URL}/discovery/action`, {
-        method: 'POST',
-        body: JSON.stringify({
-          action,
-          eventId: eventId.toString()
-        })
-      });
-
-      if (!response.ok) {
-        if (response.status === 409 || response.status === 404) {
-          throw new Error('Event unavailable');
-        }
-        throw new Error(`Discovery action failed: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(`Error sending discovery action ${action} for event ${eventId}:`, error);
-      throw error;
-    }
-  },
+  fetchNextDiscoveryEvent,
+  sendDiscoveryAction,
+  bookEvent,
 
   /**
    * Subscribe to an event
    * POST /v1/api/users/me/events/{id}/subscribe
    * @param {number} eventId - Event ID
    */
-  async subscribeToEvent(eventId: number): Promise<void> {
+  async subscribeToEvent(eventId: string): Promise<void> {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/users/me/events/${eventId}/subscribe`, {
         method: 'POST'

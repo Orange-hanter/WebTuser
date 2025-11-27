@@ -13,7 +13,7 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
   const [events, setEvents] = useState<EventWithSubscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [unsubscribingId, setUnsubscribingId] = useState<number | null>(null);
+  const [unsubscribingId, setUnsubscribingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -112,46 +112,61 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
             className="upcoming-card"
             onClick={() => onEventClick(event)}
           >
-            <div className="upcoming-card-header">
-              <div>
+            <img 
+              src={event.image || '/placeholder-event.jpg'} 
+              alt={event.title}
+              className="upcoming-card-image"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            
+            <div className="upcoming-card-body">
+              <div className="upcoming-card-header">
                 <h4 className="upcoming-card-title">{event.title}</h4>
-                <div className={`status-badge status-${event.subscriptionStatus}`} style={{ marginTop: 8 }}>
-                  {event.subscriptionStatus === 'confirmed' && 'Подтверждено'}
-                  {event.subscriptionStatus === 'waitlisted' && 'В листе ожидания'}
+                <span className="upcoming-card-type">{event.type}</span>
+              </div>
+
+              <div className="upcoming-card-meta">
+                <div className="meta-row">
+                  <Calendar size={16} />
+                  <span>{new Date(event.date).toLocaleDateString('ru-RU', { 
+                    weekday: 'short', 
+                    day: 'numeric', 
+                    month: 'short' 
+                  })}</span>
+                  <div className="meta-divider" />
+                  <Clock size={16} />
+                  <span>{event.time}</span>
+                </div>
+                <div className="meta-row">
+                  <MapPin size={16} />
+                  <span>{event.location}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="upcoming-card-meta">
-              <div className="meta-row">
-                <Calendar size={14} />
-                {new Date(event.date).toLocaleDateString()}
-                <span style={{ margin: '0 4px' }}>•</span>
-                <Clock size={14} />
-                {event.time}
+              <div className={`status-badge status-${event.subscriptionStatus}`}>
+                {event.subscriptionStatus === 'confirmed' && 'Подтверждено'}
+                {event.subscriptionStatus === 'waitlisted' && 'В листе ожидания'}
               </div>
-              <div className="meta-row">
-                <MapPin size={14} />
-                {event.location}
-              </div>
-            </div>
 
-            <div className="upcoming-card-actions">
-              <button 
-                className="btn-unsubscribe"
-                onClick={(e) => handleUnsubscribe(e, event)}
-                disabled={unsubscribingId === event.id}
-              >
-                {unsubscribingId === event.id ? '...' : (
-                  <>
-                    <XCircle size={16} />
-                    Отписаться
-                  </>
-                )}
-              </button>
-              <button className="btn-details">
-                Подробнее
-              </button>
+              <div className="upcoming-card-actions">
+                <button 
+                  className="btn-unsubscribe"
+                  onClick={(e) => handleUnsubscribe(e, event)}
+                  disabled={unsubscribingId === event.id}
+                >
+                  {unsubscribingId === event.id ? '...' : (
+                    <>
+                      <XCircle size={16} />
+                      Отписаться
+                    </>
+                  )}
+                </button>
+                <button className="btn-details">
+                  Подробнее
+                </button>
+              </div>
             </div>
           </div>
         ))}

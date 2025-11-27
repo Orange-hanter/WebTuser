@@ -29,7 +29,7 @@ export interface Participant {
 
 // Simple in-memory cache for public user profiles
 const userProfileCache = new Map<string | number, { data: PublicUserProfile; timestamp: number }>();
-const eventParticipantsCache = new Map<number, { data: Participant[]; timestamp: number }>();
+const eventParticipantsCache = new Map<string, { data: Participant[]; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const PARTICIPANTS_CACHE_TTL = 60 * 1000; // 1 minute
 
@@ -103,7 +103,26 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to fetch upcoming events');
-    return response.json();
+    
+    const rawEvents = await response.json();
+    
+    // Transform API response to EventWithSubscription format
+    return rawEvents.map((e: any) => ({
+      id: e.id,
+      title: e.title || e.details?.title || `${e.type} событие`,
+      type: e.type || 'Событие',
+      location: e.place || e.location || 'Место не указано',
+      time: e.start ? new Date(e.start).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '',
+      date: e.start || e.date || '',
+      attendees: e.details?.capacity || 0,
+      rating: e.rating || 0,
+      description: e.details?.description || e.description || '',
+      image: e.image || e.details?.image || '/placeholder-event.jpg',
+      tags: e.details?.tags || e.tags || [],
+      creator: e.creator,
+      subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
+      subscriptionId: e.subscription_id || e.subscriptionId,
+    }));
   },
 
   async getEventHistory(limit = 20, offset = 0): Promise<EventWithSubscription[]> {
@@ -119,10 +138,29 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to fetch event history');
-    return response.json();
+    
+    const rawEvents = await response.json();
+    
+    // Transform API response to EventWithSubscription format
+    return rawEvents.map((e: any) => ({
+      id: e.id,
+      title: e.title || e.details?.title || `${e.type} событие`,
+      type: e.type || 'Событие',
+      location: e.place || e.location || 'Место не указано',
+      time: e.start ? new Date(e.start).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '',
+      date: e.start || e.date || '',
+      attendees: e.details?.capacity || 0,
+      rating: e.rating || 0,
+      description: e.details?.description || e.description || '',
+      image: e.image || e.details?.image || '/placeholder-event.jpg',
+      tags: e.details?.tags || e.tags || [],
+      creator: e.creator,
+      subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
+      subscriptionId: e.subscription_id || e.subscriptionId,
+    }));
   },
 
-  async cancelParticipation(eventId: number): Promise<void> {
+  async cancelParticipation(eventId: string): Promise<void> {
     const token = AuthService.getAuthToken();
     if (!token) throw new Error('Not authenticated');
 
@@ -138,7 +176,7 @@ export const userService = {
     if (!response.ok) throw new Error('Failed to cancel participation');
   },
 
-  async subscribeToEvent(eventId: number, metadata: Record<string, any> = {}): Promise<void> {
+  async subscribeToEvent(eventId: string, metadata: Record<string, any> = {}): Promise<void> {
     const token = AuthService.getAuthToken();
     if (!token) throw new Error('Not authenticated');
 
@@ -178,7 +216,7 @@ export const userService = {
     return data;
   },
 
-  async getEventParticipants(eventId: number): Promise<Participant[]> {
+  async getEventParticipants(eventId: string): Promise<Participant[]> {
     // Check cache first
     const cached = eventParticipantsCache.get(eventId);
     if (cached && Date.now() - cached.timestamp < PARTICIPANTS_CACHE_TTL) {

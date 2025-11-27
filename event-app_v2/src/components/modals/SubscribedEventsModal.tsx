@@ -6,7 +6,7 @@ import './SubscribedEventsModal.css';
 interface SubscribedEventsModalProps {
   isVisible: boolean;
   likedEvents: Event[];
-  onRemove: (eventId: number) => void;
+  onRemove: (eventId: string | number) => void;
 }
 
 const SubscribedEventsModal: FC<SubscribedEventsModalProps> = ({ 
