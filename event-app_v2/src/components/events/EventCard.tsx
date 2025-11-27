@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { MapPin, Star, Clock, Share2 } from 'lucide-react';
 import type { Event } from '@/types';
-import { AvatarWithPopover } from '@/components/common';
+import { AvatarWithPopover, ParticipantAvatarStrip } from '@/components/common';
 import { useToast } from '@/contexts';
 import './EventCard.css';
 
@@ -104,6 +104,11 @@ const EventCard: FC<EventCardProps> = ({
             #{tag}
           </span>
         ))}
+      </div>
+      <div className="event-card-participants">
+        <ParticipantAvatarStrip 
+          eventId={event.id}
+        />
       </div>
     </div>
   </div>

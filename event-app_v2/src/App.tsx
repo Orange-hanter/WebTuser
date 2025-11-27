@@ -16,10 +16,8 @@ const App: FC = () => {
     const parts = path.split('/');
     const eventIdStr = parts[2];
     if (eventIdStr) {
-      const eventId = parseInt(eventIdStr, 10);
-      if (!isNaN(eventId)) {
-        return <PublicEventPage eventId={eventId} />;
-      }
+      // Keep as string to match PublicEventPage prop type
+      return <PublicEventPage eventId={eventIdStr} />;
     }
   }
   

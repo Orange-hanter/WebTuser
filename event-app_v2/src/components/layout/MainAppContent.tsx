@@ -34,7 +34,7 @@ const MainAppContent: FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
-  const { error: showError, success: showSuccess } = useToast();
+  const { success: showSuccess } = useToast();
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
