@@ -61,6 +61,18 @@
   color: #22c55e; /* Green-500 */
 }
 
+/* Active (liked) state */
+.action-button-like.active {
+  background-color: #16a34a; /* Green-600 */
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.action-button-like.active .action-button-icon {
+  stroke: none;
+  fill: currentColor;
+}
+
 .action-button-icon {
   stroke-width: 2.5px;
 }

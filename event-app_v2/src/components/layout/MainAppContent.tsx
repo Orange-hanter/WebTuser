@@ -250,6 +250,7 @@ const MainAppContent: FC = () => {
                       onDislike={onDislike}
                       onSkip={onSkip}
                       disabled={isLoading}
+                      eventId={currentEvent.id}
                     />
                   )}
                 </>

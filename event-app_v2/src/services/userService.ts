@@ -103,7 +103,26 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to fetch upcoming events');
-    return response.json();
+    
+    const rawEvents = await response.json();
+    
+    // Transform API response to EventWithSubscription format
+    return rawEvents.map((e: any) => ({
+      id: e.id,
+      title: e.title || e.details?.title || `${e.type} событие`,
+      type: e.type || 'Событие',
+      location: e.place || e.location || 'Место не указано',
+      time: e.start ? new Date(e.start).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '',
+      date: e.start || e.date || '',
+      attendees: e.details?.capacity || 0,
+      rating: e.rating || 0,
+      description: e.details?.description || e.description || '',
+      image: e.image || e.details?.image || '/placeholder-event.jpg',
+      tags: e.details?.tags || e.tags || [],
+      creator: e.creator,
+      subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
+      subscriptionId: e.subscription_id || e.subscriptionId,
+    }));
   },
 
   async getEventHistory(limit = 20, offset = 0): Promise<EventWithSubscription[]> {
@@ -119,7 +138,26 @@ export const userService = {
     });
 
     if (!response.ok) throw new Error('Failed to fetch event history');
-    return response.json();
+    
+    const rawEvents = await response.json();
+    
+    // Transform API response to EventWithSubscription format
+    return rawEvents.map((e: any) => ({
+      id: e.id,
+      title: e.title || e.details?.title || `${e.type} событие`,
+      type: e.type || 'Событие',
+      location: e.place || e.location || 'Место не указано',
+      time: e.start ? new Date(e.start).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '',
+      date: e.start || e.date || '',
+      attendees: e.details?.capacity || 0,
+      rating: e.rating || 0,
+      description: e.details?.description || e.description || '',
+      image: e.image || e.details?.image || '/placeholder-event.jpg',
+      tags: e.details?.tags || e.tags || [],
+      creator: e.creator,
+      subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
+      subscriptionId: e.subscription_id || e.subscriptionId,
+    }));
   },
 
   async cancelParticipation(eventId: string): Promise<void> {

@@ -152,6 +152,10 @@ export const useDiscoveryQueue = () => {
   const [error, setError] = useState<Error | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [hasNoEvents, setHasNoEvents] = useState(false);
+  // Track event IDs that already had an action sent (any action)
+  const actionSentRef = useRef<Set<string | number>>(new Set());
+  // Track liked event IDs for UI state (to show filled heart)
+  const likedEventsRef = useRef<Set<string | number>>(new Set());
 
   // Загрузка следующего события из очереди (GET /next)
   const fetchNext = useCallback(async (categoryOverride?: string | null) => {
@@ -174,9 +178,15 @@ export const useDiscoveryQueue = () => {
         setCurrentEvent(null);
         setHasNoEvents(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Discovery fetch error:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load event'));
+      // Treat 404 as "no more events" — show empty card instead of error
+      if (err.message?.includes('404') || err.status === 404) {
+        setCurrentEvent(null);
+        setHasNoEvents(true);
+      } else {
+        setError(err instanceof Error ? err : new Error('Failed to load event'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -197,18 +207,65 @@ export const useDiscoveryQueue = () => {
   const handleAction = useCallback(async (action: 'like' | 'dislike' | 'neutral') => {
     if (!currentEvent) return;
 
-    // Optimistic update: we don't wait for the action to complete to show loading state
+    const eventId = currentEvent.id as string | number;
+    const alreadySentAction = actionSentRef.current.has(eventId);
+    const alreadyLiked = likedEventsRef.current.has(eventId);
+
+    // CASE 1: Like action
+    if (action === 'like') {
+      if (alreadyLiked) {
+        // Already liked — do nothing (no duplicate likes)
+        return;
+      }
+      // Mark as liked for UI
+      likedEventsRef.current.add(eventId);
+
+      if (alreadySentAction) {
+        // Action was already sent (e.g., skip after like) — don't send again, just update UI
+        // But this shouldn't happen for like since we stay on same card
+        return;
+      }
+
+      // Send like action, stay on current card
+      setIsLoading(true);
+      actionSentRef.current.add(eventId);
+
+      try {
+        await sendDiscoveryAction(currentEvent.id || '', action);
+        // Stay on the same card
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error('Action error:', err);
+        if (err.message === 'Event unavailable' || err.message?.includes('409') || err.message?.includes('404')) {
+          await fetchNext();
+        } else {
+          setError(err instanceof Error ? err : new Error('Action failed'));
+          setIsLoading(false);
+        }
+      }
+      return;
+    }
+
+    // CASE 2: Dislike or Skip (neutral)
+    // If action was already sent for this event (e.g., we liked it), just move to next without sending
+    if (alreadySentAction) {
+      // Just move to next card, no API call
+      await fetchNext();
+      return;
+    }
+
+    // First action on this card — send it and move to next
     setIsLoading(true);
+    actionSentRef.current.add(eventId);
 
     try {
-      await sendDiscoveryAction(currentEvent.id || 'ni-hu-ya', action);
-      // On success (2xx), immediately fetch next
+      await sendDiscoveryAction(currentEvent.id || '', action);
       await fetchNext();
     } catch (err: any) {
       console.error('Action error:', err);
       
       // Handle 409/404 - treat as stale, reload next
-      if (err.message === 'Event unavailable' || err.message.includes('409') || err.message.includes('404')) {
+      if (err.message === 'Event unavailable' || err.message?.includes('409') || err.message?.includes('404')) {
         console.warn('Event unavailable, fetching next...');
         await fetchNext();
       } else {
