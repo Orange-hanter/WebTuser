@@ -55,7 +55,7 @@ const VerificationPage: FC<VerificationPageProps> = ({
 
     try {
       await onVerify(code, method);
-      onSwitchToNextStep();
+      // Переход на следующий шаг происходит в AuthFlow.handleVerify
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка верификации');
     }

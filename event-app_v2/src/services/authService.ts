@@ -177,9 +177,11 @@ class AuthService {
       }
 
       const verifyResponse: VerifyResponse = await response.json();
-      console.log('🔐 AuthService.verify: Response received', verifyResponse);
+      console.log('🔐 AuthService.verify: Response received', JSON.stringify(verifyResponse, null, 2));
 
-      if (!verifyResponse.verified) {
+      // Проверяем что verified точно boolean true, а не truthy значение
+      if (verifyResponse.verified !== true) {
+        console.log('🔐 AuthService.verify: Verification failed, verified=', verifyResponse.verified, 'type=', typeof verifyResponse.verified);
         return {
           success: false,
           error: verifyResponse.message || 'Верификация не прошла',

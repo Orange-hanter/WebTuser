@@ -89,6 +89,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const register = useCallback(async (data: RegistrationData) => {
     console.log('🟢 AuthContext: Showing main app, isAuthenticated=', isAuthenticated);
+    setIsLoading(true);
     setError(null);
     try {
       const response = await AuthService.register(data);
@@ -109,6 +110,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   const verify = useCallback(async (code: string, method: 'sms' | 'email') => {
+    setIsLoading(true);
     setError(null);
     try {
       const response = await AuthService.verify({ email: tempEmail, code, method });
