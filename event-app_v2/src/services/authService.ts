@@ -32,7 +32,18 @@ interface ErrorResponse {
 }
 
 interface VerifyResponse {
+  expires_at: string;
+  user: {
+    created_at: string;
+    updated_at: string;
+    id: string;
+    email: string;
+    phone: string;
+    role: string;
   verified: boolean;
+  };
+  access_token: string;
+  expires_in: number;
   message: string;
 }
 
@@ -180,8 +191,13 @@ class AuthService {
       console.log('🔐 AuthService.verify: Response received', JSON.stringify(verifyResponse, null, 2));
 
       // Проверяем что verified точно boolean true, а не truthy значение
-      if (verifyResponse.verified !== true) {
-        console.log('🔐 AuthService.verify: Verification failed, verified=', verifyResponse.verified, 'type=', typeof verifyResponse.verified);
+      if (verifyResponse.user.verified !== true) {
+        console.log(
+          "🔐 AuthService.verify: Verification failed, verified=",
+          verifyResponse.user.verified,
+          "type=",
+          typeof verifyResponse.user.verified
+        );
         return {
           success: false,
           error: verifyResponse.message || 'Верификация не прошла',
