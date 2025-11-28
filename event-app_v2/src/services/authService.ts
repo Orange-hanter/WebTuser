@@ -154,6 +154,7 @@ class AuthService {
    */
   static async verify(data: VerificationData): Promise<ApiResponse<{ token: string; user: User }>> {
     try {
+      console.log('🔐 AuthService.verify: Sending verification request', data);
       const response = await fetch(`${API_BASE_URL}/auth/verify`, {
         method: 'POST',
         headers: {
@@ -168,6 +169,7 @@ class AuthService {
 
       if (!response.ok) {
         const errorData: ErrorResponse = await response.json();
+        console.error('🔐 AuthService.verify: Verification failed', errorData);
         return {
           success: false,
           error: errorData.message || 'Неверный код подтверждения',
@@ -175,11 +177,14 @@ class AuthService {
       }
 
       const verifyResponse: VerifyResponse = await response.json();
+      console.log('🔐 AuthService.verify: Response received', JSON.stringify(verifyResponse, null, 2));
 
-      if (!verifyResponse.verified) {
+      // Проверяем что verified точно boolean true, а не truthy значение
+      if (verifyResponse.verified !== true) {
+        console.log('🔐 AuthService.verify: Verification failed, verified=', verifyResponse.verified, 'type=', typeof verifyResponse.verified);
         return {
           success: false,
-          error: 'Верификация не прошла',
+          error: verifyResponse.message || 'Верификация не прошла',
         };
       }
 

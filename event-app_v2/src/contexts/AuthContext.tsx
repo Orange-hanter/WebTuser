@@ -89,6 +89,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const register = useCallback(async (data: RegistrationData) => {
     console.log('🟢 AuthContext: Showing main app, isAuthenticated=', isAuthenticated);
+    setIsLoading(true);
     setError(null);
     try {
       const response = await AuthService.register(data);
@@ -109,6 +110,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   const verify = useCallback(async (code: string, method: 'sms' | 'email') => {
+    setIsLoading(true);
     setError(null);
     try {
       const response = await AuthService.verify({ email: tempEmail, code, method });
@@ -152,18 +154,22 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
+      let token = currentToken;
+
       // Если нет токена, но есть tempCredentials - сначала логинимся
-      if (!currentToken && tempCredentials) {
+      if (!token && tempCredentials) {
         console.log('🔐 AuthContext.updateProfile: Logging in first with stored credentials');
         await login(tempCredentials);
         setTempCredentials(null);
+        // Получаем токен напрямую из сервиса, так как стейт еще не обновился
+        token = AuthService.getAuthToken() || '';
       }
 
-      if (!currentToken) {
+      if (!token) {
         throw new Error('Нет активной сессии');
       }
 
-      const response = await AuthService.updateProfile(currentToken, profile);
+      const response = await AuthService.updateProfile(token, profile);
 
       if (!response.success) {
         throw new Error(response.error || 'Ошибка обновления профиля');

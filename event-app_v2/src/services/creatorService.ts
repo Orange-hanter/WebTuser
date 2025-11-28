@@ -95,6 +95,7 @@ export const creatorService = {
 
     if (!response.ok) {
       if (response.status === 401) throw new Error('Unauthorized');
+      if (response.status === 403) throw new Error('Forbidden');
       throw new Error('Failed to fetch creator events');
     }
 

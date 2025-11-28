@@ -21,17 +21,19 @@ const App: FC = () => {
     }
   }
   
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-  
   // Если пользователь не авторизован - показываем AuthFlow
+  // НЕ показываем LoadingSpinner вместо AuthFlow, чтобы не терять состояние формы
   console.log('🟢 App: Showing main app, isAuthenticated=', isAuthenticated);
   if (!isAuthenticated) {
     console.log('🟢 App: Showing AuthFlow, isAuthenticated=', isAuthenticated);
     return <AuthFlow />;
   }
   
+  // Показываем LoadingSpinner только для авторизованных пользователей
+  // (например, при загрузке профиля)
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   // Показываем основное содержимое приложения
   return <MainAppContent />;

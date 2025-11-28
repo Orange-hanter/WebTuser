@@ -27,6 +27,16 @@ export interface Participant {
   status: 'confirmed' | 'waitlisted' | 'cancelled';
 }
 
+export interface RoleRequest {
+  id: string;
+  requested_role: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
 // Simple in-memory cache for public user profiles
 const userProfileCache = new Map<string | number, { data: PublicUserProfile; timestamp: number }>();
 const eventParticipantsCache = new Map<string, { data: Participant[]; timestamp: number }>();
@@ -241,5 +251,42 @@ export const userService = {
     const data = await response.json();
     eventParticipantsCache.set(eventId, { data, timestamp: Date.now() });
     return data;
+  },
+
+  async requestCreatorRole(reason?: string): Promise<void> {
+    const token = AuthService.getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/users/request-role`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'creator', reason }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to request creator role');
+    }
+  },
+
+  async getRoleRequests(): Promise<RoleRequest[]> {
+    const token = AuthService.getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/users/request-role/all`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch role requests');
+    }
+    return response.json();
   }
 };

@@ -16,6 +16,7 @@ const VerificationPage: FC<VerificationPageProps> = ({
   email,
   onVerify,
   onResend,
+  // @ts-ignore
   onSwitchToNextStep,
   onSwitchToLogin,
   isLoading = false,
@@ -55,7 +56,7 @@ const VerificationPage: FC<VerificationPageProps> = ({
 
     try {
       await onVerify(code, method);
-      onSwitchToNextStep();
+      // Переход на следующий шаг происходит в AuthFlow.handleVerify
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка верификации');
     }

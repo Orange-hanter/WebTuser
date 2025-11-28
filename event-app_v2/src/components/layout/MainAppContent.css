@@ -45,6 +45,15 @@
   max-height: calc(100% - 140px);
 }
 
+/* City Overview занимает всё доступное пространство */
+.app-main > .city-overview-container {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* Информация о прогрессе - внизу, над кнопками */
 .events-footer {
   padding: 0.5rem 0;

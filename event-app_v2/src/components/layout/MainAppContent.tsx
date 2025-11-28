@@ -1,6 +1,6 @@
 import { FC, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, EmptyEventCard, ActionButtons, EventByCategory, UpcomingEventsView } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons, CityOverview, UpcomingEventsView } from '@components/events';
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
@@ -200,21 +200,25 @@ const MainAppContent: FC = () => {
                     className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
                     onClick={() => setViewMode('card')}
                   >
-                    По слоту
+                    Подбор
                   </button>
                   <button 
                     className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
                     onClick={() => setViewMode('category')}
                   >
-                    По категориям
+                    Обзор города
                   </button>
                 </div>
               </div>
 
               {viewMode === 'category' ? (
-                <EventByCategory 
+                <CityOverview 
                   isActive={viewMode === 'category'}
                   onCategorySelect={handleCategorySelect}
+                  onEventClick={(eventId) => {
+                    // TODO: Load event details and show modal
+                    console.log('Event clicked:', eventId);
+                  }}
                 />
               ) : (
                 <>
