@@ -114,7 +114,7 @@ const ProfileStep1: FC<ProfileStep1Props> = ({
                   type="text"
                   value={formData.city}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  placeholder="Москва"
+                  placeholder="Брест"
                   className="profile-step-input"
                   disabled={isLoading}
                 />
