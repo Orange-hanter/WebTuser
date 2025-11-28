@@ -241,5 +241,24 @@ export const userService = {
     const data = await response.json();
     eventParticipantsCache.set(eventId, { data, timestamp: Date.now() });
     return data;
+  },
+
+  async requestCreatorRole(reason?: string): Promise<void> {
+    const token = AuthService.getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/users/request-role`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'creator', reason }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to request creator role');
+    }
   }
 };

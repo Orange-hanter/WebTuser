@@ -24,6 +24,7 @@ import {
   getEventTitle,
   EventStatus
 } from '@/services/creatorService';
+import { AccessDeniedPlaceholder } from './AccessDeniedPlaceholder';
 import './CreatorEventsPage.css';
 
 type TabType = 'pending' | 'active' | 'rejected' | 'blocked';
@@ -62,7 +63,11 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
       setBlockedEvents(blocked);
     } catch (err) {
       console.error('Failed to load events:', err);
-      setError('Не удалось загрузить события');
+      if (err instanceof Error && err.message === 'Forbidden') {
+        setError('Forbidden');
+      } else {
+        setError('Не удалось загрузить события');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +76,10 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  if (error === 'Forbidden') {
+    return <AccessDeniedPlaceholder onClose={onClose} />;
+  }
 
   const getEventsForTab = (): (CreatorEvent | BlockedEvent)[] => {
     if (!eventsData) return [];
