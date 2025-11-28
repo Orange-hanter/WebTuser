@@ -16,6 +16,7 @@ const VerificationPage: FC<VerificationPageProps> = ({
   email,
   onVerify,
   onResend,
+  // @ts-ignore
   onSwitchToNextStep,
   onSwitchToLogin,
   isLoading = false,
