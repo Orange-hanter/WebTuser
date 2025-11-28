@@ -152,18 +152,22 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
+      let token = currentToken;
+
       // Если нет токена, но есть tempCredentials - сначала логинимся
-      if (!currentToken && tempCredentials) {
+      if (!token && tempCredentials) {
         console.log('🔐 AuthContext.updateProfile: Logging in first with stored credentials');
         await login(tempCredentials);
         setTempCredentials(null);
+        // Получаем токен напрямую из сервиса, так как стейт еще не обновился
+        token = AuthService.getAuthToken() || '';
       }
 
-      if (!currentToken) {
+      if (!token) {
         throw new Error('Нет активной сессии');
       }
 
-      const response = await AuthService.updateProfile(currentToken, profile);
+      const response = await AuthService.updateProfile(token, profile);
 
       if (!response.success) {
         throw new Error(response.error || 'Ошибка обновления профиля');

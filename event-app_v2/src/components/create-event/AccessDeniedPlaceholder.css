@@ -183,3 +183,30 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.rejection-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.rejection-message p {
+  margin: 0 0 0.5rem 0;
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.rejection-message blockquote {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 3px solid #ef4444;
+  color: #374151;
+  font-style: italic;
+}
+
+.access-denied-content.pending .pending-icon {
+  margin-bottom: 1.5rem;
+}
