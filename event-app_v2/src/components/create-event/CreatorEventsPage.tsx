@@ -63,6 +63,7 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
       setBlockedEvents(blocked);
     } catch (err) {
       console.error('Failed to load events:', err);
+      
       if (err instanceof Error && err.message === 'Forbidden') {
         setError('Forbidden');
       } else {
@@ -80,7 +81,6 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
   if (error === 'Forbidden') {
     return <AccessDeniedPlaceholder onClose={onClose} />;
   }
-
   const getEventsForTab = (): (CreatorEvent | BlockedEvent)[] => {
     if (!eventsData) return [];
     
