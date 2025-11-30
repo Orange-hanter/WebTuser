@@ -1,0 +1,103 @@
+name: Bug Report
+description: Report an issue or unexpected behavior
+title: "[Bug] <краткое описание>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за сообщение об ошибке! Пожалуйста, заполните как можно больше пунктов — это сильно ускорит диагностику.
+  - type: textarea
+    id: description
+    attributes:
+      label: Описание проблемы
+      description: Что пошло не так? Чего вы ожидали? Что произошло вместо этого?
+      placeholder: |
+        Пример:
+        После нажатия на кнопку "Отправить" приложение падает. Ожидалось — отображение уведомления "Успешно". Фактически — белый экран и краш в логах.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги для воспроизведения
+      description: Пошаговая инструкция: что нужно сделать, чтобы увидеть ошибку?
+      placeholder: |
+        1. Открыть экран "Создание события"
+        2. Заполнить поле "Название" → "Тест"
+        3. Нажать "Опубликовать"
+        4. Приложение вылетает
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое поведение
+      placeholder: Приложение должно сохранить событие и перейти на экран подтверждения.
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Фактическое поведение
+      placeholder: Экран гаснет, в логах: `Invariant Violation: ...`
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи / стектрейс (если есть)
+      description: Включите релевантные фрагменты — особенно красные строки из Metro/Xcode/ADB.
+      render: shell
+      placeholder: |
+        Error: TypeError: undefined is not an object (evaluating 'item.id')
+            at EventCard (src/components/EventCard.tsx:24)
+            at ...
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: ОС и устройство
+      description: Например: iOS 17.5, iPhone 14; macOS 14.6, MacBook Pro M1; Android 14, Pixel 7
+      placeholder: iOS 18.1, iPhone 15 Pro
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия приложения
+      description: Хэш коммита, тег релиза или номер сборки.
+      placeholder: v0.4.2-rc1 / commit a1b2c3d
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Дополнительный контекст
+      description: Окружение, особые настройки, сетевые условия, известные триггеры.
+      placeholder: |
+        - Сеть: Wi-Fi с высокой задержкой (~500ms)
+        - Режим дебага: включён (`__DEV__ = true`)
+        - Проблема проявляется ТОЛЬКО при отсутствии интернета
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Проверки
+      options:
+        - label: Я проверил(а), что ошибка воспроизводится на последней `main`
+          required: true
+        - label: Я искал(а) похожие баги в Issues
+          required: true
+        - label: Я могу приложить минимальный пример (опционально, но очень ценно)
+          required: false
