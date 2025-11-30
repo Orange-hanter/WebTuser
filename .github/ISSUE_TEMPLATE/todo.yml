@@ -1,0 +1,93 @@
+name: Maintenance / Tech Task
+description: Рефакторинг, обновления, настройки, долгосрочная поддержка — всё, что не баг и не фича
+title: "[TODO] <глагол + объект>"
+labels: ["tech-debt", "maintenance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Это — техническая задача, а не функциональное требование.  
+        Цель: сохранить проект жизнеспособным при solo-разработке.  
+        ⚠️ Если задача требует >4 часов и не критична — подумайте, можно ли отложить или автоматизировать.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Цель задачи (зачем это делать *сейчас*)
+      description: Не «надо обновить», а «без этого нельзя собрать под iOS 18» / «замедляет CI на 2 минуты» / «мешает добавить фичу X»
+      placeholder: |
+        Обновить `react-native` до 0.75 — текущая версия не поддерживает Xcode 16, сборка iOS падает.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Объём работы (оценка *ваша*, даже грубая)
+      description: В часах или «блокер/неблокер». Честность важнее точности.
+      placeholder: |
+        ~3–4 ч:
+        - [ ] Обновить RN + сопутствующие зависимости
+        - [ ] Починить iOS-сборку (ошибки в Podfile)
+        - [ ] Протестировать на iOS/macOS (iPhone 15, MBP M1)
+        - [ ] Проверить работу с iCloud (авторизация)
+    validations:
+      required: true
+
+  - type: textarea
+    id: blockers
+    attributes:
+      label: Что может остановить выполнение? (и как разблокироваться)
+      description: Solo-разработка — значит, *вы* — единственный ресурс. Зафиксируйте риски заранее.
+      placeholder: |
+        - ❗ `react-native-maps` несовместим с RN 0.75 → нужно дождаться релиза или форкнуть (см. issue #123)
+        - ❗ Нет тестов на геолокацию → после обновления нужно вручную проверить публикацию события с картой
+        - Разблокировка: временно отключить карту, если апдейт критичен для релиза
+    validations:
+      required: false
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Срочность
+      description: Оценивайте не по желанию, а по последствиям отсрочки.
+      options:
+        - 🔴 Блокирует релиз / сборку / основную фичу
+        - 🟠 Увеличивает риск (падения, регрессии) при каждом изменении
+        - 🟡 Замедляет разработку, но терпимо
+        - ⚪ Можно отложить на месяцы
+    validations:
+      required: true
+
+  - type: textarea
+    id: done_criteria
+    attributes:
+      label: Как понять, что задача выполнена?
+      description: Конкретные, проверяемые критерии — никаких «немного улучшить».
+      placeholder: |
+        - [ ] `npx react-native run-ios` успешно завершается на Xcode 16
+        - [ ] Сборка в TestFlight проходит
+        - [ ] Экран карты отображается (даже без маркеров — placeholder OK)
+        - [ ] Нет новых предупреждений в Metro/Xcode
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Полезные ссылки / команды / команды для копипасты
+      description: То, что вы будете искать через месяц. Сделайте себе подарок.
+      render: shell
+      placeholder: |
+        # Проверка версий
+        npx react-native --version
+        xcodebuild -version
+
+        # Чистая переустановка pods (часто спасает при апдейтах)
+        cd ios && rm -rf Pods Podfile.lock && pod deintegrate && pod install --repo-update
+
+        # Ссылки
+        - RN 0.75 changelog: https://github.com/facebook/react-native/releases/tag/v0.75.0
+        - Совместимость с Xcode 16: https://reactnative.dev/blog/2024/06/11/version-075#xcode-16-support
+    validations:
+      required: false

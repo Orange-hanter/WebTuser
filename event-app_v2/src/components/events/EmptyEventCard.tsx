@@ -6,9 +6,9 @@ const EmptyEventCard: FC = () => (
   <div className="event-card event-card-empty">
     <div className="event-card-empty-content">
       <Frown className="event-card-empty-icon" />
-      <h2 className="event-card-empty-title">No more events</h2>
+      <h2 className="event-card-empty-title">Событий больше нет</h2>
       <p className="event-card-empty-description">
-        You've viewed all available events. Check back later for new ones!
+        Вы просмотрели все доступные события. Загляните позже — появятся новые.
       </p>
     </div>
   </div>

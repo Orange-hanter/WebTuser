@@ -1,0 +1,71 @@
+name: Technical Question
+description: Вопрос по архитектуре, реализации, окружению или неочевидному поведению
+title: "[Q] <суть вопроса кратко>"
+labels: ["question", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Этот шаблон — не для поддержки, а для **фиксации мыслей и решений**.  
+        Отвечайте здесь же, когда найдёте ответ — это станет вашей внутренней документацией.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Где возник вопрос? Какая часть системы? Какие ограничения (RN, iOS/macOS, offline и т.д.)?
+      placeholder: |
+        Работаю над экраном редактирования события в React Native.  
+        Цель — сохранять черновики локально при отсутствии сети и синхронизировать при восстановлении.  
+        Ограничения: не хочу тащить Realm/SQLite ради одной фичи; нужна поддержка iOS/macOS.
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Сам вопрос
+      description: Чётко и технически. Избегайте «Как сделать?» — лучше «Как корректно реализовать X при условии Y?»
+      placeholder: |
+        Как надёжно отслеживать восстановление интернета в RN без сторонних библиотек (только @react-native/netinfo)?  
+        Нужно гарантировать отправку черновика, даже если приложение уйдёт в background до reconnect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: research
+    attributes:
+      label: Что уже проверено
+      description: Ссылки, эксперименты, почему отвергнуты альтернативы. Это сэкономит вам время при повторном чтении.
+      placeholder: |
+        - `NetInfo.addEventListener('connectionChange')` — не срабатывает, если reconnect произошёл в background.  
+        - Попытка использовать AppState + polling — съедает батарею на iOS.  
+        - AsyncStorage + очередь — работает, но нет гарантии доставки при force-kill’е.
+    validations:
+      required: false
+
+  - type: textarea
+    id: answer
+    attributes:
+      label: ✅ Ответ / решение (заполнить позже)
+      description: Когда найдёте — запишите сюда. Через полгода будете благодарны себе.
+      placeholder: |
+        Реализовал через:
+        1. `react-native-background-fetch` (лёгкий, поддерживает iOS/macOS)
+        2. Хранение черновиков в MMKV (быстрее AsyncStorage, поддержка iOS/macOS)
+        3. На событие background-fetch — проверка сети + отправка очереди
+        Подробнее: https://github.com/.../commit/abc123
+    validations:
+      required: false
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Статус
+      options:
+        - ❓ Открыт (ищу решение)
+        - 🧪 В проверке
+        - ✅ Решено — documented
+        - 🚫 Отменено / неактуально
+    validations:
+      required: true

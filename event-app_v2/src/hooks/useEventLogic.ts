@@ -14,6 +14,8 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn & { setCa
   const [offset, setOffset] = useState(0);
   const [categoryFilter, setCategoryFilterState] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
+  // Prevent double initialization in React Strict Mode (dev)
+  const initialLoadRef = useRef(false);
 
   // Загрузка следующей порции событий
   const loadMoreEvents = useCallback(async () => {
@@ -61,6 +63,9 @@ export const useInfiniteEventScroll = (): UseInfiniteEventScrollReturn & { setCa
 
   // Загрузить первую порцию событий при монтировании
   useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
+
     if (events.length === 0) {
       loadMoreEvents();
     }
@@ -311,7 +316,13 @@ export const useDiscoveryQueue = () => {
   }, [currentEvent, error, fetchNext]);
 
   // Initial load
+  const discoveryInitializedRef = useRef(false);
+
+  // Initial load (guarded against double calls in StrictMode)
   useEffect(() => {
+    if (discoveryInitializedRef.current) return;
+    discoveryInitializedRef.current = true;
+
     fetchNext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
