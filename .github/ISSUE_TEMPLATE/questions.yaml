@@ -9,6 +9,18 @@ body:
         Этот шаблон — не для поддержки, а для **фиксации мыслей и решений**.  
         Отвечайте здесь же, когда найдёте ответ — это станет вашей внутренней документацией.
 
+  - type: dropdown
+    id: status
+    attributes:
+      label: Статус
+      options:
+        - ❓ Открыт (ищу решение)
+        - 🧪 В проверке
+        - ✅ Решено — documented
+        - 🚫 Отменено / неактуально
+    validations:
+      required: true
+
   - type: textarea
     id: context
     attributes:
@@ -57,15 +69,3 @@ body:
         Подробнее: https://github.com/.../commit/abc123
     validations:
       required: false
-
-  - type: dropdown
-    id: status
-    attributes:
-      label: Статус
-      options:
-        - ❓ Открыт (ищу решение)
-        - 🧪 В проверке
-        - ✅ Решено — documented
-        - 🚫 Отменено / неактуально
-    validations:
-      required: true
