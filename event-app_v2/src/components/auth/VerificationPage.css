@@ -67,6 +67,32 @@
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   text-align: center;
   animation: slideUp 0.6s ease-out;
+  position: relative;
+}
+
+.verification-back {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.verification-back:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.verification-back:active {
+  transform: scale(0.95);
 }
 
 @keyframes slideUp {
@@ -105,6 +131,8 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  position: relative;
+  padding-top: 1.5rem;
 }
 
 .verification-method-btn {
@@ -138,6 +166,62 @@
 
 .verification-method-btn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verification-method-btn.disabled {
+  position: relative;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  opacity: 0.6;
+}
+
+.verification-method-btn.disabled:hover {
+  border-color: #d1d5db;
+  color: #9ca3af;
+  background: #f3f4f6;
+}
+
+.soon-badge {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc2626;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: block;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
+/* Кнопка отправки кода */
+.verification-send-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.verification-send-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.verification-send-button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 

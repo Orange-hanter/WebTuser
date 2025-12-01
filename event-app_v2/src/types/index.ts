@@ -113,7 +113,7 @@ export interface RegistrationData extends AuthCredentials {
 export interface VerificationData {
   email: string;
   code: string;
-  method: 'sms' | 'email';
+  method: 'sms' | 'email' | 'telegram';
 }
 
 export interface CreateEventData {

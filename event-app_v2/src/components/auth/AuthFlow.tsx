@@ -2,6 +2,7 @@ import { FC, useEffect, useState, useCallback } from 'react';
 import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2 } from '@components/auth';
 import { useAuthContext, useToast } from '@/contexts';
 import type { AuthCredentials, RegistrationData, UserProfile } from '@/types';
+import { saveRegistrationData, clearRegistrationData } from '@/services/registrationStorage';
 
 type AuthStep = 'login' | 'register' | 'verification' | 'profile-step1' | 'profile-step2';
 
@@ -10,10 +11,18 @@ interface AuthFlowProps {
 }
 
 const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
-  const [currentStep, setCurrentStep] = useState<AuthStep>('login');
-  const [tempEmail, setTempEmail] = useState('');
+  const deriveStepFromPath = (): AuthStep => {
+    const p = window.location.pathname;
+    if (p === '/register') return 'register';
+    if (p === '/verify') return 'verification';
+    if (p === '/profile-step1') return 'profile-step1';
+    if (p === '/profile-step2') return 'profile-step2';
+    return 'login';
+  };
+
+  const [currentStep, setCurrentStep] = useState<AuthStep>(deriveStepFromPath);
   const [profileData, setProfileData] = useState<Partial<UserProfile>>({});
-  const { login, register, verify, updateProfile, resendCode, isLoading } = useAuthContext();
+  const { login, register, updateProfile, isLoading, isAuthenticated } = useAuthContext();
   const { error: showError, success: showSuccess } = useToast();
 
   console.log('🔵 AuthFlow: render page')
@@ -46,11 +55,12 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
 
   const handleRegister = useCallback(async (data: RegistrationData) => {
     try {
-      console.log('🔵 AuthFlow.handleRegister: go to verification')
-      await register(data);
-      setTempEmail(data.email);
-      showSuccess('Регистрация успешна! Проверьте почту для кода подтверждения.');
-      setCurrentStep('verification');
+      console.log('🔵 AuthFlow.handleRegister: saving data and switching to verification');
+      // Persist registration data and navigate to verification step (no API call here)
+      saveRegistrationData({ email: data.email, phone: data.phone || '', password: data.password });
+      showSuccess('Данные сохранены. Выберите способ подтверждения.');
+      window.history.pushState({}, '', '/verify');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (error) {
       console.error('Register error:', error);
       showError(error instanceof Error ? error.message : 'Ошибка регистрации');
@@ -58,38 +68,31 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     }
   }, [register, showSuccess, showError]);
 
+  // react to URL changes (pushState / popstate) so /register and /verify work
+  useEffect(() => {
+    const onPop = () => setCurrentStep(deriveStepFromPath());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // Если пользователь разлогинился, перенаправить на логин
+  useEffect(() => {
+    if (!isAuthenticated && (currentStep === 'profile-step1' || currentStep === 'profile-step2')) {
+      console.log('🔵 AuthFlow: User logged out or session lost, redirecting to login');
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  }, [isAuthenticated, currentStep]);
+
   useEffect(() => {
     console.log('🔵 AuthFlow: currentStep=', currentStep);
   }, [currentStep]);
 
-  const handleVerify = useCallback(async (code: string, method: 'sms' | 'email') => {
-    try {
-      await verify(code, method);
-      showSuccess('Верификация успешна!');
-      // После успешной верификации переходим к заполнению профиля
-      setCurrentStep('profile-step1');
-    } catch (error) {
-      console.error('Verify error:', error);
-      showError(error instanceof Error ? error.message : 'Ошибка верификации');
-      throw error;
-    }
-  }, [verify, showSuccess, showError]);
-
-  const handleResend = useCallback(async () => {
-    try {
-      await resendCode(tempEmail);
-      showSuccess('Код отправлен повторно');
-    } catch (error) {
-      console.error('Resend error:', error);
-      showError(error instanceof Error ? error.message : 'Ошибка отправки кода');
-      throw error;
-    }
-  }, [resendCode, tempEmail, showSuccess, showError]);
-
   const handleProfileStep1 = useCallback(async (data: Partial<UserProfile>) => {
     try {
       setProfileData(prev => ({ ...prev, ...data }));
-      setCurrentStep('profile-step2');
+      window.history.pushState({}, '', '/profile-step2');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (error) {
       console.error('Profile step 1 error:', error);
       showError('Произошла ошибка при сохранении данных');
@@ -100,34 +103,34 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     try {
       const completeProfile = { ...profileData, ...data };
       await updateProfile(completeProfile);
-      // После успешного обновления профиля произойдет автоматический логин в AuthContext
       console.log('🔵 AuthFlow.handleProfileStep2: Profile updated successfully');
-      showSuccess('Профиль успешно создан!');
-
-      // Check for next param
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get('next');
-      if (next) {
-        window.location.href = next;
-        return;
-      }
-
-      if (onAuthSuccess) {
-        console.log('🔵 AuthFlow.handleProfileStep2: Calling onAuthSuccess');
-        onAuthSuccess();
-      }
+      
+      // Очистить данные регистрации и перейти на логин
+      clearRegistrationData();
+      showSuccess('Профиль успешно создан! Теперь войдите в аккаунт.');
+      
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (error) {
       console.error('Profile step 2 error:', error);
       showError(error instanceof Error ? error.message : 'Ошибка сохранения профиля');
       throw error;
     }
-  }, [profileData, updateProfile, onAuthSuccess, showSuccess, showError]);
+  }, [profileData, updateProfile, showSuccess, showError]);
 
   const handleSwitchToRegister = useCallback(() => setCurrentStep('register'), []);
-  const handleSwitchToLogin = useCallback(() => setCurrentStep('login'), []);
-  const handleSwitchToProfileStep1 = useCallback(() => setCurrentStep('profile-step1'), []);
-  const handleSkipStep1 = useCallback(() => setCurrentStep('profile-step2'), []);
-  const handleBackToStep1 = useCallback(() => setCurrentStep('profile-step1'), []);
+  const handleSwitchToLogin = useCallback(() => {
+    window.history.pushState({}, '', '/login');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
+  const handleSkipStep1 = useCallback(() => {
+    window.history.pushState({}, '', '/profile-step2');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
+  const handleBackToStep1 = useCallback(() => {
+    window.history.pushState({}, '', '/profile-step1');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
 
   return (
     <>
@@ -148,12 +151,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
 
       {currentStep === 'verification' && (
         <VerificationPage
-          email={tempEmail}
-          onVerify={handleVerify}
-          onResend={handleResend}
-          onSwitchToNextStep={handleSwitchToProfileStep1}
           onSwitchToLogin={handleSwitchToLogin}
-          isLoading={isLoading}
           defaultMethod="email"
         />
       )}

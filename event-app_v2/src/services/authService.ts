@@ -81,7 +81,10 @@ class AuthService {
   /**
    * Регистрация нового пользователя
    */
-  static async register(data: RegistrationData): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
+  static async register(
+    data: RegistrationData,
+    verification_type?: 'email' | 'sms' | 'telegram'
+  ): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -93,6 +96,7 @@ class AuthService {
           email: data.email,
           password: data.password,
           phone: data.phone || '',
+          verification_type: verification_type || 'email',
         }),
       });
 

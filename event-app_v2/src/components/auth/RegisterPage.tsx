@@ -1,21 +1,30 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react';
 import type { RegistrationData } from '@/types';
 import './RegisterPage.css';
+import { saveRegistrationData, loadRegistrationData } from '@/services/registrationStorage';
 
 interface RegisterPageProps {
-  onRegister: (data: RegistrationData) => Promise<void>;
+  onRegister?: (data: RegistrationData) => Promise<void>;
   onSwitchToLogin: () => void;
   isLoading?: boolean;
 }
 
 const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLoading = false }) => {
+
   const [formData, setFormData] = useState<RegistrationData>({
     email: '',
     password: '',
     confirmPassword: '',
     phone: '',
   });
+
+  useEffect(() => {
+    const saved = loadRegistrationData();
+    if (saved) {
+      setFormData(prev => ({ ...prev, email: saved.email || '', phone: saved.phone || '' }));
+    }
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +35,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.phone) {
       setError('Заполните все обязательные поля');
       return false;
     }
@@ -44,13 +53,15 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
     if (!validateForm()) return;
 
-    try {
-      await onRegister(formData);
+    // Persist registration data to sessionStorage and navigate to /verify
+      try {
+        saveRegistrationData({ email: formData.email, phone: formData.phone || '', password: formData.password });
+        window.history.pushState({}, '', '/verify'); // change path to /verify so AuthFlow can react to it
+        window.dispatchEvent(new PopStateEvent('popstate')); 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
+      setError(err instanceof Error ? err.message : 'Не удалось продолжить');
     }
   };
 
@@ -100,12 +111,13 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   id="phone"
                   type="tel"
                   value={formData.phone || ''}
-                  onChange={(e) => handleChange('phone', e.target.value)}
+                    onChange={(e) => handleChange('phone', e.target.value)}
                   onFocus={() => setFocusedField('phone')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="+375 (XX) 123-45-67"
                   className="register-input"
                   disabled={isLoading}
+                    required
                   data-testid="register-phone-input"
                 />
               </div>

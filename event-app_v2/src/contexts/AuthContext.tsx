@@ -154,7 +154,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      let token = currentToken;
+      // Получаем токен напрямую из сервиса (может быть установлен вне контекста)
+      let token = AuthService.getAuthToken();
 
       // Если нет токена, но есть tempCredentials - сначала логинимся
       if (!token && tempCredentials) {
@@ -162,11 +163,16 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         await login(tempCredentials);
         setTempCredentials(null);
         // Получаем токен напрямую из сервиса, так как стейт еще не обновился
-        token = AuthService.getAuthToken() || '';
+        token = AuthService.getAuthToken();
       }
 
       if (!token) {
         throw new Error('Нет активной сессии');
+      }
+
+      // Обновляем currentToken если он отличается
+      if (token !== currentToken) {
+        setCurrentToken(token);
       }
 
       const response = await AuthService.updateProfile(token, profile);
