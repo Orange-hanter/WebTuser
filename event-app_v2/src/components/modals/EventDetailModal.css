@@ -235,3 +235,82 @@
   background-color: rgba(0, 0, 0, 0.8);
   transform: scale(1.1);
 }
+
+/* New styles for enhanced modal */
+.modal-organizer-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.organizer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-label {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.organizer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.organizer-name {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.event-key-details {
+  display: flex;
+  gap: 2rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.detail-value {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.modal-description-section {
+  margin-bottom: 1.5rem;
+}
+
+.modal-description-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--gray-800);
+}
+
+.modal-participants-section {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-participants-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--gray-800);
+}
