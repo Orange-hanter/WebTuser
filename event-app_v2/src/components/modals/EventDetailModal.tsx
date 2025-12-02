@@ -92,22 +92,39 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
               <span className="modal-type">{event.type}</span>
             </div>
             <div className="modal-header-right">
-              {event.creator && (
-                <div className="modal-creator">
-                  <AvatarWithPopover
-                    userId={event.creator.id}
-                    name={event.creator.name}
-                    avatarUrl={event.creator.avatar}
-                    size="md"
-                  />
-                </div>
-              )}
               <div className="modal-rating-section">
                 <div className="modal-rating">
                   <Star className="modal-rating-star" />
                   <span className="modal-rating-value">{event.rating}</span>
                 </div>
                 <span className="modal-date">{event.date}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-organizer-section">
+            {event.creator && (
+              <div className="organizer-info">
+                <span className="section-label">Организатор</span>
+                <div className="organizer-row">
+                  <AvatarWithPopover
+                    userId={event.creator.id}
+                    name={event.creator.name}
+                    avatarUrl={event.creator.avatar}
+                    size="md"
+                  />
+                  <span className="organizer-name">{event.creator.name}</span>
+                </div>
+              </div>
+            )}
+            <div className="event-key-details">
+              <div className="detail-item">
+                <span className="detail-label">Стоимость</span>
+                <span className="detail-value">Бесплатно</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Формат</span>
+                <span className="detail-value">Офлайн</span>
               </div>
             </div>
           </div>
@@ -123,13 +140,16 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
             </div>
             <div className="modal-info-item">
               <Users className="modal-info-icon" />
-              {event.attendees}
+              {event.attendees} участников
             </div>
           </div>
 
-          <p className="modal-description">
-            {event.description}
-          </p>
+          <div className="modal-description-section">
+            <h3>О событии</h3>
+            <p className="modal-description">
+              {event.description}
+            </p>
+          </div>
 
           <div className="modal-tags">
             {event.tags.map((tag, index) => (
@@ -139,7 +159,8 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
             ))}
           </div>
 
-          {typeof event.id === 'number' && (
+          <div className="modal-participants-section">
+            <h3>Участники</h3>
             <ParticipantAvatarStrip 
               eventId={event.id} 
               onSubscribeClick={() => {
@@ -147,7 +168,7 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
                 onClose();
               }}
             />
-          )}
+          </div>
 
           <div className="modal-buttons">
             <button 

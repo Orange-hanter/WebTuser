@@ -3,6 +3,7 @@ import { LoadingSpinner } from '@components/common';
 import { AuthFlow } from '@components/auth';
 import { MainAppContent } from '@components/layout';
 import { PublicEventPage } from '@components/events';
+import { PublicProfilePage } from '@components/profile';
 import { useAuthContext } from '@/contexts';
 import './App.css';
 
@@ -28,6 +29,15 @@ const App: FC = () => {
     if (eventIdStr) {
       // Keep as string to match PublicEventPage prop type
       return <PublicEventPage eventId={eventIdStr} />;
+    }
+  }
+
+  // Check for public profile route
+  if (currentPath.startsWith('/u/')) {
+    const parts = currentPath.split('/');
+    const userId = parts[2];
+    if (userId) {
+      return <PublicProfilePage userId={userId} />;
     }
   }
   

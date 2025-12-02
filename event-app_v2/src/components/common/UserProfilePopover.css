@@ -145,3 +145,10 @@
   background: #2563eb;
   transform: translateY(-2px);
 }
+
+.verified-badge-popover {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  vertical-align: middle;
+}

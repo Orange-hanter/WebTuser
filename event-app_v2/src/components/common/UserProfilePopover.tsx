@@ -47,8 +47,9 @@ const UserProfilePopover: FC<UserProfilePopoverProps> = ({
 
   if (!isOpen || !user) return null;
 
-  const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
-  const hasTelegramPublic = user.telegram_public && user.telegram_username;
+  const initials = user.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
+  const telegramLink = user.socialLinks?.telegram;
+  const telegramUsername = telegramLink ? telegramLink.split('/').pop() : null;
 
   return (
     <div className="user-profile-popover-overlay">
@@ -60,10 +61,10 @@ const UserProfilePopover: FC<UserProfilePopoverProps> = ({
 
         {/* Avatar */}
         <div className="popover-avatar-container">
-          {user.avatar_url ? (
+          {user.avatarUrl ? (
             <img
-              src={user.avatar_url}
-              alt={`${user.firstName} ${user.lastName}`}
+              src={user.avatarUrl}
+              alt={user.displayName}
               className="popover-avatar"
             />
           ) : (
@@ -73,20 +74,20 @@ const UserProfilePopover: FC<UserProfilePopoverProps> = ({
 
         {/* Name */}
         <h3 className="popover-name">
-          {user.firstName} {user.lastName}
+          {user.displayName}
+          {user.isVerified && (
+            <span className="verified-badge-popover" title="Подтвержденный аккаунт">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          )}
         </h3>
 
-        {/* Role badge */}
-        {user.role && (
-          <div className="role-badge">
-            {user.role === 'creator' ? '👤 Организатор' : '👥 Участник'}
-          </div>
-        )}
-
         {/* Telegram status */}
-        {hasTelegramPublic ? (
+        {telegramUsername ? (
           <div className="telegram-status active">
-            ✓ Telegram: @{user.telegram_username}
+            ✓ Telegram: @{telegramUsername}
           </div>
         ) : (
           <div className="telegram-status inactive">
@@ -95,9 +96,9 @@ const UserProfilePopover: FC<UserProfilePopoverProps> = ({
         )}
 
         {/* CTA - Write button */}
-        {hasTelegramPublic && (
+        {telegramLink && (
           <a
-            href={`https://t.me/${user.telegram_username}`}
+            href={telegramLink}
             target="_blank"
             rel="noopener noreferrer"
             className="write-btn"

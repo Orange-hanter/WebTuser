@@ -76,6 +76,20 @@ create_git_release() {
     git add "$PACKAGE_JSON"
     git commit -m "chore: bump version to $new_version" || true
 
+    # Push commit and tag
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    # Support for GitHub Actions detached HEAD
+    if [ "$current_branch" = "HEAD" ] && [ -n "$GITHUB_REF_NAME" ]; then
+        current_branch="$GITHUB_REF_NAME"
+    fi
+
+    if [ "$current_branch" != "HEAD" ]; then
+        echo -e "${BLUE}Pushing changes to $current_branch...${NC}"
+        git push origin "$current_branch"
+    else
+        echo -e "${YELLOW}Warning: Could not determine branch to push to (detached HEAD). Changes to package.json won't be pushed.${NC}"
+    fi
+
     # Create and push tag
     git tag "$new_tag"
     git push origin "$new_tag"
@@ -115,11 +129,14 @@ main() {
             echo -e "${GREEN}New version: $new_version${NC}"
             echo -e "${YELLOW}Bump type: $command${NC}"
 
-            read -p "Continue? (y/N): " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                echo "Aborted."
-                exit 0
+            # Skip confirmation in CI
+            if [ -z "$CI" ]; then
+                read -p "Continue? (y/N): " -n 1 -r
+                echo
+                if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                    echo "Aborted."
+                    exit 0
+                fi
             fi
 
             update_package_json "$new_version"
