@@ -8,9 +8,9 @@ import './EventCard.css';
 interface EventCardProps {
   event: Event;
   onClick: () => void;
-  creatorId?: number | string;
-  creatorName?: string;
-  creatorAvatar?: string;
+  creatorId?: number | string | undefined;
+  creatorName?: string | undefined;
+  creatorAvatar?: string | undefined;
 }
 
 const EventCard: FC<EventCardProps> = ({ 
@@ -84,16 +84,33 @@ const EventCard: FC<EventCardProps> = ({
           </div>
           <span className="event-card-date">{event.date}</span>
         </div>
-        {creatorId && (
-          <div className="event-card-creator-avatar">
-            <AvatarWithPopover 
-              userId={creatorId}
-              name={creatorName || ''}
-              avatarUrl={creatorAvatar}
-              size="sm"
-            />
-          </div>
-        )}
+        <div className="event-card-creator-avatar">
+          {creatorId ? (
+            <>
+              <AvatarWithPopover 
+                userId={creatorId}
+                name={creatorName || ''}
+                avatarUrl={creatorAvatar}
+                size="sm"
+              />
+              <span className="event-card-creator-name" aria-label="Автор события">
+                {creatorName || 'Автор неизвестен'}
+              </span>
+            </>
+          ) : (
+            <>
+              <AvatarWithPopover 
+                userId={"unknown"}
+                name={'Автор неизвестен'}
+                avatarUrl={'/placeholder-avatar.svg'}
+                size="sm"
+              />
+              <span className="event-card-creator-name" aria-label="Автор события">
+                Автор неизвестен
+              </span>
+            </>
+          )}
+        </div>
       </div>
       <p className="event-card-description">
         {event.description}

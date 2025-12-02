@@ -5,12 +5,10 @@ import './ParticipantAvatarStrip.css';
 
 interface ParticipantAvatarStripProps {
   eventId: string;
-  onSubscribeClick?: () => void;
 }
 
 const ParticipantAvatarStrip: FC<ParticipantAvatarStripProps> = ({
   eventId,
-  onSubscribeClick,
 }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,9 +57,6 @@ const ParticipantAvatarStrip: FC<ParticipantAvatarStripProps> = ({
       <div className="participant-strip empty">
         <div className="empty-content">
           <p className="empty-message">Еще никто не записался</p>
-          <button className="subscribe-cta" onClick={onSubscribeClick}>
-            Записаться
-          </button>
         </div>
       </div>
     );

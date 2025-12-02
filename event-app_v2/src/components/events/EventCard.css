@@ -164,6 +164,13 @@
   flex-shrink: 0;
 }
 
+.event-card-creator-name {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
 .event-card-rating {
   display: flex;
   align-items: center;

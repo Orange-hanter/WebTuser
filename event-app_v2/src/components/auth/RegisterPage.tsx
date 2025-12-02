@@ -46,10 +46,15 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
     }
 
     if (field === 'password') {
-      setFieldErrors(prev => ({
-        ...prev,
-        password: value.length > 0 && value.length < 8 ? 'Пароль должен быть не менее 8 символов' : undefined,
-      }));
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        if (value.length > 0 && value.length < 8) {
+          newErrors.password = 'Пароль должен быть не менее 8 символов';
+        } else {
+          delete newErrors.password;
+        }
+        return newErrors;
+      });
     }
   };
 

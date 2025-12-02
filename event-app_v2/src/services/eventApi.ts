@@ -58,6 +58,22 @@ interface DiscoveryEvent {
   metadata: Record<string, any>;
 }
 
+// Author profile returned by discovery/next API
+interface DiscoveryAuthor {
+  id: string;
+  displayName: string;
+  username?: string;
+  avatarUrl?: string;
+  bio?: string;
+  city?: string;
+  country?: string;
+  publicEventsCount: number;
+  isVerified: boolean;
+  socialLinks?: Record<string, string>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface DiscoveryResponse {
   conflict: boolean;
   conflictFlag?: {
@@ -69,6 +85,7 @@ interface DiscoveryResponse {
   event: DiscoveryEvent;
   remainingConflicts: number;
   remainingPrimary: number;
+  author?: DiscoveryAuthor;
 }
 
 // Color mapping for event types
@@ -135,7 +152,7 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
   };
 };
 
-const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent): Event => {
+const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent, author?: DiscoveryAuthor): Event => {
   const startDate = new Date(discoveryEvent.slot.start);
   const formattedDate = startDate.toLocaleDateString('ru-RU', {
     weekday: 'long',
@@ -154,7 +171,18 @@ const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent): Event => {
   const image = discoveryEvent.metadata?.image 
     || getPlaceholderImage(discoveryEvent.title, type);
 
-  return {
+  // Map author (PublicUserProfile) to creator format used by EventCard
+  let creator: { id: string | number; name: string; avatar?: string } | undefined = undefined;
+  if (author) {
+    const c: { id: string | number; name: string; avatar?: string } = {
+      id: author.id,
+      name: author.displayName,
+    };
+    if (author.avatarUrl) c.avatar = author.avatarUrl;
+    creator = c;
+  }
+
+  const result: Event = {
     id: discoveryEvent.id,
     title: discoveryEvent.title,
     type: type,
@@ -167,6 +195,12 @@ const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent): Event => {
     image: image,
     tags: discoveryEvent.metadata?.tags || [type],
   };
+
+  if (creator) {
+    result.creator = creator;
+  }
+
+  return result;
 };
 
 /**
@@ -364,7 +398,7 @@ export const fetchNextDiscoveryEvent = async (category?: string | null): Promise
     }
 
     const discoveryResponse: DiscoveryResponse = await response.json();
-    return transformDiscoveryEvent(discoveryResponse.event);
+    return transformDiscoveryEvent(discoveryResponse.event, discoveryResponse.author);
   } catch (error) {
     console.error('Error fetching next discovery event:', error);
     throw error;

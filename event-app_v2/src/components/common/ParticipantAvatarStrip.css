@@ -63,23 +63,6 @@
   margin: 0;
 }
 
-.subscribe-cta {
-  display: inline-block;
-  font-size: 12px;
-  padding: 6px 12px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  border: none;
-  border-radius: 4px;
-  color: #fff;
-  cursor: pointer;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.subscribe-cta:hover {
-  opacity: 0.9;
-}
-
 .loading-skeleton {
   height: 36px;
   margin: 0 12px;
