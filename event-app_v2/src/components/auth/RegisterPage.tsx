@@ -35,7 +35,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.phone) {
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
       setError('Заполните все обязательные поля');
       return false;
     }
@@ -117,7 +117,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   placeholder="+375 (XX) 123-45-67"
                   className="register-input"
                   disabled={isLoading}
-                    required
+                  //  required
                   data-testid="register-phone-input"
                 />
               </div>

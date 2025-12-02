@@ -3,6 +3,7 @@ import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2 }
 import { useAuthContext, useToast } from '@/contexts';
 import type { AuthCredentials, RegistrationData, UserProfile } from '@/types';
 import { saveRegistrationData, clearRegistrationData } from '@/services/registrationStorage';
+import AuthService from '@/services/authService';
 
 type AuthStep = 'login' | 'register' | 'verification' | 'profile-step1' | 'profile-step2';
 
@@ -22,7 +23,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
 
   const [currentStep, setCurrentStep] = useState<AuthStep>(deriveStepFromPath);
   const [profileData, setProfileData] = useState<Partial<UserProfile>>({});
-  const { login, register, updateProfile, isLoading, isAuthenticated } = useAuthContext();
+  const { login, register, updateProfile, isLoading } = useAuthContext();
   const { error: showError, success: showSuccess } = useToast();
 
   console.log('🔵 AuthFlow: render page')
@@ -75,14 +76,26 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // Если пользователь разлогинился, перенаправить на логин
+  // Если пользователь разлогинился (нет токена), перенаправить на логин
+  // Задержка нужна чтобы токен успел сохраниться после верификации
   useEffect(() => {
-    if (!isAuthenticated && (currentStep === 'profile-step1' || currentStep === 'profile-step2')) {
-      console.log('🔵 AuthFlow: User logged out or session lost, redirecting to login');
-      window.history.pushState({}, '', '/login');
-      window.dispatchEvent(new PopStateEvent('popstate'));
+    if (currentStep !== 'profile-step1' && currentStep !== 'profile-step2') {
+      return;
     }
-  }, [isAuthenticated, currentStep]);
+    
+    const timeoutId = setTimeout(() => {
+      const hasToken = AuthService.getAuthToken();
+      if (!hasToken) {
+        console.log('🔵 AuthFlow: No token found on profile step, redirecting to login');
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } else {
+        console.log('🔵 AuthFlow: Token found, staying on profile step');
+      }
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentStep]);
 
   useEffect(() => {
     console.log('🔵 AuthFlow: currentStep=', currentStep);
@@ -105,12 +118,19 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
       await updateProfile(completeProfile);
       console.log('🔵 AuthFlow.handleProfileStep2: Profile updated successfully');
       
-      // Очистить данные регистрации и перейти на логин
+      // Очистить данные регистрации
       clearRegistrationData();
-      showSuccess('Профиль успешно создан! Теперь войдите в аккаунт.');
+      showSuccess('Профиль успешно создан!');
       
-      window.history.pushState({}, '', '/login');
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      // Переходим в основное приложение (пользователь уже авторизован)
+      if (onAuthSuccess) {
+        console.log('🔵 AuthFlow.handleProfileStep2: Calling onAuthSuccess');
+        onAuthSuccess();
+      } else {
+        // Fallback: переход на главную
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
     } catch (error) {
       console.error('Profile step 2 error:', error);
       showError(error instanceof Error ? error.message : 'Ошибка сохранения профиля');

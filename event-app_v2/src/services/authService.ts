@@ -208,20 +208,23 @@ class AuthService {
         };
       }
 
-      // После успешной верификации нужно залогиниться
-      // (API verify не возвращает токен, только подтверждение)
-      // Поэтому возвращаем успех без токена, приложение должно показать форму входа
+      // Сохраняем токен, который возвращает API при успешной верификации
+      if (verifyResponse.access_token) {
+        this.setAuthCookie(verifyResponse.access_token);
+        console.log('🔐 AuthService.verify: Token saved from verify response');
+      }
+
       return {
         success: true,
         data: {
-          token: '', // Пустой токен, требуется логин
+          token: verifyResponse.access_token || '',
           user: {
-            id: '',
-            email: data.email,
-            phone: '',
+            id: verifyResponse.user.id,
+            email: verifyResponse.user.email,
+            phone: verifyResponse.user.phone || '',
             firstName: '',
             lastName: '',
-            createdAt: new Date().toISOString(),
+            createdAt: verifyResponse.user.created_at,
           },
         },
       };

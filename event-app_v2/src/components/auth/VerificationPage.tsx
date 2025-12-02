@@ -3,6 +3,7 @@ import { Mail as MailIcon, MessageSquare as MessageIcon, ArrowLeft } from 'lucid
 import './VerificationPage.css';
 import AuthService from '@/services/authService';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { loadRegistrationData } from '@/services/registrationStorage';
 
 interface VerificationPageProps {
@@ -13,6 +14,7 @@ interface VerificationPageProps {
 const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultMethod = 'email' }) => {
   // no react-router in AuthFlow — use history pushState so AuthFlow can react
   const toast = useToast();
+  const { refreshSession } = useAuthContext();
 
   const [code, setCode] = useState('');
   const [method, setMethod] = useState<'sms' | 'email' | 'telegram'>(defaultMethod);
@@ -139,26 +141,34 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
         return;
       }
 
-      // После успешной верификации — автоматический логин
+      // После успешной верификации токен уже сохранён в AuthService.verify()
       toast.success('Верификация прошла успешно');
-      
-      const loginRes = await AuthService.login({
-        email: registrationData.email,
-        password: registrationData.password,
-      });
-      
       setIsVerifying(false);
-      
-      if (!loginRes.success) {
-        toast.error('Ошибка входа после верификации');
-        setError('Ошибка входа. Попробуйте войти вручную.');
-        window.history.pushState({}, '', '/login');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-        return;
+
+      // Проверяем, что токен сохранился
+      const token = AuthService.getAuthToken();
+      if (!token) {
+        // Fallback: попытка логина если токен не пришёл от verify
+        console.log('🔵 VerificationPage: No token after verify, trying login...');
+        const loginRes = await AuthService.login({
+          email: registrationData.email,
+          password: registrationData.password,
+        });
+        
+        if (!loginRes.success) {
+          toast.error('Ошибка входа после верификации');
+          setError('Ошибка входа. Попробуйте войти вручную.');
+          window.history.pushState({}, '', '/login');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+          return;
+        }
       }
 
-      // Успешный логин — переходим к заполнению профиля
-      toast.success('Вход выполнен');
+      // Обновляем состояние сессии в контексте
+      refreshSession();
+
+      // Переходим к заполнению профиля
+      console.log('🔵 VerificationPage: Success, navigating to profile-step1');
       window.history.pushState({}, '', '/profile-step1');
       window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (err) {
@@ -209,7 +219,7 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
           <h1 className="verification-title">Подтвердите аккаунт</h1>
           <p className="verification-subtitle">
             {registrationData ? (
-              method === 'telegram' ? 'Код придет в Telegram (если он привязан к аккаунту)' : `Мы отправили код подтверждения на ${registrationData.email}`
+              method === 'telegram' ? 'Код придет в Telegram (если он привязан к аккаунту)' : `Мы отправим код подтверждения на ${registrationData.email}`
             ) : 'Загрузка...'}
           </p>
 

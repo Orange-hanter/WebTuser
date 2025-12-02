@@ -9,7 +9,7 @@ const EVENTS_BATCH_SIZE = 5; // Number of events to load per batch
 
 // Helper to get auth token from sessionStorage
 const getAuthToken = (): string | null => {
-  return sessionStorage.getItem('authToken');
+  return sessionStorage.getItem('_auth_token');
 };
 
 // Helper to make authenticated requests
