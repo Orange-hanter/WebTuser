@@ -190,7 +190,15 @@ class AuthService {
   /**
    * Повторная отправка кода верификации
    */
-  static async resendCode(email: string): Promise<ApiResponse<null>> {
+  static async resendCode(
+    email: string, 
+    verificationType: 'email' | 'sms' | 'telegram' = 'email'
+  ): Promise<ApiResponse<{ 
+    message?: string; 
+    expires_in?: number; 
+    verify_code?: string;
+    retry_after?: number;
+  }>> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/resend-code`, {
         method: 'POST',
@@ -198,7 +206,10 @@ class AuthService {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          verification_type: verificationType 
+        }),
       });
 
       if (!response.ok) {
@@ -209,7 +220,17 @@ class AuthService {
         };
       }
 
-      return { success: true };
+      const data = await response.json();
+      
+      return { 
+        success: true,
+        data: {
+          message: data.message,
+          expires_in: data.expires_in,
+          verify_code: data.verify_code, // Only in development
+          retry_after: data.retry_after,
+        }
+      };
     } catch (error) {
       return {
         success: false,

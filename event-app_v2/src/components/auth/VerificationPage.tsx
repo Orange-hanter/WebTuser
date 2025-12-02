@@ -179,18 +179,36 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
   };
 
   const handleResend = async () => {
-    if (!registrationData) return;
+    if (!registrationData || !selectedMethod) return;
     setError('');
     try {
-      const res = await AuthService.resendCode(registrationData.email);
+      const res = await AuthService.resendCode(registrationData.email, selectedMethod);
       if (!res.success) {
-        setError(res.error || 'Ошибка отправки кода');
-        toast.error(res.error || 'Ошибка отправки кода');
+        const errorMsg = res.error || 'Ошибка отправки кода';
+        setError(errorMsg);
+        toast.error(errorMsg);
+        
+        // Handle rate limit - set timer based on retry_after if provided
+        if (res.data?.retry_after) {
+          setTimeLeft(res.data.retry_after);
+          setCanResend(false);
+        }
         return;
       }
-      setTimeLeft(60);
+      
+      // Update timer based on expires_in from response
+      const expiresIn = res.data?.expires_in || 60;
+      setTimeLeft(expiresIn);
       setCanResend(false);
-      toast.success('Код отправлен снова');
+      
+      // Show verify code in dev mode
+      if (res.data?.verify_code) {
+        setVerifyCodeDev(res.data.verify_code);
+        console.log('🔑 Dev mode: Verification code =', res.data.verify_code);
+      }
+      
+      const successMsg = res.data?.message || 'Код отправлен снова';
+      toast.success(successMsg);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка сети');
       toast.error('Сетeвая ошибка');
@@ -329,7 +347,7 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
                   type="button"
                   onClick={handleResend}
                   className="verification-resend-button"
-                  disabled={isVerifying}
+                  disabled={isVerifying || !selectedMethod}
                 >
                   Отправить код снова
                 </button>
