@@ -100,6 +100,27 @@ export interface TelegramStatus {
   updated_at?: string;
 }
 
+export interface PublicUserProfile {
+  id: string;
+  displayName: string;
+  username?: string;
+  avatarUrl?: string;
+  bio?: string;
+  city?: string;
+  country?: string;
+  publicEventsCount: number;
+  isVerified: boolean;
+  socialLinks?: {
+    twitter?: string;
+    telegram?: string;
+    instagram?: string;
+    linkedin?: string;
+    website?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthCredentials {
   email: string;
   password: string;

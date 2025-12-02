@@ -1,5 +1,7 @@
-import { User, Event } from '@/types';
+import { User, Event, PublicUserProfile } from '@/types';
 import AuthService from './authService';
+
+export type { PublicUserProfile }; // Re-export for backward compatibility
 
 // Adjust base URL to match /api/users/me instead of /v1/api/users/me if needed
 // Assuming the backend serves /api/users/me at the root /api context
@@ -8,16 +10,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 export interface EventWithSubscription extends Event {
   subscriptionStatus: 'confirmed' | 'waitlisted' | 'attended' | 'cancelled';
   subscriptionId?: string;
-}
-
-export interface PublicUserProfile {
-  id: string | number;
-  firstName: string;
-  lastName: string;
-  avatar_url?: string;
-  telegram_public?: boolean;
-  telegram_username?: string;
-  role?: 'creator' | 'user';
 }
 
 export interface Participant {
@@ -37,10 +29,17 @@ export interface RoleRequest {
   updated_at?: string;
 }
 
-// Simple in-memory cache for public user profiles
-const userProfileCache = new Map<string | number, { data: PublicUserProfile; timestamp: number }>();
+// Cache for public user profiles with ETag support
+interface CachedProfile {
+  data: PublicUserProfile;
+  etag?: string;
+  lastModified?: string;
+  timestamp: number;
+}
+
+const userProfileCache = new Map<string | number, CachedProfile>();
 const eventParticipantsCache = new Map<string, { data: Participant[]; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (matches max-age=300)
 const PARTICIPANTS_CACHE_TTL = 60 * 1000; // 1 minute
 
 export const userService = {
@@ -204,26 +203,72 @@ export const userService = {
   },
 
   async getPublicUserProfile(userId: string | number): Promise<PublicUserProfile> {
-    // Check cache first
     const cached = userProfileCache.get(userId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return cached.data;
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+    };
+
+    // If we have a cached version, add conditional headers
+    if (cached) {
+      // If cache is fresh (within TTL), return immediately without request
+      if (Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+      }
+      
+      // If stale, use ETag/Last-Modified for revalidation
+      if (cached.etag) headers['If-None-Match'] = cached.etag;
+      if (cached.lastModified) headers['If-Modified-Since'] = cached.lastModified;
     }
 
-    const response = await fetch(`${API_BASE_URL}/users/public/${userId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/public/${userId}`, {
+        headers,
+        credentials: 'include',
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch public user profile');
+      // Handle 304 Not Modified
+      if (response.status === 304 && cached) {
+        // Update timestamp to extend TTL
+        cached.timestamp = Date.now();
+        userProfileCache.set(userId, cached);
+        return cached.data;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        if (response.status === 404) {
+          throw new Error(errorData.error?.message || 'User not found');
+        }
+        if (response.status === 400) {
+          throw new Error(errorData.error?.message || 'Invalid user ID');
+        }
+        if (response.status === 429) {
+          throw new Error('Too many requests, please try again later');
+        }
+        
+        throw new Error('Failed to fetch public user profile');
+      }
+
+      const data: PublicUserProfile = await response.json();
+      
+      // Update cache with new data and headers
+      const etag = response.headers.get('ETag');
+      const lastModified = response.headers.get('Last-Modified');
+      
+      userProfileCache.set(userId, {
+        data,
+        etag: etag || undefined,
+        lastModified: lastModified || undefined,
+        timestamp: Date.now()
+      } as CachedProfile);
+      
+      return data;
+    } catch (error) {
+      // If network error and we have stale cache, return it as fallback?
+      // For now, just rethrow as per requirements (show error UI)
+      throw error;
     }
-
-    const data: PublicUserProfile = await response.json();
-    userProfileCache.set(userId, { data, timestamp: Date.now() });
-    return data;
   },
 
   async getEventParticipants(eventId: string): Promise<Participant[]> {
