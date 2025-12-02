@@ -1,12 +1,21 @@
 .profile-step2-container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-sizing: border-box;
+}
+
+.profile-step2-container *,
+.profile-step2-container *::before,
+.profile-step2-container *::after {
+  box-sizing: border-box;
 }
 
 /* Фон */
@@ -57,6 +66,7 @@
   width: 100%;
   max-width: 600px;
   padding: 1rem;
+  box-sizing: border-box;
 }
 
 .profile-step2-card {
@@ -66,8 +76,11 @@
   padding: 2.5rem 2rem;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.6s ease-out;
-  max-height: 90vh;
+  max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes slideUp {
@@ -137,23 +150,39 @@
   background: #f9fafb;
   color: #6b7280;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-weight: 600;
   font-size: 0.9rem;
   flex-wrap: wrap;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
 }
 
-.profile-step2-interest-btn:hover:not(:disabled) {
+/* Hover только для НЕвыбранных кнопок */
+.profile-step2-interest-btn:not(.active):hover:not(:disabled) {
   border-color: #f093fb;
   color: #f093fb;
   background: #fff5fd;
 }
 
-.profile-step2-interest-btn.active {
+.profile-step2-interest-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Активное (выбранное) состояние - всегда приоритетнее hover */
+.profile-step2-interest-btn.active,
+.profile-step2-interest-btn.active:hover,
+.profile-step2-interest-btn.active:focus {
   background: linear-gradient(135deg, #f093fb, #f5576c);
   color: white;
-  border-color: transparent;
+  border-color: #f093fb;
   box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+.profile-step2-interest-btn.active:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(245, 87, 108, 0.4);
 }
 
 .profile-step2-interest-btn:disabled {
@@ -233,8 +262,19 @@
 
 /* Мобильная оптимизация */
 @media (max-width: 640px) {
+  .profile-step2-container {
+    padding: 0.5rem;
+  }
+
+  .profile-step2-content {
+    padding: 0.5rem;
+  }
+
   .profile-step2-card {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+    max-height: 90vh;
+    max-height: 90dvh;
   }
 
   .profile-step2-title {
@@ -243,6 +283,13 @@
 
   .profile-step2-interests {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .profile-step2-interest-btn {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 48px;
   }
 
   .profile-step2-buttons {
