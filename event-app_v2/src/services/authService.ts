@@ -79,9 +79,66 @@ const parseJWT = (token: string): JwtPayload | null => {
 class AuthService {
 
   /**
+   * Проверить существование пользователя по email и/или телефону
+   */
+  static async checkUser(params: { 
+    email?: string; 
+    phone?: string; 
+  }): Promise<ApiResponse<{ 
+    exists: boolean; 
+    conflict_type?: 'email' | 'phone' | 'both';
+    message?: string;
+  }>> {
+    try {
+      if (!params.email && !params.phone) {
+        return {
+          success: false,
+          error: 'Email или телефон должны быть указаны',
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/check-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        return {
+          success: false,
+          error: errorData.message || 'Ошибка проверки',
+        };
+      }
+
+      const data = await response.json();
+      
+      return {
+        success: true,
+        data: {
+          exists: data.exists || false,
+          conflict_type: data.conflict_type,
+          message: data.message,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Ошибка сети',
+      };
+    }
+  }
+
+  /**
    * Регистрация нового пользователя
    */
-  static async register(data: RegistrationData): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
+  static async register(
+    data: RegistrationData,
+    verification_type?: 'email' | 'sms' | 'telegram'
+  ): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -93,6 +150,7 @@ class AuthService {
           email: data.email,
           password: data.password,
           phone: data.phone || '',
+          verification_type: verification_type || 'email',
         }),
       });
 
@@ -204,20 +262,23 @@ class AuthService {
         };
       }
 
-      // После успешной верификации нужно залогиниться
-      // (API verify не возвращает токен, только подтверждение)
-      // Поэтому возвращаем успех без токена, приложение должно показать форму входа
+      // Сохраняем токен, который возвращает API при успешной верификации
+      if (verifyResponse.access_token) {
+        this.setAuthCookie(verifyResponse.access_token);
+        console.log('🔐 AuthService.verify: Token saved from verify response');
+      }
+
       return {
         success: true,
         data: {
-          token: '', // Пустой токен, требуется логин
+          token: verifyResponse.access_token || '',
           user: {
-            id: '',
-            email: data.email,
-            phone: '',
+            id: verifyResponse.user.id,
+            email: verifyResponse.user.email,
+            phone: verifyResponse.user.phone || '',
             firstName: '',
             lastName: '',
-            createdAt: new Date().toISOString(),
+            createdAt: verifyResponse.user.created_at,
           },
         },
       };

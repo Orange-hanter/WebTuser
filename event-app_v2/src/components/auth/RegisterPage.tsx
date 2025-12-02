@@ -1,28 +1,99 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react';
 import type { RegistrationData } from '@/types';
 import './RegisterPage.css';
+import { saveRegistrationData, loadRegistrationData } from '@/services/registrationStorage';
+import AuthService from '@/services/authService';
 
 interface RegisterPageProps {
-  onRegister: (data: RegistrationData) => Promise<void>;
+  onRegister?: (data: RegistrationData) => Promise<void>;
   onSwitchToLogin: () => void;
   isLoading?: boolean;
 }
 
-const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLoading = false }) => {
+const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitchToLogin, isLoading = false }) => {
+
   const [formData, setFormData] = useState<RegistrationData>({
     email: '',
     password: '',
     confirmPassword: '',
     phone: '',
   });
+
+  useEffect(() => {
+    const saved = loadRegistrationData();
+    if (saved) {
+      setFormData(prev => ({ ...prev, email: saved.email || '', phone: saved.phone || '' }));
+    }
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [focusedField, setFocusedField] = useState<keyof RegistrationData | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
 
   const handleChange = (field: keyof RegistrationData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Очистить ошибку поля при изменении
+    if (field === 'email' || field === 'phone') {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field as 'email' | 'phone'];
+        return newErrors;
+      });
+    }
+  };
+
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    setIsCheckingEmail(true);
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.email;
+      return newErrors;
+    });
+    
+    try {
+      const result = await AuthService.checkUser({ email });
+      if (result.success && result.data?.exists) {
+        setFieldErrors(prev => ({ 
+          ...prev, 
+          email: 'Этот email уже зарегистрирован' 
+        }));
+      }
+    } catch (err) {
+      console.error('Error checking email:', err);
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const checkPhoneAvailability = async (phone: string) => {
+    if (!phone || phone.length < 10) return;
+    
+    setIsCheckingPhone(true);
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.phone;
+      return newErrors;
+    });
+    
+    try {
+      const result = await AuthService.checkUser({ phone });
+      if (result.success && result.data?.exists) {
+        setFieldErrors(prev => ({ 
+          ...prev, 
+          phone: 'Этот телефон уже зарегистрирован' 
+        }));
+      }
+    } catch (err) {
+      console.error('Error checking phone:', err);
+    } finally {
+      setIsCheckingPhone(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -38,19 +109,25 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
       setError('Пароли не совпадают');
       return false;
     }
+    if (fieldErrors.email || fieldErrors.phone) {
+      setError('Исправьте ошибки в полях');
+      return false;
+    }
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
     if (!validateForm()) return;
 
-    try {
-      await onRegister(formData);
+    // Persist registration data to sessionStorage and navigate to /verify
+      try {
+        saveRegistrationData({ email: formData.email, phone: formData.phone || '', password: formData.password });
+        window.history.pushState({}, '', '/verify'); // change path to /verify so AuthFlow can react to it
+        window.dispatchEvent(new PopStateEvent('popstate')); 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
+      setError(err instanceof Error ? err.message : 'Не удалось продолжить');
     }
   };
 
@@ -73,7 +150,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
             {/* Поле Email */}
             <div className="register-form-group">
               <label htmlFor="email" className="register-label">Email</label>
-              <div className={`register-input-wrapper ${focusedField === 'email' ? 'focused' : ''}`}>
+              <div className={`register-input-wrapper ${focusedField === 'email' ? 'focused' : ''} ${fieldErrors.email ? 'error' : ''}`}>
                 <Mail size={20} className="register-input-icon" />
                 <input
                   id="email"
@@ -81,20 +158,25 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
                   onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField(null)}
+                  onBlur={() => {
+                    setFocusedField(null);
+                    checkEmailAvailability(formData.email);
+                  }}
                   placeholder="your@email.com"
                   className="register-input"
-                  disabled={isLoading}
+                  disabled={isLoading || isCheckingEmail}
                   required
                   data-testid="register-email-input"
                 />
+                {isCheckingEmail && <span className="checking-indicator">⏳</span>}
               </div>
+              {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
             </div>
 
             {/* Поле Phone */}
             <div className="register-form-group">
               <label htmlFor="phone" className="register-label">Телефон (опционально)</label>
-              <div className={`register-input-wrapper ${focusedField === 'phone' ? 'focused' : ''}`}>
+              <div className={`register-input-wrapper ${focusedField === 'phone' ? 'focused' : ''} ${fieldErrors.phone ? 'error' : ''}`}>
                 <Phone size={20} className="register-input-icon" />
                 <input
                   id="phone"
@@ -102,13 +184,18 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister, onSwitchToLogin, isLo
                   value={formData.phone || ''}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   onFocus={() => setFocusedField('phone')}
-                  onBlur={() => setFocusedField(null)}
+                  onBlur={() => {
+                    setFocusedField(null);
+                    checkPhoneAvailability(formData.phone || '');
+                  }}
                   placeholder="+375 (XX) 123-45-67"
                   className="register-input"
-                  disabled={isLoading}
+                  disabled={isLoading || isCheckingPhone}
                   data-testid="register-phone-input"
                 />
+                {isCheckingPhone && <span className="checking-indicator">⏳</span>}
               </div>
+              {fieldErrors.phone && <span className="field-error">{fieldErrors.phone}</span>}
             </div>
 
             {/* Поле Password */}

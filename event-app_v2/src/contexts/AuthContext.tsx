@@ -17,6 +17,7 @@ interface AuthContextType {
   bindTelegram: () => Promise<TelegramBindingLink | null>;
   unbindTelegram: () => Promise<void>;
   resendCode: (email: string) => Promise<void>;
+  refreshSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -154,7 +155,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      let token = currentToken;
+      // Получаем токен напрямую из сервиса (может быть установлен вне контекста)
+      let token = AuthService.getAuthToken();
 
       // Если нет токена, но есть tempCredentials - сначала логинимся
       if (!token && tempCredentials) {
@@ -162,11 +164,16 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         await login(tempCredentials);
         setTempCredentials(null);
         // Получаем токен напрямую из сервиса, так как стейт еще не обновился
-        token = AuthService.getAuthToken() || '';
+        token = AuthService.getAuthToken();
       }
 
       if (!token) {
         throw new Error('Нет активной сессии');
+      }
+
+      // Обновляем currentToken если он отличается
+      if (token !== currentToken) {
+        setCurrentToken(token);
       }
 
       const response = await AuthService.updateProfile(token, profile);
@@ -238,6 +245,26 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
   }, [currentToken, refreshTelegramStatus]);
 
+  // Обновить состояние сессии из токена (вызывается после верификации)
+  const refreshSession = useCallback(() => {
+    const token = AuthService.getAuthToken();
+    if (token && AuthService.isTokenValid()) {
+      console.log('🔐 AuthContext.refreshSession: Token found, updating user state');
+      setCurrentToken(token);
+      // Устанавливаем временного пользователя - полные данные загрузятся позже
+      setUser({
+        id: 'temp',
+        email: '',
+        phone: '',
+        firstName: '',
+        lastName: '',
+        createdAt: new Date().toISOString(),
+      });
+    } else {
+      console.log('🔐 AuthContext.refreshSession: No valid token found');
+    }
+  }, []);
+
   const contextValue = useMemo(() => ({
     user,
     isAuthenticated,
@@ -251,7 +278,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     refreshTelegramStatus,
     bindTelegram,
     unbindTelegram,
-    resendCode
+    resendCode,
+    refreshSession
   }), [
     user,
     isAuthenticated,
@@ -265,7 +293,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     refreshTelegramStatus,
     bindTelegram,
     unbindTelegram,
-    resendCode
+    resendCode,
+    refreshSession
   ]);
 
   return (

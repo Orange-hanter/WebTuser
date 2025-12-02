@@ -296,3 +296,49 @@
     height: 150px;
   }
 }
+
+/* Стили для ошибок валидации полей */
+.register-input-wrapper.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.register-input-wrapper.error .register-input-icon {
+  color: #ef4444;
+}
+
+.field-error {
+  font-size: 0.85rem;
+  color: #ef4444;
+  margin-top: -0.25rem;
+  display: block;
+  animation: errorFadeIn 0.3s ease-out;
+}
+
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Индикатор проверки */
+.checking-indicator {
+  position: absolute;
+  right: 1rem;
+  font-size: 1.2rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

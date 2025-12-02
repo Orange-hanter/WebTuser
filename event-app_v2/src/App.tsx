@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { LoadingSpinner } from '@components/common';
 import { AuthFlow } from '@components/auth';
 import { MainAppContent } from '@components/layout';
@@ -8,12 +8,22 @@ import './App.css';
 
 const App: FC = () => {
   const { isAuthenticated, isLoading } = useAuthContext();
-  console.log('🟢 App: rendering page');
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  
+  // Слушаем изменения URL
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+  
+  console.log('🟢 App: rendering page, path=', currentPath);
   
   // Check for public event route
-  const path = window.location.pathname;
-  if (path.startsWith('/e/')) {
-    const parts = path.split('/');
+  if (currentPath.startsWith('/e/')) {
+    const parts = currentPath.split('/');
     const eventIdStr = parts[2];
     if (eventIdStr) {
       // Keep as string to match PublicEventPage prop type
@@ -21,12 +31,21 @@ const App: FC = () => {
     }
   }
   
-  // Если пользователь не авторизован - показываем AuthFlow
-  // НЕ показываем LoadingSpinner вместо AuthFlow, чтобы не терять состояние формы
-  console.log('🟢 App: Showing main app, isAuthenticated=', isAuthenticated);
-  if (!isAuthenticated) {
-    console.log('🟢 App: Showing AuthFlow, isAuthenticated=', isAuthenticated);
-    return <AuthFlow />;
+  // Проверяем, находимся ли мы на шагах заполнения профиля после регистрации
+  const isProfileSetupRoute = currentPath === '/profile-step1' || currentPath === '/profile-step2';
+  
+  // Callback для успешной авторизации - переходим в основное приложение
+  const handleAuthSuccess = () => {
+    console.log('🟢 App: onAuthSuccess called, navigating to /');
+    window.history.pushState({}, '', '/');
+    setCurrentPath('/');
+  };
+  
+  // Если пользователь не авторизован ИЛИ он на шагах заполнения профиля - показываем AuthFlow
+  console.log('🟢 App: isAuthenticated=', isAuthenticated, 'isProfileSetupRoute=', isProfileSetupRoute);
+  if (!isAuthenticated || isProfileSetupRoute) {
+    console.log('🟢 App: Showing AuthFlow');
+    return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
   }
   
   // Показываем LoadingSpinner только для авторизованных пользователей

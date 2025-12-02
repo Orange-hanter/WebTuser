@@ -1,78 +1,110 @@
-import { FC, useState, useRef, useEffect } from 'react';
-import { Mail, MessageSquare } from 'lucide-react';
+import React, { FC, useState, useRef, useEffect } from 'react';
+import { Mail as MailIcon, MessageSquare as MessageIcon, ArrowLeft } from 'lucide-react';
 import './VerificationPage.css';
+import AuthService from '@/services/authService';
+import { useToast } from '@/contexts/ToastContext';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { loadRegistrationData } from '@/services/registrationStorage';
 
 interface VerificationPageProps {
-  email: string;
-  onVerify: (code: string, method: 'sms' | 'email') => Promise<void>;
-  onResend?: () => Promise<void>;
-  onSwitchToNextStep: () => void;
   onSwitchToLogin?: () => void;
-  isLoading?: boolean;
-  defaultMethod?: 'sms' | 'email';
+  defaultMethod?: 'sms' | 'email' | 'telegram';
 }
 
-const VerificationPage: FC<VerificationPageProps> = ({
-  email,
-  onVerify,
-  onResend,
-  // @ts-ignore
-  onSwitchToNextStep,
-  onSwitchToLogin,
-  isLoading = false,
-  defaultMethod = 'email'
-  
-}) => {
+const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultMethod = 'email' }) => {
+  // no react-router in AuthFlow — use history pushState so AuthFlow can react
+  const toast = useToast();
+  const { refreshSession } = useAuthContext();
+
   const [code, setCode] = useState('');
-  const [method, setMethod] = useState<'sms' | 'email'>(defaultMethod);
+  const [method, setMethod] = useState<'sms' | 'email' | 'telegram'>(defaultMethod);
+  const [selectedMethod, setSelectedMethod] = useState<'sms' | 'email' | 'telegram' | null>(null);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Автофокус на инпут при монтировании
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState(3);
+  const [registrationData, setRegistrationData] = useState<{ email: string; phone: string; password: string } | null>(null);
+  const [verifyCodeDev, setVerifyCodeDev] = useState<string | null>(null);
+  const [conflictUser, setConflictUser] = useState(false);
+
+  useEffect(() => {
+    const saved = loadRegistrationData();
+    if (!saved) {
+      // No data — go back to register
+      window.history.pushState({}, '', '/register');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
+    }
+    setRegistrationData(saved);
+  }, []);
+
+  useEffect(() => {
+    if (showCodeEntry) {
+      inputRef.current?.focus();
+    }
+  }, [showCodeEntry]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (timeLeft > 0) {
-      timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    } else {
+    if (showCodeEntry && timeLeft > 0) {
+      timer = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    } else if (timeLeft <= 0) {
       setCanResend(true);
     }
     return () => clearTimeout(timer);
-  }, [timeLeft]);
+  }, [timeLeft, showCodeEntry]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendVerificationCode = async () => {
+    if (!registrationData || !selectedMethod) return;
     setError('');
-
-    if (code.length !== 6) {
-      setError('Код должен содержать 6 символов');
-      return;
-    }
-
+    setIsRegistering(true);
     try {
-      await onVerify(code, method);
-      // Переход на следующий шаг происходит в AuthFlow.handleVerify
+      const res = await AuthService.register({
+        email: registrationData.email,
+        password: registrationData.password,
+        phone: registrationData.phone,
+        confirmPassword: registrationData.password,
+      } as any, selectedMethod);
+
+      setIsRegistering(false);
+
+      if (!res.success) {
+        // 409 conflict handling
+        setError(res.error || 'Ошибка регистрации');
+        toast.error(res.error || 'Ошибка регистрации');
+        const errText = (res.error || '').toLowerCase();
+        if (errText.includes('409') || errText.includes('exist') || errText.includes('существ')) {
+          setConflictUser(true);
+        }
+        return;
+      }
+
+      // success — show code entry and hide send button
+      setVerifyCodeDev(res.data?.verifyCode || null);
+      setShowCodeEntry(true);
+      setTimeLeft(60);
+      setCanResend(false);
+      toast.success('Код отправлен');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка верификации');
+      setIsRegistering(false);
+      setError(err instanceof Error ? err.message : 'Ошибка сети');
+      toast.error('Сетевая ошибка');
     }
   };
 
-  const handleResend = async () => {
-    setError('');
-    if (onResend) {
-      try {
-        await onResend();
-        setTimeLeft(60);
-        setCanResend(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ошибка отправки кода');
-      }
+  const handleChannelClick = (selected: 'email' | 'sms' | 'telegram') => {
+    if (selected === 'sms') {
+      toast.info('SMS-верификация появится в ближайшем обновлении');
+      return;
     }
+    setMethod(selected);
+    setSelectedMethod(selected);
+    setError('');
   };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,117 +116,236 @@ const VerificationPage: FC<VerificationPageProps> = ({
     inputRef.current?.focus();
   };
 
+  const handleVerifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!registrationData) return;
+    if (code.length !== 6) {
+      setError('Код должен содержать 6 символов');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const res = await AuthService.verify({ email: registrationData.email, code, method });
+      
+      if (!res.success) {
+        setIsVerifying(false);
+        const msg = res.error || 'Неверный код подтверждения';
+        setError(msg);
+        setAttemptsLeft((a) => a - 1);
+        toast.error(msg);
+        if (attemptsLeft - 1 <= 0) {
+          setError('Слишком много неудачных попыток. Попробуйте позже.');
+        }
+        return;
+      }
+
+      // После успешной верификации токен уже сохранён в AuthService.verify()
+      toast.success('Верификация прошла успешно');
+      setIsVerifying(false);
+
+      // Проверяем, что токен сохранился
+      const token = AuthService.getAuthToken();
+      if (!token) {
+        // Fallback: попытка логина если токен не пришёл от verify
+        console.log('🔵 VerificationPage: No token after verify, trying login...');
+        const loginRes = await AuthService.login({
+          email: registrationData.email,
+          password: registrationData.password,
+        });
+        
+        if (!loginRes.success) {
+          toast.error('Ошибка входа после верификации');
+          setError('Ошибка входа. Попробуйте войти вручную.');
+          window.history.pushState({}, '', '/login');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+          return;
+        }
+      }
+
+      // Обновляем состояние сессии в контексте
+      refreshSession();
+
+      // Переходим к заполнению профиля
+      console.log('🔵 VerificationPage: Success, navigating to profile-step1');
+      window.history.pushState({}, '', '/profile-step1');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } catch (err) {
+      setIsVerifying(false);
+      setError(err instanceof Error ? err.message : 'Ошибка сети');
+      toast.error('Сетевая ошибка при верификации');
+    }
+  };
+
+  const handleResend = async () => {
+    if (!registrationData) return;
+    setError('');
+    try {
+      const res = await AuthService.resendCode(registrationData.email);
+      if (!res.success) {
+        setError(res.error || 'Ошибка отправки кода');
+        toast.error(res.error || 'Ошибка отправки кода');
+        return;
+      }
+      setTimeLeft(60);
+      setCanResend(false);
+      toast.success('Код отправлен снова');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сети');
+      toast.error('Сетeвая ошибка');
+    }
+  };
+
+  const handleBack = () => {
+    window.history.pushState({}, '', '/register');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <div className="verification-container">
-      {/* Фон */}
       <div className="verification-background">
         <div className="verification-blob blob-1" />
         <div className="verification-blob blob-2" />
       </div>
 
-      {/* Контент */}
       <div className="verification-content">
         <div className="verification-card">
+          <button type="button" className="verification-back" onClick={handleBack} aria-label="Назад"><ArrowLeft size={24} /></button>
           <div className="verification-icon">
-            {method === 'email' ? (
-              <Mail size={48} />
-            ) : (
-              <MessageSquare size={48} />
-            )}
+            {method === 'email' ? <MailIcon size={48} /> : <MessageIcon size={48} />}
           </div>
 
-          <h1 className="verification-title">Подтверди email</h1>
+          <h1 className="verification-title">Подтвердите аккаунт</h1>
           <p className="verification-subtitle">
-            Мы отправили код подтверждения на {email}
+            {registrationData ? (
+              method === 'telegram' ? 'Код придет в Telegram (если он привязан к аккаунту)' : `Мы отправим код подтверждения на ${registrationData.email}`
+            ) : 'Загрузка...'}
           </p>
 
-          {/* Выбор метода */}
+          {conflictUser && (
+            <div className="verification-conflict">
+              <p>Пользователь с таким email уже существует.</p>
+              {onSwitchToLogin ? (
+                <button className="verification-switch-button" onClick={onSwitchToLogin}>Войти</button>
+              ) : (
+                <button className="verification-switch-button" onClick={() => { window.history.pushState({}, '', '/login'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Войти</button>
+              )}
+            </div>
+          )}
+
           <div className="verification-method-selector">
             <button
               type="button"
-              className={`verification-method-btn ${method === 'email' ? 'active' : ''}`}
-              onClick={() => setMethod('email')}
-              disabled={isLoading}
+              className={`verification-method-btn ${selectedMethod === 'email' ? 'active' : ''}`}
+              onClick={() => handleChannelClick('email')}
+              disabled={showCodeEntry}
             >
-              <Mail size={20} />
+              <MailIcon size={20} />
               Email
             </button>
-            <button
-              type="button"
-              className={`verification-method-btn ${method === 'sms' ? 'active' : ''}`}
-              onClick={() => setMethod('sms')}
-              disabled={isLoading}
-            >
-              <MessageSquare size={20} />
-              SMS
-            </button>
-          </div>
 
-          <form onSubmit={handleSubmit} className="verification-form">
-            {/* Поле кода */}
-            <div className="verification-code-input-wrapper">
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={code}
-                onChange={handleCodeChange}
-                placeholder="000000"
-                className="verification-code-input"
-                disabled={isLoading}
-                maxLength={6}
-                autoComplete="off"
-                aria-label="Код верификации"
-              />
-              <div className="verification-code-chars" onClick={handleCodeBoxClick}>
-                {[0, 1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="verification-code-char">
-                    {code[i] || ''}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Ошибка */}
-            {error && <div className="verification-error">{error}</div>}
-
-            {/* Кнопка подтверждения */}
-            <button
-              type="submit"
-              className="verification-button"
-              disabled={isLoading || code.length !== 6}
-            >
-              {isLoading ? 'Загрузка...' : 'Подтвердить'}
-            </button>
-          </form>
-
-          {/* Переотправка */}
-          <div className="verification-resend">
-            {canResend ? (
+            <div style={{ position: 'relative', flex: 1 }}>
               <button
                 type="button"
-                onClick={handleResend}
-                className="verification-resend-button"
-                disabled={isLoading}
+                className={`verification-method-btn disabled ${selectedMethod === 'sms' ? 'active' : ''}`}
+                onClick={() => handleChannelClick('sms')}
+                disabled={showCodeEntry}
               >
-                Отправить код снова
+                <MessageIcon size={20} />
+                SMS
+                <span className="soon-badge">Скоро</span>
               </button>
-            ) : (
-              <p className="verification-resend-text">
-                Отправить код снова через {timeLeft}с
-              </p>
-            )}
+            </div>
+
+            <button
+              type="button"
+              className={`verification-method-btn ${selectedMethod === 'telegram' ? 'active' : ''}`}
+              onClick={() => handleChannelClick('telegram')}
+              disabled={showCodeEntry}
+            >
+              <MessageIcon size={20} />
+              Telegram
+            </button>
           </div>
 
-          {/* Вернуться ко входу */}
+          {!showCodeEntry && selectedMethod && (
+            <button
+              type="button"
+              className="verification-send-button"
+              onClick={sendVerificationCode}
+              disabled={isRegistering}
+            >
+              {isRegistering ? 'Отправка...' : 'Отправить код'}
+            </button>
+          )}
+
+          {showCodeEntry && (
+            <form onSubmit={handleVerifySubmit} className="verification-form">
+              <div className="verification-code-input-wrapper">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={code}
+                  onChange={handleCodeChange}
+                  placeholder="000000"
+                  className="verification-code-input"
+                  disabled={isVerifying || attemptsLeft <= 0}
+                  maxLength={6}
+                  autoComplete="off"
+                  aria-label="Код верификации"
+                />
+                <div className="verification-code-chars" onClick={handleCodeBoxClick}>
+                  {[0, 1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="verification-code-char">
+                      {code[i] || ''}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {verifyCodeDev && (
+                <div className="verification-dev-hint">Dev code: {verifyCodeDev}</div>
+              )}
+
+              {error && <div className="verification-error">{error}</div>}
+
+              <button
+                type="submit"
+                className="verification-button"
+                disabled={isVerifying || code.length !== 6 || attemptsLeft <= 0}
+              >
+                {isVerifying ? 'Загрузка...' : 'Подтвердить'}
+              </button>
+            </form>
+          )}
+
+          <div className="verification-resend">
+            {showCodeEntry ? (
+              canResend ? (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  className="verification-resend-button"
+                  disabled={isVerifying}
+                >
+                  Отправить код снова
+                </button>
+              ) : (
+                <p className="verification-resend-text">Отправить код снова через {timeLeft}с</p>
+              )
+            ) : null}
+          </div>
+
           {onSwitchToLogin && (
             <div className="verification-login-link">
               <button
                 type="button"
                 onClick={onSwitchToLogin}
                 className="verification-switch-button"
-                disabled={isLoading}
+                disabled={isRegistering}
               >
                 Вернуться ко входу
               </button>
