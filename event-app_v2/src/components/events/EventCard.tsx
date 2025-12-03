@@ -1,8 +1,7 @@
 import { FC } from 'react';
-import { MapPin, Star, Clock, Share2 } from 'lucide-react';
+import { MapPin, Star, Clock } from 'lucide-react';
 import type { Event } from '@/types';
-import { AvatarWithPopover, ParticipantAvatarStrip } from '@/components/common';
-import { useToast } from '@/contexts';
+import { AvatarWithPopover, ParticipantAvatarStrip, ShareButton } from '@/components/common';
 import './EventCard.css';
 
 interface EventCardProps {
@@ -20,19 +19,6 @@ const EventCard: FC<EventCardProps> = ({
   creatorName,
   creatorAvatar 
 }) => {
-  const { success: showSuccess } = useToast();
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const url = `${window.location.origin}/e/${event.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      showSuccess('Ссылка скопирована!');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
   return (
     <div 
       className="event-card"
@@ -48,13 +34,10 @@ const EventCard: FC<EventCardProps> = ({
         <div className="event-card-type-badge">
           {event.type}
         </div>
-        <button 
+        <ShareButton 
+          url={`${window.location.origin}/e/${event.id}`}
           className="event-card-share-button"
-          onClick={handleShare}
-          title="Поделиться"
-        >
-          <Share2 size={18} />
-        </button>
+        />
         <div className="event-card-overlay">
         <h2 className="event-card-title">
           {event.title}

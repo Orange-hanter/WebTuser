@@ -1,8 +1,7 @@
 import { FC, useEffect } from 'react';
-import { X, MapPin, Clock, Users, Star, Share2 } from 'lucide-react';
+import { X, MapPin, Clock, Users, Star } from 'lucide-react';
 import type { Event } from '@/types';
-import { ParticipantAvatarStrip, AvatarWithPopover } from '@/components/common';
-import { useToast } from '@/contexts';
+import { ParticipantAvatarStrip, AvatarWithPopover, ShareButton } from '@/components/common';
 import './EventDetailModal.css';
 
 interface EventDetailModalProps {
@@ -13,8 +12,6 @@ interface EventDetailModalProps {
 }
 
 const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike }) => {
-  const { success: showSuccess } = useToast();
-
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -43,17 +40,6 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
     };
   }, [isOpen, onClose]);
 
-  const handleShare = async () => {
-    if (!event) return;
-    const url = `${window.location.origin}/e/${event.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      showSuccess('Ссылка скопирована!');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
   if (!isOpen || !event) return null;
 
   return (
@@ -67,14 +53,12 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
           <X className="modal-close-icon" />
         </button>
 
-        <button 
-          onClick={handleShare}
+        <ShareButton 
+          url={`${window.location.origin}/e/${event.id}`}
           className="modal-share-button"
-          aria-label="Share"
-          title="Поделиться"
-        >
-          <Share2 size={20} />
-        </button>
+          size={44}
+          iconSize={20}
+        />
 
         <div className="modal-image-wrapper">
           <img 
