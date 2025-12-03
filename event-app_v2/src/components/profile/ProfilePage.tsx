@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { User, Calendar, LogOut, ArrowLeft, Pencil, X, Check } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { useAuthContext } from '@/contexts';
@@ -10,6 +10,10 @@ import './ProfilePage.css';
 interface ProfilePageProps {
   onBack?: () => void;
 }
+
+// Глобальные флаги для предотвращения двойных запросов в Strict Mode
+let globalProfileFetchInProgress = false;
+let globalEventsFetchInProgress = false;
 
 // Telegram Binding Section Component
 const TelegramBindingSection: FC = () => {
@@ -170,37 +174,50 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
   // History state
   const [historyEvents, setHistoryEvents] = useState<EventWithSubscription[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+  const isMounted = useRef(false);
 
-  useEffect(() => {
-    loadProfile();
-    loadEvents();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async (force = false) => {
+    // Предотвращаем параллельные запросы
+    if (!force && globalProfileFetchInProgress) return;
+    
+    globalProfileFetchInProgress = true;
     try {
       const userData = await userService.getProfile();
-      setUser(userData);
-      setFormData({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        phone: userData.phone || '',
-      });
+      if (isMounted.current) {
+        setUser(userData);
+        setFormData({
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          phone: userData.phone || '',
+        });
+      }
     } catch (err) {
       if (err instanceof Error && err.message === 'Unauthorized') {
         logout();
         return;
       }
-      setError('Не удалось загрузить профиль');
+      if (isMounted.current) {
+        setError('Не удалось загрузить профиль');
+      }
     } finally {
-      setIsLoading(false);
+      globalProfileFetchInProgress = false;
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [logout]);
 
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async (force = false) => {
+    // Предотвращаем параллельные запросы
+    if (!force && globalEventsFetchInProgress) return;
+    
+    globalEventsFetchInProgress = true;
     setIsLoadingEvents(true);
     try {
       const history = await userService.getEventHistory();
-      setHistoryEvents(history);
+      if (isMounted.current) {
+        setHistoryEvents(history);
+      }
     } catch (err) {
       if (err instanceof Error && err.message === 'Unauthorized') {
         logout();
@@ -208,9 +225,21 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
       }
       console.error('Failed to load events', err);
     } finally {
-      setIsLoadingEvents(false);
+      globalEventsFetchInProgress = false;
+      if (isMounted.current) {
+        setIsLoadingEvents(false);
+      }
     }
-  };
+  }, [logout]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    loadProfile();
+    loadEvents();
+    return () => {
+      isMounted.current = false;
+    };
+  }, [loadProfile, loadEvents]);
 
   const handleSave = async () => {
     setIsSaving(true);

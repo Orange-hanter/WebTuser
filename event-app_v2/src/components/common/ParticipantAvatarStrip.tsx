@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { Participant, userService } from '@/services/userService';
 import AvatarWithPopover from './AvatarWithPopover';
 import './ParticipantAvatarStrip.css';
@@ -15,24 +15,44 @@ const ParticipantAvatarStrip: FC<ParticipantAvatarStripProps> = ({
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useRef(false);
+  const fetchedEventId = useRef<string | null>(null);
 
-  useEffect(() => {
-    loadParticipants();
-  }, [eventId]);
-
-  const loadParticipants = async () => {
+  const loadParticipants = useCallback(async () => {
+    // Предотвращаем повторную загрузку для того же eventId
+    if (fetchedEventId.current === eventId) return;
+    
+    fetchedEventId.current = eventId;
     setIsLoading(true);
     setError(null);
     try {
       const data = await userService.getEventParticipants(eventId);
-      setParticipants(data);
+      if (isMounted.current) {
+        setParticipants(data);
+      }
     } catch (err) {
       console.error('Failed to load participants:', err);
-      setError('Не удалось загрузить участников');
+      if (isMounted.current) {
+        setError('Не удалось загрузить участников');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [eventId]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    // Сбрасываем fetchedEventId если eventId изменился
+    if (fetchedEventId.current !== eventId) {
+      fetchedEventId.current = null;
+    }
+    loadParticipants();
+    return () => {
+      isMounted.current = false;
+    };
+  }, [eventId, loadParticipants]);
 
   const confirmedCount = participants.filter(
     (p) => p.status === 'confirmed'
