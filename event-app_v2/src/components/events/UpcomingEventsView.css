@@ -143,11 +143,8 @@
 }
 
 .status-confirmed::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
+  /* скрываем псевдоэлемент — метка статуса теперь отображается через цвет фона/текста */
+  display: none;
 }
 
 .status-waitlisted { 
@@ -156,11 +153,8 @@
 }
 
 .status-waitlisted::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #eab308;
+  /* скрываем псевдоэлемент */
+  display: none;
 }
 
 .upcoming-card-actions {

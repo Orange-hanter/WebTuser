@@ -1,4 +1,5 @@
 import { FC, useState, useRef } from 'react';
+import { User } from 'lucide-react';
 import { PublicUserProfile, userService } from '@/services/userService';
 import UserProfilePopover from './UserProfilePopover';
 import './AvatarWithPopover.css';
@@ -7,10 +8,11 @@ interface AvatarWithPopoverProps {
   userId: string | number;
   name: string;
   avatarUrl?: string | undefined;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   status?: 'confirmed' | 'waitlisted' | 'cancelled';
   tooltip?: string;
   onLoadingChange?: (loading: boolean) => void;
+  useIconFallback?: boolean; // Использовать иконку User вместо инициалов
 }
 
 const AvatarWithPopover: FC<AvatarWithPopoverProps> = ({
@@ -21,6 +23,7 @@ const AvatarWithPopover: FC<AvatarWithPopoverProps> = ({
   status,
   tooltip,
   onLoadingChange,
+  useIconFallback = false,
 }) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<PublicUserProfile | null>(null);
@@ -79,7 +82,9 @@ const AvatarWithPopover: FC<AvatarWithPopoverProps> = ({
             className="avatar-image"
           />
         ) : (
-          <div className="avatar-fallback">{initials}</div>
+          <div className="avatar-fallback">
+            {useIconFallback ? <User size={size === 'xl' ? 24 : size === 'lg' ? 20 : 16} /> : initials}
+          </div>
         )}
       </button>
 

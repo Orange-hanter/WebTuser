@@ -163,6 +163,7 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
             <h3>Участники</h3>
             <ParticipantAvatarStrip 
               eventId={event.id}
+              variant="expanded"
             />
           </div>
 
