@@ -87,20 +87,31 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
           </div>
 
           <div className="modal-organizer-section">
-            {event.creator && (
-              <div className="organizer-info">
-                <span className="section-label">Организатор</span>
-                <div className="organizer-row">
-                  <AvatarWithPopover
-                    userId={event.creator.id}
-                    name={event.creator.name}
-                    avatarUrl={event.creator.avatar}
-                    size="md"
-                  />
-                  <span className="organizer-name">{event.creator.name}</span>
-                </div>
+            <div className="organizer-info">
+              <span className="section-label">Организатор</span>
+              <div className="organizer-row">
+                {event.creator ? (
+                  <>
+                    <AvatarWithPopover
+                      userId={event.creator.id}
+                      name={event.creator.name}
+                      avatarUrl={event.creator.avatar}
+                      size="md"
+                    />
+                    <span className="organizer-name">{event.creator.name}</span>
+                  </>
+                ) : (
+                  <>
+                    <AvatarWithPopover
+                      userId="unknown"
+                      name="Автор неизвестен"
+                      size="md"
+                    />
+                    <span className="organizer-name">Автор неизвестен</span>
+                  </>
+                )}
               </div>
-            )}
+            </div>
             <div className="event-key-details">
               <div className="detail-item">
                 <span className="detail-label">Стоимость</span>
