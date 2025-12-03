@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo, ReactNode, FC } from 'react';
 import Toast, { ToastType } from '@/components/common/Toast';
+import '@/components/common/Toast.css';
 
 interface ToastMessage {
   id: string;
@@ -58,8 +59,8 @@ export const ToastProvider: FC<ToastProviderProps> = ({ children }) => {
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col items-end w-full max-w-xs pointer-events-none">
-        <div className="pointer-events-auto w-full">
+      <div className="toast-container">
+        <div className="toast-container-inner">
           {toasts.map((toast) => (
             <Toast
               key={toast.id}
