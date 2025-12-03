@@ -2,9 +2,8 @@ import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { User, Calendar, LogOut, ArrowLeft, Pencil, X, Check } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { useAuthContext } from '@/contexts';
-import { LoadingSpinner } from '@/components/common';
-import TelegramService from '@/services/telegramService';
-import type { User as UserType, TelegramBindingLink } from '@/types';
+import { LoadingSpinner, TelegramStatus } from '@/components/common';
+import type { User as UserType } from '@/types';
 import './ProfilePage.css';
 
 interface ProfilePageProps {
@@ -15,147 +14,8 @@ interface ProfilePageProps {
 let globalProfileFetchInProgress = false;
 let globalEventsFetchInProgress = false;
 
-// Telegram Binding Section Component
-const TelegramBindingSection: FC = () => {
-  const { user, bindTelegram, unbindTelegram } = useAuthContext();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [bindingLink, setBindingLink] = useState<TelegramBindingLink | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-
-  // Update time remaining countdown
-  useEffect(() => {
-    if (!bindingLink) return;
-
-    const updateTimer = () => {
-      const remaining = TelegramService.getTimeRemaining(bindingLink.expires_at);
-      setTimeRemaining(remaining);
-      
-      if (remaining <= 0) {
-        setBindingLink(null);
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [bindingLink]);
-
-
-
-  const handleBindTelegram = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const link = await bindTelegram();
-      
-      if (link) {
-        setBindingLink(link);
-        // Open Telegram link in new tab
-        TelegramService.openTelegramLink(link.deeplink);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка привязки');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUnbindTelegram = async () => {
-    if (!confirm('Вы уверены, что хотите отключить уведомления Telegram?')) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      await unbindTelegram();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отключения');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCopyLink = async () => {
-    if (!bindingLink) return;
-    
-    const success = await TelegramService.copyToClipboard(bindingLink.deeplink);
-    if (success) {
-      alert('Ссылка скопирована в буфер обмена!');
-    } else {
-      alert('Не удалось скопировать ссылку');
-    }
-  };
-
-  const isBound = user?.telegram_registered === true;
-
-  return (
-    <div className="telegram-section-compact">
-      {error && (
-        <div className="telegram-error">
-          {error}
-        </div>
-      )}
-
-      {isBound && user?.telegram_info ? (
-        <div className="telegram-connected-compact">
-           <span className="telegram-status-text active">✓ Telegram подключен</span>
-           <button
-            onClick={handleUnbindTelegram}
-            disabled={isLoading}
-            className="telegram-text-action"
-          >
-            {isLoading ? '...' : 'Отключить'}
-          </button>
-        </div>
-      ) : (
-        <div className="telegram-disconnected-compact">
-          {bindingLink ? (
-            <div className="telegram-binding-active-compact">
-              <p className="telegram-instruction-compact">
-                Перейдите в бот:
-              </p>
-              <div className="telegram-actions-compact">
-                <button
-                  onClick={() => TelegramService.openTelegramLink(bindingLink.deeplink)}
-                  className="telegram-btn-compact primary"
-                >
-                  Открыть
-                </button>
-                <button
-                  onClick={handleCopyLink}
-                  className="telegram-btn-compact secondary"
-                >
-                  Копия
-                </button>
-              </div>
-              <div className="telegram-timer-compact">
-                {TelegramService.formatTimeRemaining(timeRemaining)}
-              </div>
-            </div>
-          ) : (
-            <div className="telegram-connect-row">
-                <span className="telegram-status-text inactive">Telegram не подключен</span>
-                <button
-                onClick={handleBindTelegram}
-                disabled={isLoading}
-                className="telegram-text-action connect"
-                >
-                {isLoading ? '...' : 'Подключить'}
-                </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
 export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
-  const { logout } = useAuthContext();
+  const { logout, refreshTelegramStatus } = useAuthContext();
   const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -368,7 +228,14 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
                 
                 {/* Telegram Status integrated here */}
                 <div className="telegram-status-row">
-                    <TelegramBindingSection />
+                    <TelegramStatus 
+                      isRegistered={user?.telegram_registered || false}
+                      telegramInfo={user?.telegram_info}
+                      onStatusChange={() => {
+                        refreshTelegramStatus();
+                        loadProfile(true);
+                      }}
+                    />
                 </div>
             </div>
         </div>
