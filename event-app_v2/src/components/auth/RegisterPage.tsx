@@ -30,7 +30,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [focusedField, setFocusedField] = useState<keyof RegistrationData | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string; password?: string }>({});
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isCheckingPhone, setIsCheckingPhone] = useState(false);
 
@@ -41,6 +41,18 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
       setFieldErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[field as 'email' | 'phone'];
+        return newErrors;
+      });
+    }
+
+    if (field === 'password') {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        if (value.length > 0 && value.length < 8) {
+          newErrors.password = 'Пароль должен быть не менее 8 символов';
+        } else {
+          delete newErrors.password;
+        }
         return newErrors;
       });
     }
@@ -101,15 +113,15 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
       setError('Заполните все обязательные поля');
       return false;
     }
-    if (formData.password.length < 6) {
-      setError('Пароль должен быть не менее 6 символов');
+    if (formData.password.length < 8) {
+      setError('Пароль должен быть не менее 8 символов');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
       setError('Пароли не совпадают');
       return false;
     }
-    if (fieldErrors.email || fieldErrors.phone) {
+    if (fieldErrors.email || fieldErrors.phone || fieldErrors.password) {
       setError('Исправьте ошибки в полях');
       return false;
     }
@@ -210,7 +222,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
                   onChange={(e) => handleChange('password', e.target.value)}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  placeholder="Минимум 6 символов"
+                  placeholder="Минимум 8 символов"
                   className="register-input"
                   disabled={isLoading}
                   required
@@ -225,6 +237,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
             </div>
 
             {/* Поле Confirm Password */}
@@ -272,7 +285,7 @@ const RegisterPage: FC<RegisterPageProps> = ({ onRegister: _onRegister, onSwitch
             <button
               type="submit"
               className="register-button"
-              disabled={isLoading}
+              disabled={isLoading || !!fieldErrors.password || formData.password.length < 8}
               data-testid="register-submit-button"
             >
               {isLoading ? 'Загрузка...' : 'Зарегистрироваться'}

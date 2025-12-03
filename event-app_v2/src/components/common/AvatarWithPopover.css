@@ -44,10 +44,18 @@
   font-size: 18px;
 }
 
+.avatar-button.avatar-xl {
+  width: 56px;
+  height: 56px;
+  font-size: 18px;
+  background: transparent;
+}
+
 /* Status indicators (border styles) */
 .avatar-button.status-confirmed {
   border-style: solid;
   border-color: #34d399;
+  background: transparent;
 }
 
 .avatar-button.status-waitlisted {

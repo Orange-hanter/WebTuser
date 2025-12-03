@@ -5,12 +5,12 @@ import './ParticipantAvatarStrip.css';
 
 interface ParticipantAvatarStripProps {
   eventId: string;
-  onSubscribeClick?: () => void;
+  variant?: 'compact' | 'expanded'; // compact - на карточке, expanded - в модальном окне
 }
 
 const ParticipantAvatarStrip: FC<ParticipantAvatarStripProps> = ({
   eventId,
-  onSubscribeClick,
+  variant = 'compact',
 }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,38 +56,42 @@ const ParticipantAvatarStrip: FC<ParticipantAvatarStripProps> = ({
 
   if (participants.length === 0) {
     return (
-      <div className="participant-strip empty">
+      <div className={`participant-strip empty ${variant}`}>
         <div className="empty-content">
           <p className="empty-message">Еще никто не записался</p>
-          <button className="subscribe-cta" onClick={onSubscribeClick}>
-            Записаться
-          </button>
         </div>
       </div>
     );
   }
 
-  const displayParticipants = participants.slice(0, 8);
+  const displayParticipants = participants.slice(0, variant === 'expanded' ? 12 : 8);
   const overflow = participants.length - displayParticipants.length;
 
   return (
-    <div className="participant-strip">
-      <div className="participant-count">
-        {confirmedCount} участников
-      </div>
-      <div className="avatars-container">
+    <div className={`participant-strip ${variant}`}>
+      {variant === 'compact' && (
+        <div className="participant-count">
+          {confirmedCount} участников
+        </div>
+      )}
+      <div className={`avatars-container ${variant}`}>
         {displayParticipants.map((participant) => (
-          <AvatarWithPopover
-            key={participant.user_id}
-            userId={participant.user_id}
-            name={participant.public_name}
-            avatarUrl={participant.avatar_url}
-            size="sm"
-            status={participant.status}
-          />
+          <div key={participant.user_id} className={`participant-item ${variant}`}>
+            <AvatarWithPopover
+              userId={participant.user_id}
+              name={participant.public_name}
+              avatarUrl={participant.avatar_url}
+              size={variant === 'expanded' ? 'xl' : 'sm'}
+              status={participant.status}
+              useIconFallback={variant === 'expanded'}
+            />
+            {variant === 'expanded' && (
+              <span className="participant-name">{participant.public_name.split(' ')[0]}</span>
+            )}
+          </div>
         ))}
         {overflow > 0 && (
-          <div className="avatar-overflow-badge">
+          <div className={`avatar-overflow-badge ${variant}`}>
             +{overflow}
           </div>
         )}

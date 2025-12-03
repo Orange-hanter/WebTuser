@@ -128,7 +128,7 @@ export const userService = {
       description: e.details?.description || e.description || '',
       image: e.image || e.details?.image || '/placeholder-event.jpg',
       tags: e.details?.tags || e.tags || [],
-      creator: e.creator,
+      creator: e.creator || { id: 'unknown', name: 'Автор неизвестен', avatar: '/placeholder-avatar.svg' },
       subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
       subscriptionId: e.subscription_id || e.subscriptionId,
     }));
@@ -163,7 +163,7 @@ export const userService = {
       description: e.details?.description || e.description || '',
       image: e.image || e.details?.image || '/placeholder-event.jpg',
       tags: e.details?.tags || e.tags || [],
-      creator: e.creator,
+      creator: e.creator || { id: 'unknown', name: 'Автор неизвестен', avatar: '/placeholder-avatar.svg' },
       subscriptionStatus: e.subscription_status || e.subscriptionStatus || 'confirmed',
       subscriptionId: e.subscription_id || e.subscriptionId,
     }));

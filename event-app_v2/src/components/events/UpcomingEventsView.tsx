@@ -126,6 +126,17 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
                 <h4 className="upcoming-card-title">{event.title}</h4>
                 <span className="upcoming-card-type">{event.type}</span>
               </div>
+              <div className="upcoming-card-author" aria-label="Автор события">
+                <span className="author-avatar">
+                  {/* Reuse simple img to keep preview light */}
+                  {event.creator?.avatar ? (
+                    <img src={event.creator.avatar} alt={event.creator?.name || 'Автор неизвестен'} className="author-avatar-img" />
+                  ) : (
+                    <img src={'/placeholder-avatar.svg'} alt={'Автор неизвестен'} className="author-avatar-img" />
+                  )}
+                </span>
+                <span className="author-name">{event.creator?.name || 'Автор неизвестен'}</span>
+              </div>
 
               <div className="upcoming-card-meta">
                 <div className="meta-row">

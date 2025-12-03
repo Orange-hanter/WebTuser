@@ -240,7 +240,10 @@ const MainAppContent: FC = () => {
                         onClick={() => {
                           setSelectedEvent(currentEvent);
                           setShowEventDetail(true);
-                        }} 
+                        }}
+                        creatorId={currentEvent.creator?.id ?? undefined}
+                        creatorName={currentEvent.creator?.name ?? undefined}
+                        creatorAvatar={currentEvent.creator?.avatar ?? undefined}
                       />
                     ) : (
                       <LoadingSpinner />

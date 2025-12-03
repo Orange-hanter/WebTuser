@@ -59,6 +59,21 @@
   gap: 12px;
 }
 
+.upcoming-card-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.author-avatar-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .upcoming-card-header {
   display: flex;
   justify-content: space-between;
@@ -128,11 +143,8 @@
 }
 
 .status-confirmed::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
+  /* скрываем псевдоэлемент — метка статуса теперь отображается через цвет фона/текста */
+  display: none;
 }
 
 .status-waitlisted { 
@@ -141,11 +153,8 @@
 }
 
 .status-waitlisted::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #eab308;
+  /* скрываем псевдоэлемент */
+  display: none;
 }
 
 .upcoming-card-actions {

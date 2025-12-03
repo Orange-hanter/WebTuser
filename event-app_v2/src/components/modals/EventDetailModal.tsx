@@ -162,11 +162,8 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
           <div className="modal-participants-section">
             <h3>Участники</h3>
             <ParticipantAvatarStrip 
-              eventId={event.id} 
-              onSubscribeClick={() => {
-                onLike();
-                onClose();
-              }}
+              eventId={event.id}
+              variant="expanded"
             />
           </div>
 

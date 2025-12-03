@@ -21,6 +21,14 @@ export interface Event {
   };
 }
 
+/**
+ * Event with author info from /v1/api/discovery/next
+ * author is the public profile of the event creator
+ */
+export interface EventWithAuthor extends Event {
+  author?: PublicUserProfile;
+}
+
 export interface EventDetails extends Event {
   fullDescription: string;
   organizer: {
