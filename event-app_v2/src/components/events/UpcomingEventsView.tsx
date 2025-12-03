@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, Clock, MapPin, AlertCircle, XCircle } from 'lucide-react';
 import { userService, EventWithSubscription } from '@/services/userService';
 import { LoadingSpinner } from '@/components/common';
@@ -9,17 +9,21 @@ interface UpcomingEventsViewProps {
   onGoToDiscovery: () => void;
 }
 
+// Глобальный флаг для предотвращения двойных запросов в Strict Mode
+let globalUpcomingFetchInProgress = false;
+
 export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, onGoToDiscovery }) => {
   const [events, setEvents] = useState<EventWithSubscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unsubscribingId, setUnsubscribingId] = useState<string | null>(null);
+  const isMounted = useRef(false);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async (force = false) => {
+    // Предотвращаем параллельные запросы
+    if (!force && globalUpcomingFetchInProgress) return;
+    
+    globalUpcomingFetchInProgress = true;
     setIsLoading(true);
     try {
       const data = await userService.getUpcomingEvents();
@@ -27,14 +31,29 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
       const filtered = data.filter(e => 
         e.subscriptionStatus === 'confirmed' || e.subscriptionStatus === 'waitlisted'
       );
-      setEvents(filtered);
-      setError(null);
+      if (isMounted.current) {
+        setEvents(filtered);
+        setError(null);
+      }
     } catch (err) {
-      setError('Не удалось загрузить события');
+      if (isMounted.current) {
+        setError('Не удалось загрузить события');
+      }
     } finally {
-      setIsLoading(false);
+      globalUpcomingFetchInProgress = false;
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    isMounted.current = true;
+    loadEvents();
+    return () => {
+      isMounted.current = false;
+    };
+  }, [loadEvents]);
 
   const handleUnsubscribe = async (e: React.MouseEvent, event: EventWithSubscription) => {
     e.stopPropagation(); // Prevent card click
@@ -54,7 +73,7 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
       } else {
         alert('Не удалось отписаться. Попробуйте позже.');
         // Revert or reload? Reloading is safer to sync state
-        loadEvents();
+        loadEvents(true);
       }
     } finally {
       setUnsubscribingId(null);
@@ -76,7 +95,7 @@ export const UpcomingEventsView: FC<UpcomingEventsViewProps> = ({ onEventClick, 
           <AlertCircle size={48} className="empty-state-icon" color="#f87171" />
           <h3>Ошибка</h3>
           <p>{error}</p>
-          <button className="btn-discovery" onClick={loadEvents}>
+          <button className="btn-discovery" onClick={() => loadEvents(true)}>
             Повторить
           </button>
         </div>

@@ -239,30 +239,11 @@
   fill: var(--yellow-400);
 }
 
-/* Share button styles */
+/* Share button positioning */
 .event-card-share-button {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  color: var(--gray-700);
-  transition: all 0.2s ease;
-}
-
-.event-card-share-button:hover {
-  transform: scale(1.1);
-  background-color: var(--white);
-  color: var(--primary-color);
 }
 
 /* Participant Strip styling within Event Card */

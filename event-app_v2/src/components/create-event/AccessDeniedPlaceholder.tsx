@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldAlert, Send, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { userService } from '@/services/userService';
 import './AccessDeniedPlaceholder.css';
@@ -7,22 +7,31 @@ interface AccessDeniedPlaceholderProps {
   onClose: () => void;
 }
 
+// Глобальный флаг для предотвращения двойных запросов в Strict Mode
+let globalFetchInProgress = false;
+
 export const AccessDeniedPlaceholder: FC<AccessDeniedPlaceholderProps> = ({ onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<'initial' | 'pending' | 'rejected' | 'approved' | 'loading'>('loading');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useRef(false);
 
-  useEffect(() => {
-    checkStatus();
-  }, []);
-
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
+    // Предотвращаем параллельные запросы
+    if (globalFetchInProgress) {
+      console.log('🔍 AccessDeniedPlaceholder: Skipping - fetch already in progress');
+      return;
+    }
+    
+    globalFetchInProgress = true;
     try {
       console.log('🔍 AccessDeniedPlaceholder: Checking role request status...');
       const requests = await userService.getRoleRequests();
       console.log('🔍 AccessDeniedPlaceholder: Role requests received:', requests);
+      
+      if (!isMounted.current) return;
       
       const creatorRequests = requests.filter(r => r.requested_role === 'creator');
       // Sort by created_at desc
@@ -54,9 +63,21 @@ export const AccessDeniedPlaceholder: FC<AccessDeniedPlaceholderProps> = ({ onCl
     } catch (err) {
       console.error('🔍 AccessDeniedPlaceholder: Failed to check role request status:', err);
       // При ошибке API показываем форму отправки заявки
-      setStatus('initial');
+      if (isMounted.current) {
+        setStatus('initial');
+      }
+    } finally {
+      globalFetchInProgress = false;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    isMounted.current = true;
+    checkStatus();
+    return () => {
+      isMounted.current = false;
+    };
+  }, [checkStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

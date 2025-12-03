@@ -18,4 +18,4 @@ createRoot(rootElement).render(
       </AuthProvider>
     </ToastProvider>
   </StrictMode>,
-)
+);

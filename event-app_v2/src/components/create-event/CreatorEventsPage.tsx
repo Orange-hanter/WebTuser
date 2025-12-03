@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Clock, 
   CheckCircle, 
@@ -41,6 +41,9 @@ const TAB_CONFIG: { id: TabType; label: string; icon: FC<{ size?: number }> }[] 
   { id: 'blocked', label: 'Заблокированные', icon: Ban },
 ];
 
+// Глобальный флаг для предотвращения двойных запросов в Strict Mode
+let globalCreatorEventsFetchInProgress = false;
+
 export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreateNew }) => {
   const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [eventsData, setEventsData] = useState<CreatorEventsResponse | null>(null);
@@ -49,33 +52,58 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
   const [error, setError] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CreatorEvent | BlockedEvent | null>(null);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const isMounted = useRef(false);
 
-  const loadEvents = useCallback(async () => {
+  const loadEvents = useCallback(async (force = false) => {
+    // Предотвращаем параллельные запросы
+    if (!force && globalCreatorEventsFetchInProgress) return;
+    
+    globalCreatorEventsFetchInProgress = true;
     setIsLoading(true);
     setError(null);
     
     try {
-      const [events, blocked] = await Promise.all([
-        creatorService.getMyEvents(),
-        creatorService.getBlockedEvents(),
-      ]);
-      setEventsData(events);
-      setBlockedEvents(blocked);
+      // Сначала проверяем доступ к creator API
+      const events = await creatorService.getMyEvents();
+      
+      // Если доступ есть, загружаем заблокированные события
+      let blocked: BlockedEvent[] = [];
+      try {
+        blocked = await creatorService.getBlockedEvents();
+      } catch (blockedErr) {
+        console.warn('Failed to fetch blocked events:', blockedErr);
+        // Не критичная ошибка - продолжаем без заблокированных
+      }
+      
+      if (isMounted.current) {
+        setEventsData(events);
+        setBlockedEvents(blocked);
+      }
     } catch (err) {
       console.error('Failed to load events:', err);
       
-      if (err instanceof Error && err.message === 'Forbidden') {
-        setError('Forbidden');
-      } else {
-        setError('Не удалось загрузить события');
+      if (isMounted.current) {
+        if (err instanceof Error && (err.message === 'Forbidden' || err.message === 'Unauthorized')) {
+          setError('Forbidden');
+        } else {
+          setError('Не удалось загрузить события');
+        }
       }
     } finally {
-      setIsLoading(false);
+      globalCreatorEventsFetchInProgress = false;
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     loadEvents();
+    
+    return () => {
+      isMounted.current = false;
+    };
   }, [loadEvents]);
 
   if (error === 'Forbidden') {
@@ -142,7 +170,7 @@ export const CreatorEventsPage: FC<CreatorEventsPageProps> = ({ onClose, onCreat
         <div className="creator-error-state">
           <AlertTriangle size={48} />
           <p>{error}</p>
-          <button className="btn-retry" onClick={loadEvents}>
+          <button className="btn-retry" onClick={() => loadEvents(true)}>
             <RefreshCw size={16} />
             Повторить
           </button>
