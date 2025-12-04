@@ -85,6 +85,52 @@
   align-items: flex-start;
 }
 
+/* Responsive: stack avatar and info on small screens to prevent overflow */
+@media (max-width: 520px) {
+  .personal-info-content {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .avatar-column {
+    display: flex;
+    justify-content: center;
+  }
+
+  .info-column {
+    min-width: 0;
+  }
+
+  /* Telegram status: allow wrapping and place action button on its own row */
+  .telegram-status-connected,
+  .telegram-status-disconnected {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .telegram-status-info {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .telegram-action-button {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .telegram-username,
+  .telegram-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .avatar-column {
   flex-shrink: 0;
 }

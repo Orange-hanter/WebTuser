@@ -1,4 +1,5 @@
 import { FC, useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Copy, ExternalLink, Check, Loader2 } from 'lucide-react';
 import TelegramService from '@/services/telegramService';
 import type { TelegramBindingLink, TelegramStatus } from '@/types';
@@ -24,6 +25,8 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
   
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const requestInProgressRef = useRef(false);
+  const hasRequestedRef = useRef(false);
 
   // Очистка при размонтировании
   const cleanup = useCallback(() => {
@@ -39,6 +42,10 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
 
   // Запрос ссылки привязки
   const requestBindingLink = useCallback(async () => {
+    // Предотвращаем повторные запросы
+    if (requestInProgressRef.current) return;
+    
+    requestInProgressRef.current = true;
     setIsLoading(true);
     setError(null);
     setIsCopied(false);
@@ -52,10 +59,12 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
       
       setBindingLink(response.data);
       setIsPolling(true);
+      hasRequestedRef.current = true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка получения ссылки');
     } finally {
       setIsLoading(false);
+      requestInProgressRef.current = false;
     }
   }, []);
 
@@ -131,12 +140,12 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
     };
   }, [bindingLink, cleanup]);
 
-  // Запрос ссылки при открытии модалки
+  // Запрос ссылки при открытии модалки (только один раз)
   useEffect(() => {
-    if (isOpen && !bindingLink && !isLoading) {
+    if (isOpen && !hasRequestedRef.current && !requestInProgressRef.current) {
       requestBindingLink();
     }
-  }, [isOpen, bindingLink, isLoading, requestBindingLink]);
+  }, [isOpen, requestBindingLink]);
 
   // Очистка при закрытии
   useEffect(() => {
@@ -146,6 +155,8 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
       setIsPolling(false);
       setError(null);
       setIsCopied(false);
+      // Сбрасываем флаг при закрытии, чтобы при повторном открытии запросить снова
+      hasRequestedRef.current = false;
     }
   }, [isOpen, cleanup]);
 
@@ -183,7 +194,7 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
 
   if (!isOpen) return null;
 
-  return (
+  const modal = (
     <div className="telegram-modal-overlay" onClick={onClose}>
       <div className="telegram-modal-content" onClick={e => e.stopPropagation()}>
         <div className="telegram-modal-header">
@@ -278,6 +289,13 @@ const TelegramLinkModal: FC<TelegramLinkModalProps> = ({ isOpen, onClose, onSucc
       </div>
     </div>
   );
+
+  // Render modal via portal to document.body to avoid ancestor stacking contexts
+  if (typeof document !== 'undefined') {
+    return createPortal(modal, document.body);
+  }
+
+  return modal;
 };
 
 export default TelegramLinkModal;

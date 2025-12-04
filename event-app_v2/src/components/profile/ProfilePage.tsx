@@ -229,8 +229,6 @@ export const ProfilePage: FC<ProfilePageProps> = ({ onBack }) => {
                 {/* Telegram Status integrated here */}
                 <div className="telegram-status-row">
                     <TelegramStatus 
-                      isRegistered={user?.telegram_registered || false}
-                      telegramInfo={user?.telegram_info}
                       onStatusChange={() => {
                         refreshTelegramStatus();
                         loadProfile(true);
