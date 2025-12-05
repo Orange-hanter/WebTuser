@@ -5,6 +5,15 @@ import AuthService from '@/services/authService';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { loadRegistrationData } from '@/services/registrationStorage';
+import TelegramVerificationFlow from './TelegramVerificationFlow';
+
+// Telegram icon component
+const TelegramIcon: FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 2L11 13" />
+    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+  </svg>
+);
 
 interface VerificationPageProps {
   onSwitchToLogin?: () => void;
@@ -31,6 +40,15 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
   const [registrationData, setRegistrationData] = useState<{ email: string; phone: string; password: string } | null>(null);
   const [verifyCodeDev, setVerifyCodeDev] = useState<string | null>(null);
   const [conflictUser, setConflictUser] = useState(false);
+  
+  // Telegram flow state
+  const [showTelegramFlow, setShowTelegramFlow] = useState(false);
+  const [telegramBindingData, setTelegramBindingData] = useState<{
+    deeplink: string;
+    code: string;
+    expiresAt: string;
+    userId: string;
+  } | null>(null);
 
   useEffect(() => {
     const saved = loadRegistrationData();
@@ -84,7 +102,19 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
         return;
       }
 
-      // success — show code entry and hide send button
+      // Если выбран Telegram и пришли данные для привязки
+      if (selectedMethod === 'telegram' && res.data?.telegramBinding) {
+        setTelegramBindingData({
+          deeplink: res.data.telegramBinding.deeplink,
+          code: res.data.telegramBinding.code,
+          expiresAt: res.data.telegramBinding.expiresAt,
+          userId: res.data.user.id,
+        });
+        setShowTelegramFlow(true);
+        return;
+      }
+
+      // Стандартный flow для email/sms
       setVerifyCodeDev(res.data?.verifyCode || null);
       setShowCodeEntry(true);
       setTimeLeft(60);
@@ -92,9 +122,39 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
       toast.success('Код отправлен');
     } catch (err) {
       setIsRegistering(false);
-      setError(err instanceof Error ? err.message : 'Ошибка сети');
+      const errorMessage = err instanceof Error ? err.message : 'Ошибка сети';
+      setError(errorMessage);
       toast.error('Сетевая ошибка');
+      
+      // Если Telegram недоступен, предложить email
+      if (selectedMethod === 'telegram') {
+        toast.info('Telegram сервис временно недоступен. Попробуйте Email.');
+      }
     }
+  };
+
+  // Обработка успешной Telegram верификации
+  const handleTelegramSuccess = () => {
+    setShowTelegramFlow(false);
+    // Переходим к заполнению профиля
+    window.history.pushState({}, '', '/profile-step1');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  // Переключение с Telegram на Email
+  const handleSwitchToEmail = () => {
+    setShowTelegramFlow(false);
+    setTelegramBindingData(null);
+    setSelectedMethod('email');
+    setMethod('email');
+    toast.info('Выбрана верификация через Email');
+  };
+
+  // Закрытие Telegram flow
+  const handleCloseTelegramFlow = () => {
+    setShowTelegramFlow(false);
+    setTelegramBindingData(null);
+    setSelectedMethod(null);
   };
 
   const handleChannelClick = (selected: 'email' | 'sms' | 'telegram') => {
@@ -237,7 +297,9 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
           <h1 className="verification-title">Подтвердите аккаунт</h1>
           <p className="verification-subtitle">
             {registrationData ? (
-              method === 'telegram' ? 'Код придет в Telegram (если он привязан к аккаунту)' : `Мы отправим код подтверждения на ${registrationData.email}`
+              method === 'telegram' 
+                ? 'Привяжите Telegram и получите код в чате' 
+                : `Мы отправим код подтверждения на ${registrationData.email}`
             ) : 'Загрузка...'}
           </p>
 
@@ -282,7 +344,7 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
               onClick={() => handleChannelClick('telegram')}
               disabled={showCodeEntry}
             >
-              <MessageIcon size={20} />
+              <TelegramIcon size={20} />
               Telegram
             </button>
           </div>
@@ -371,6 +433,23 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
           )}
         </div>
       </div>
+
+      {/* Telegram Verification Flow Modal */}
+      {showTelegramFlow && telegramBindingData && registrationData && (
+        <TelegramVerificationFlow
+          telegramBinding={{
+            deeplink: telegramBindingData.deeplink,
+            code: telegramBindingData.code,
+            expiresAt: telegramBindingData.expiresAt,
+          }}
+          userId={telegramBindingData.userId}
+          email={registrationData.email}
+          password={registrationData.password}
+          onClose={handleCloseTelegramFlow}
+          onSuccess={handleTelegramSuccess}
+          onSwitchToEmail={handleSwitchToEmail}
+        />
+      )}
     </div>
   );
 };

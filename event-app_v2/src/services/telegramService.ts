@@ -15,6 +15,12 @@ interface ErrorResponse {
   message?: string;
 }
 
+// Lightweight bound check response
+interface BoundCheckResponse {
+  is_bound: boolean;
+  status: string;
+}
+
 /**
  * Service for Telegram Bot Integration
  * Handles binding links, status checks, and unbinding
@@ -28,6 +34,58 @@ class TelegramService {
       return sessionStorage.getItem('_auth_token');
     } catch (e) {
       return null;
+    }
+  }
+
+  /**
+   * Lightweight check if Telegram is bound
+   * GET /v1/api/notifications/telegram/bound
+   * Use for quick status indicator (green/gray icon)
+   */
+  static async checkBound(): Promise<ApiResponse<BoundCheckResponse>> {
+    try {
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        return {
+          success: false,
+          error: 'Требуется авторизация',
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/notifications/telegram/bound`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: 'Требуется авторизация',
+        };
+      }
+
+      if (!response.ok) {
+        return {
+          success: true,
+          data: { is_bound: false, status: '' },
+        };
+      }
+
+      const data: BoundCheckResponse = await response.json();
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Ошибка проверки привязки',
+      };
     }
   }
 
@@ -136,8 +194,8 @@ class TelegramService {
 
   /**
    * Unbind Telegram account
-   * Currently handled via bot command /unsubscribe
-   * This method is a placeholder for potential future API endpoint
+   * POST /v1/api/notifications/telegram/unbind
+   * 200 = success, 404 = already unbound (treat as success), 503 = service unavailable
    */
   static async unbind(): Promise<ApiResponse<null>> {
     try {
@@ -150,8 +208,6 @@ class TelegramService {
         };
       }
 
-      // Check if there's a dedicated unbind endpoint
-      // If not implemented, instruct user to use /unsubscribe in bot
       const response = await fetch(`${API_BASE_URL}/notifications/telegram/unbind`, {
         method: 'POST',
         headers: {
@@ -161,30 +217,48 @@ class TelegramService {
         credentials: 'include',
       });
 
-      if (!response.ok) {
-        // If endpoint doesn't exist (404), return instruction
-        if (response.status === 404) {
-          return {
-            success: false,
-            error: 'Для отключения используйте команду /unsubscribe в боте Telegram',
-          };
-        }
-
-        const errorData: ErrorResponse = await response.json();
+      // Success
+      if (response.ok) {
         return {
-          success: false,
-          error: errorData.message || errorData.error || 'Ошибка отключения',
+          success: true,
+          data: null,
         };
       }
 
+      // 404 = telegram_not_bound — user already unbound, treat as success
+      if (response.status === 404) {
+        return {
+          success: true,
+          data: null,
+        };
+      }
+
+      // 401 = unauthorized
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: 'Требуется авторизация',
+        };
+      }
+
+      // 503 = service unavailable
+      if (response.status === 503) {
+        return {
+          success: false,
+          error: 'Сервис временно недоступен. Попробуйте позже.',
+        };
+      }
+
+      // Other errors
+      const errorData: ErrorResponse = await response.json();
       return {
-        success: true,
-        data: null,
+        success: false,
+        error: errorData.message || errorData.error || 'Ошибка отключения',
       };
     } catch (error) {
       return {
         success: false,
-        error: 'Для отключения используйте команду /unsubscribe в боте Telegram',
+        error: 'Сервис недоступен. Попробуйте позже.',
       };
     }
   }

@@ -134,11 +134,20 @@ class AuthService {
 
   /**
    * Регистрация нового пользователя
+   * При verification_type='telegram' возвращает telegram_binding вместо verifyCode
    */
   static async register(
     data: RegistrationData,
     verification_type?: 'email' | 'sms' | 'telegram'
-  ): Promise<ApiResponse<{ user: User; verifyCode: string }>> {
+  ): Promise<ApiResponse<{ 
+    user: User; 
+    verifyCode?: string;
+    telegramBinding?: {
+      deeplink: string;
+      code: string;
+      expiresAt: string;
+    };
+  }>> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -164,18 +173,35 @@ class AuthService {
 
       const responseData = await response.json();
       
-      // API возвращает { user: User, verify_code: string }
+      const user: User = {
+        id: responseData.user.id,
+        email: responseData.user.email,
+        phone: responseData.user.phone || '',
+        firstName: '',
+        lastName: '',
+        createdAt: responseData.user.created_at,
+      };
+
+      // При verification_type=telegram API возвращает telegram_binding
+      if (verification_type === 'telegram' && responseData.telegram_binding) {
+        return {
+          success: true,
+          data: {
+            user,
+            telegramBinding: {
+              deeplink: responseData.telegram_binding.deeplink,
+              code: responseData.telegram_binding.code,
+              expiresAt: responseData.telegram_binding.expires_at,
+            },
+          },
+        };
+      }
+      
+      // Стандартный ответ для email/sms
       return {
         success: true,
         data: {
-          user: {
-            id: responseData.user.id,
-            email: responseData.user.email,
-            phone: responseData.user.phone || '',
-            firstName: '',
-            lastName: '',
-            createdAt: responseData.user.created_at,
-          },
+          user,
           verifyCode: responseData.verify_code,
         },
       };
@@ -183,6 +209,47 @@ class AuthService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Ошибка регистрации',
+      };
+    }
+  }
+
+  /**
+   * Проверка статуса привязки Telegram для пользователя
+   * Используется при ожидании привязки после регистрации
+   */
+  static async checkBindingStatus(userId: string): Promise<ApiResponse<{
+    isBound: boolean;
+    status?: 'active' | 'blocked' | 'pending' | 'revoked';
+  }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/telegram/binding/status?user_id=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        return {
+          success: false,
+          error: errorData.message || 'Ошибка проверки статуса',
+        };
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data: {
+          isBound: data.is_bound || false,
+          status: data.status,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Ошибка сети',
       };
     }
   }

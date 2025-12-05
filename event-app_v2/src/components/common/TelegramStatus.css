@@ -1,0 +1,164 @@
+.telegram-status-container {
+  padding: 8px 0;
+}
+
+.telegram-status-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.telegram-loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.telegram-status-header {
+  margin-bottom: 8px;
+}
+
+.telegram-status-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.telegram-status-connected,
+.telegram-status-disconnected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.telegram-status-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.telegram-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.telegram-status-indicator.active {
+  background-color: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+}
+
+.telegram-status-indicator.inactive {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.telegram-status-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.telegram-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.telegram-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.telegram-updated {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.telegram-status-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.telegram-action-button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  flex-shrink: 0;
+}
+
+.telegram-action-button.connect {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.telegram-action-button.connect:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.telegram-action-button.unbind {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telegram-action-button.unbind:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.telegram-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Compact mode for ProfilePage integration */
+.telegram-status-container.compact {
+  padding: 4px 0;
+}
+
+.telegram-status-container.compact .telegram-status-header {
+  display: none;
+}
+
+.telegram-status-container.compact .telegram-action-button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.telegram-status-container.compact .telegram-username {
+  font-size: 13px;
+}
+
+.telegram-status-container.compact .telegram-name {
+  font-size: 11px;
+}
+
+.telegram-status-container.compact .telegram-status-text {
+  font-size: 13px;
+}

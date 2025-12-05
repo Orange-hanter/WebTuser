@@ -90,22 +90,53 @@ export interface User {
 
 export interface TelegramInfo {
   username?: string;
+  first_name?: string;
+  last_name?: string;
   chat_id: number;
   status: 'active' | 'blocked' | 'inactive';
   updated_at: string;
 }
 
 export interface TelegramBindingLink {
-  deeplink: string;
-  token: string;
-  expires_at: string;
+  code: string;        // 6-символьный код для ручного ввода
+  deeplink: string;    // Ссылка на бота
+  token: string;       // Внутренний токен (не использовать напрямую)
+  expires_at: string;  // Срок действия (10 минут)
 }
 
 export interface TelegramStatus {
-  status: 'active' | 'blocked' | 'inactive';
+  status: 'active' | 'blocked' | 'inactive' | 'pending' | 'revoked';
   chat_id?: number;
   username?: string;
+  first_name?: string;
+  last_name?: string;
   updated_at?: string;
+}
+
+/**
+ * Ответ API при регистрации с verification_type=telegram
+ * При этом типе НЕ возвращается JWT токен - нужно сначала привязать Telegram
+ */
+export interface TelegramBindingRegistrationResponse {
+  user: {
+    id: string;
+    email: string;
+    verified: false;
+  };
+  telegram_binding: {
+    deeplink: string;
+    code: string;
+    expires_at: string;
+  };
+}
+
+/**
+ * Статус привязки Telegram для polling
+ */
+export interface BindingStatusResponse {
+  success: boolean;
+  is_bound: boolean;
+  status?: 'active' | 'blocked' | 'pending' | 'revoked';
 }
 
 export interface PublicUserProfile {
