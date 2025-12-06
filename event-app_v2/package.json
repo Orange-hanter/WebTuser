@@ -41,6 +41,7 @@
     "terser": "^5.44.0",
     "typescript": "^5.2.2",
     "vite": "^7.1.7",
-    "vite-plugin-compression": "^0.5.1"
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

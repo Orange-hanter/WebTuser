@@ -1,6 +1,7 @@
 import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldAlert, Send, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { userService } from '@/services/userService';
+import AuthService from '@/services/authService';
 import './AccessDeniedPlaceholder.css';
 
 interface AccessDeniedPlaceholderProps {
@@ -95,6 +96,20 @@ export const AccessDeniedPlaceholder: FC<AccessDeniedPlaceholderProps> = ({ onCl
     }
   };
 
+  // При approved статусе — автоматически разлогиниваем и перенаправляем
+  useEffect(() => {
+    if (status === 'approved') {
+      const performRelogin = async () => {
+        await AuthService.logout();
+        // Небольшая задержка чтобы показать сообщение
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      };
+      performRelogin();
+    }
+  }, [status]);
+
   if (status === 'loading') {
     return (
       <div className="access-denied-container">
@@ -112,11 +127,9 @@ export const AccessDeniedPlaceholder: FC<AccessDeniedPlaceholderProps> = ({ onCl
           <CheckCircle size={64} className="success-icon" />
           <h2>Поздравляем!</h2>
           <p>
-            Вам выданы права организатора. Теперь вы можете создавать свои мероприятия.
+            Вам выданы права организатора. Выполняется обновление сессии...
           </p>
-          <button className="btn-close" onClick={() => window.location.reload()}>
-            Обновить страницу
-          </button>
+          <div className="spinner-sm" style={{ margin: '1rem auto' }}></div>
         </div>
       </div>
     );
