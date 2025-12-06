@@ -1,0 +1,149 @@
+.inline-time-picker {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.time-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.time-preset-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-preset-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.time-preset-btn.active {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+.time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.time-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.time-adjust-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 12px;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.time-adjust-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.time-adjust-btn:active {
+  transform: scale(0.95);
+}
+
+.time-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 55px;
+  text-align: center;
+  padding: 6px 0;
+  user-select: none;
+  touch-action: none;
+}
+
+.time-label {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.time-separator {
+  font-size: 28px;
+  font-weight: 600;
+  color: #9ca3af;
+  padding-bottom: 20px;
+}
+
+.time-quick-adjust {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 6px 3px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.quick-btn:active {
+  transform: scale(0.95);
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .time-value {
+    font-size: 24px;
+    min-width: 48px;
+  }
+  
+  .time-separator {
+    font-size: 24px;
+  }
+  
+  .time-preset-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .quick-btn {
+    font-size: 10px;
+    padding: 5px 2px;
+  }
+}

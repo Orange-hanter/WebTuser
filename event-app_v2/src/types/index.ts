@@ -184,6 +184,8 @@ export interface CreateEventData {
   time: string;
   duration: number;
   location: string;
+  locationLat?: number;
+  locationLon?: number;
   image?: string;
   organizerContact: string;
   priceType: 'free' | 'paid' | 'donation';

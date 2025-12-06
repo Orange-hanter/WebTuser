@@ -1,0 +1,234 @@
+.place-search {
+  position: relative;
+  width: 100%;
+}
+
+.place-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.place-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.place-search-input {
+  width: 100%;
+  padding: 12px 40px 12px 42px;
+  font-size: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+
+.place-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.place-search-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.place-search-spinner {
+  position: absolute;
+  right: 12px;
+  color: #8b5cf6;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.place-search-clear {
+  position: absolute;
+  right: 10px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.place-search-clear:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Выпадающий список */
+.place-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+
+.place-search-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.place-search-item:hover,
+.place-search-item.active {
+  background: #f5f3ff;
+}
+
+.place-search-item.active {
+  background: #ede9fe;
+}
+
+.place-item-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.place-search-item:hover .place-item-icon,
+.place-search-item.active .place-item-icon {
+  background: #ddd6fe;
+  color: #7c3aed;
+}
+
+.place-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.place-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-item-address {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-item-badge {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+/* Сообщение об ошибке */
+.place-search-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.place-search-manual-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.place-search-manual-btn:hover {
+  background: #d97706;
+}
+
+/* Информация о выбранном месте */
+.place-search-selected {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #166534;
+}
+
+.place-search-selected svg {
+  flex-shrink: 0;
+  color: #22c55e;
+}
+
+/* Подсказка по клавиатуре */
+.place-search-hint {
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Скроллбар для списка */
+.place-search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.place-search-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.place-search-results::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.place-search-results::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
