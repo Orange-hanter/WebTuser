@@ -4,7 +4,8 @@ import { EventCard, EmptyEventCard, ActionButtons, CityOverview, UpcomingEventsV
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
-  EventDetailModal
+  EventDetailModal,
+  FeedbackModal
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useDiscoveryQueue } from '@hooks/useEventLogic';
@@ -30,6 +31,7 @@ const MainAppContent: FC = () => {
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
@@ -131,6 +133,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onFeedbackClick={() => setShowFeedback(true)}
           onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
@@ -155,6 +158,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onFeedbackClick={() => setShowFeedback(true)}
           onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
@@ -174,6 +178,7 @@ const MainAppContent: FC = () => {
         <>
           <Header 
             onSettingsClick={() => setShowSettings(true)} 
+            onFeedbackClick={() => setShowFeedback(true)}
             onProfileClick={() => setShowProfile(true)}
           />
           <main className="app-main">
@@ -185,6 +190,7 @@ const MainAppContent: FC = () => {
           <>
             <Header 
               onSettingsClick={() => setShowSettings(true)} 
+              onFeedbackClick={() => setShowFeedback(true)}
               onProfileClick={() => setShowProfile(true)}
             />
             
@@ -300,6 +306,11 @@ const MainAppContent: FC = () => {
         onClose={() => setShowSettings(false)}
         preferences={preferences}
         onSettingsChange={handleSettingsChange}
+      />
+
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
       />
 
       <EventDetailModal 

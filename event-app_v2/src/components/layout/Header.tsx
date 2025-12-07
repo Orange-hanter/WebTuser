@@ -1,13 +1,14 @@
 import { FC } from 'react';
-import { Settings, User } from 'lucide-react';
+import { Settings, User, MessageSquare } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
   onSettingsClick: () => void;
   onProfileClick: () => void;
+  onFeedbackClick: () => void;
 }
 
-const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick }) => {
+const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick, onFeedbackClick }) => {
   return (
     <header className="app-header">
       <div className="app-header-content">
@@ -15,6 +16,7 @@ const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick }) => {
           <h1 className="app-header-title">Афиша</h1>
         </div>
         <div className="app-header-buttons">
+          {/* 
           <button 
             onClick={onSettingsClick}
             className="app-header-button"
@@ -22,6 +24,15 @@ const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick }) => {
             title="Настройки"
           >
             <Settings className="app-header-icon" />
+          </button>
+          */}
+          <button 
+            onClick={onFeedbackClick}
+            className="app-header-button"
+            aria-label="Обратная связь"
+            title="Обратная связь"
+          >
+            <MessageSquare className="app-header-icon" />
           </button>
           <button 
             onClick={onProfileClick}
