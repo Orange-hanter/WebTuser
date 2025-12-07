@@ -4,7 +4,8 @@ import { EventCard, EmptyEventCard, ActionButtons, CityOverview, UpcomingEventsV
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
-  EventDetailModal
+  EventDetailModal,
+  FeedbackModal
 } from '@components/modals';
 import { LoadingSpinner, KeyboardHints } from '@components/common';
 import { useEventPreferences, useDiscoveryQueue } from '@hooks/useEventLogic';
@@ -30,6 +31,7 @@ const MainAppContent: FC = () => {
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
   const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
@@ -87,6 +89,12 @@ const MainAppContent: FC = () => {
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
+    // Ограничиваем работу хоткеев только страницей "подбор" в режиме карточек,
+    // чтобы они не срабатывали на странице создания события и в других вью.
+    if (activeTab !== 'discover' || viewMode !== 'card') {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
@@ -119,7 +127,7 @@ const MainAppContent: FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentEvent, onLike, onDislike]);
+  }, [currentEvent, onLike, onDislike, activeTab, viewMode]);
 
   const showEmptyCard = useMemo(() => {
     return hasNoEvents && !isLoading;
@@ -131,6 +139,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onFeedbackClick={() => setShowFeedback(true)}
           onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
@@ -155,6 +164,7 @@ const MainAppContent: FC = () => {
       <div className="app-container">
         <Header 
           onSettingsClick={() => setShowSettings(true)} 
+          onFeedbackClick={() => setShowFeedback(true)}
           onProfileClick={() => setShowProfile(true)}
         />
         <main className="app-main">
@@ -174,6 +184,7 @@ const MainAppContent: FC = () => {
         <>
           <Header 
             onSettingsClick={() => setShowSettings(true)} 
+            onFeedbackClick={() => setShowFeedback(true)}
             onProfileClick={() => setShowProfile(true)}
           />
           <main className="app-main">
@@ -185,6 +196,7 @@ const MainAppContent: FC = () => {
           <>
             <Header 
               onSettingsClick={() => setShowSettings(true)} 
+              onFeedbackClick={() => setShowFeedback(true)}
               onProfileClick={() => setShowProfile(true)}
             />
             
@@ -203,10 +215,12 @@ const MainAppContent: FC = () => {
                     Подбор
                   </button>
                   <button 
-                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
-                    onClick={() => setViewMode('category')}
+                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''} ${import.meta.env.PROD ? 'disabled-feature' : ''}`}
+                    onClick={() => !import.meta.env.PROD && setViewMode('category')}
+                    disabled={import.meta.env.PROD}
                   >
                     Обзор города
+                    {import.meta.env.PROD && <span className="coming-soon-badge">Скоро</span>}
                   </button>
                 </div>
               </div>
@@ -302,6 +316,11 @@ const MainAppContent: FC = () => {
         onSettingsChange={handleSettingsChange}
       />
 
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+      />
+
       <EventDetailModal 
         isOpen={showEventDetail}
         onClose={() => setShowEventDetail(false)}
@@ -309,8 +328,10 @@ const MainAppContent: FC = () => {
         onLike={handleSubscribe}
       />
 
-      {/* Keyboard Hints Toggle */}
-      <KeyboardHints />
+      {/* Keyboard Hints Toggle (только на странице подбора в режиме карточек) */}
+      {activeTab === 'discover' && viewMode === 'card' && (
+        <KeyboardHints />
+      )}
     </div>
   );
 };
