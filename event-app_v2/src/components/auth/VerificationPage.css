@@ -93,7 +93,8 @@
 
 .verification-back:active {
   transform: scale(0.95);
-}
+  /* use dynamic viewport height to avoid keyboard resizing issues */
+  height: calc(var(--vh, 1vh) * 100);
 
 @keyframes slideUp {
   from {
