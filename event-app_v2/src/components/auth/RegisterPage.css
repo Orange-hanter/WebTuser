@@ -1,7 +1,7 @@
 .register-container {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* Use dynamic viewport height to avoid layout jump when mobile keyboard appears */
+  min-height: calc(var(--vh, 1vh) * 100);
   display: flex;
   align-items: center;
   justify-content: center;

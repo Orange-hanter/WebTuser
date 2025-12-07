@@ -6,3 +6,4 @@ export { default as AvatarWithPopover } from './AvatarWithPopover';
 export { default as ParticipantAvatarStrip } from './ParticipantAvatarStrip';
 export { default as ShareButton } from './ShareButton';
 export { default as TelegramStatus } from './TelegramStatus';
+export { ReloadPrompt } from './ReloadPrompt';
