@@ -27,6 +27,7 @@
   color: #666;
   transition: all 0.2s;
   white-space: nowrap;
+  position: relative;
 }
 
 .toggle-btn.active {
@@ -34,4 +35,26 @@
   color: var(--purple-600);
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   font-weight: 600;
+}
+
+.toggle-btn.disabled-feature {
+  opacity: 0.7;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: rotate(10deg);
+  z-index: 10;
+  pointer-events: none;
 }

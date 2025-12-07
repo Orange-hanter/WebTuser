@@ -89,6 +89,12 @@ const MainAppContent: FC = () => {
 
   // Обработчик клавиатурных сокращений
   useEffect(() => {
+    // Ограничиваем работу хоткеев только страницей "подбор" в режиме карточек,
+    // чтобы они не срабатывали на странице создания события и в других вью.
+    if (activeTab !== 'discover' || viewMode !== 'card') {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
@@ -121,7 +127,7 @@ const MainAppContent: FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentEvent, onLike, onDislike]);
+  }, [currentEvent, onLike, onDislike, activeTab, viewMode]);
 
   const showEmptyCard = useMemo(() => {
     return hasNoEvents && !isLoading;
@@ -209,10 +215,12 @@ const MainAppContent: FC = () => {
                     Подбор
                   </button>
                   <button 
-                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''}`}
-                    onClick={() => setViewMode('category')}
+                    className={`toggle-btn ${viewMode === 'category' ? 'active' : ''} ${import.meta.env.PROD ? 'disabled-feature' : ''}`}
+                    onClick={() => !import.meta.env.PROD && setViewMode('category')}
+                    disabled={import.meta.env.PROD}
                   >
                     Обзор города
+                    {import.meta.env.PROD && <span className="coming-soon-badge">Скоро</span>}
                   </button>
                 </div>
               </div>
@@ -320,8 +328,10 @@ const MainAppContent: FC = () => {
         onLike={handleSubscribe}
       />
 
-      {/* Keyboard Hints Toggle */}
-      <KeyboardHints />
+      {/* Keyboard Hints Toggle (только на странице подбора в режиме карточек) */}
+      {activeTab === 'discover' && viewMode === 'card' && (
+        <KeyboardHints />
+      )}
     </div>
   );
 };

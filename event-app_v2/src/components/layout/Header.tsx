@@ -1,14 +1,14 @@
 import { FC } from 'react';
-import { Settings, User, MessageSquare } from 'lucide-react';
+import { User, MessageSquare } from 'lucide-react';
 import './Header.css';
 
 interface HeaderProps {
-  onSettingsClick: () => void;
   onProfileClick: () => void;
   onFeedbackClick: () => void;
+  onSettingsClick?: () => void;
 }
 
-const Header: FC<HeaderProps> = ({ onSettingsClick, onProfileClick, onFeedbackClick }) => {
+const Header: FC<HeaderProps> = ({ onProfileClick, onFeedbackClick }) => {
   return (
     <header className="app-header">
       <div className="app-header-content">
