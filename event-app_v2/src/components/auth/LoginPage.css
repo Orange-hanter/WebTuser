@@ -102,6 +102,9 @@
   padding: 2.5rem 2rem;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.6s ease-out;
+  /* ensure card doesn't exceed visible viewport when keyboard opens */
+  max-height: calc(var(--vh, 1vh) * 100 - 120px);
+  overflow-y: auto;
 }
 
 @keyframes slideUp {

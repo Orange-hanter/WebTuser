@@ -111,8 +111,8 @@
   padding: 2.5rem 2rem;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   animation: slideUpRegister 0.6s ease-out;
-  max-height: 85vh;
-  max-height: 85dvh;
+  /* keep card scrollable and constrained to visible viewport (keyboard-safe) */
+  max-height: calc(var(--vh, 1vh) * 100 - 120px);
   overflow-y: auto;
   width: 100%;
   box-sizing: border-box;
