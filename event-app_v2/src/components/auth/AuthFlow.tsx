@@ -1,11 +1,11 @@
 import { FC, useEffect, useState, useCallback } from 'react';
-import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2 } from '@components/auth';
+import { LoginPage, RegisterPage, VerificationPage, ProfileStep1, ProfileStep2, ConsentPage } from '@components/auth';
 import { useAuthContext, useToast } from '@/contexts';
 import type { AuthCredentials, RegistrationData, UserProfile } from '@/types';
 import { saveRegistrationData, clearRegistrationData } from '@/services/registrationStorage';
 import AuthService from '@/services/authService';
 
-type AuthStep = 'login' | 'register' | 'verification' | 'profile-step1' | 'profile-step2';
+type AuthStep = 'login' | 'register' | 'consent' | 'verification' | 'profile-step1' | 'profile-step2';
 
 interface AuthFlowProps {
   onAuthSuccess?: () => void;
@@ -15,6 +15,7 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
   const deriveStepFromPath = (): AuthStep => {
     const p = window.location.pathname;
     if (p === '/register') return 'register';
+    if (p === '/consent') return 'consent';
     if (p === '/verify') return 'verification';
     if (p === '/profile-step1') return 'profile-step1';
     if (p === '/profile-step2') return 'profile-step2';
@@ -138,7 +139,24 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
     }
   }, [profileData, updateProfile, showSuccess, showError]);
 
-  const handleSwitchToRegister = useCallback(() => setCurrentStep('register'), []);
+  const handleSwitchToRegister = useCallback(() => {
+    // Переход на страницу согласия вместо прямой регистрации
+    window.history.pushState({}, '', '/consent');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
+  
+  const handleConsentAccept = useCallback(() => {
+    // После принятия оферты переходим к регистрации
+    window.history.pushState({}, '', '/register');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
+  
+  const handleConsentDecline = useCallback(() => {
+    // При отказе возвращаемся на логин
+    window.history.pushState({}, '', '/login');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
+  
   const handleSwitchToLogin = useCallback(() => {
     window.history.pushState({}, '', '/login');
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -158,6 +176,13 @@ const AuthFlow: FC<AuthFlowProps> = ({ onAuthSuccess }) => {
         <LoginPage
           onLogin={handleLogin}
           onSwitchToRegister={handleSwitchToRegister}
+        />
+      )}
+
+      {currentStep === 'consent' && (
+        <ConsentPage
+          onAccept={handleConsentAccept}
+          onDecline={handleConsentDecline}
         />
       )}
 

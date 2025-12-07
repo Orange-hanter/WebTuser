@@ -1,0 +1,370 @@
+.consent-container {
+  width: 100%;
+  min-height: calc(var(--vh, 1vh) * 100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.consent-container *,
+.consent-container *::before,
+.consent-container *::after {
+  box-sizing: border-box;
+}
+
+/* Анимированный фон */
+.consent-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.consent-gradient-blob {
+  position: absolute;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: blobConsentMove 10s ease-in-out infinite;
+}
+
+.consent-gradient-blob.blob-1 {
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.consent-gradient-blob.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #764ba2, #f093fb);
+  bottom: -100px;
+  right: -100px;
+  animation-delay: -5s;
+}
+
+@keyframes blobConsentMove {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(40px, -60px) scale(1.1);
+  }
+  50% {
+    transform: translate(-30px, 30px) scale(0.95);
+  }
+  75% {
+    transform: translate(60px, 60px) scale(1.05);
+  }
+}
+
+/* Контент */
+.consent-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 520px;
+}
+
+.consent-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Заголовок */
+.consent-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.consent-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.consent-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+.consent-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Тело оферты */
+.consent-body {
+  margin-bottom: 24px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.consent-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.consent-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.consent-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.consent-body::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Секции оферты */
+.consent-section {
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.consent-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+  color: #374151;
+}
+
+.consent-section-header:hover {
+  background: #f3f4f6;
+}
+
+.consent-section-header svg:first-child {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.consent-section-header span {
+  flex: 1;
+  font-size: 14px;
+}
+
+.consent-section-header svg:last-child {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.consent-section-content {
+  padding: 16px;
+  background: white;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.consent-section-content p {
+  margin: 0 0 12px;
+}
+
+.consent-section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.consent-section-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.consent-section-content li {
+  margin-bottom: 6px;
+}
+
+/* Краткое резюме */
+.consent-summary {
+  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.consent-summary h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4338ca;
+  margin: 0 0 8px;
+}
+
+.consent-summary p {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Чекбокс */
+.consent-checkbox-wrapper {
+  margin-bottom: 24px;
+}
+
+.consent-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.consent-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.consent-checkbox-custom {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: white;
+}
+
+.consent-checkbox:checked + .consent-checkbox-custom {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: white;
+}
+
+.consent-checkbox:focus + .consent-checkbox-custom {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.consent-checkbox-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  padding-top: 2px;
+}
+
+/* Кнопки */
+.consent-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.consent-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+}
+
+.consent-btn-decline {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.consent-btn-decline:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.consent-btn-accept {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+}
+
+.consent-btn-accept:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.consent-btn-accept.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Адаптив */
+@media (max-width: 480px) {
+  .consent-container {
+    padding: 16px;
+  }
+
+  .consent-card {
+    padding: 24px 16px;
+  }
+
+  .consent-title {
+    font-size: 20px;
+  }
+
+  .consent-subtitle {
+    font-size: 13px;
+  }
+
+  .consent-body {
+    max-height: 250px;
+  }
+
+  .consent-actions {
+    flex-direction: column;
+  }
+
+  .consent-btn {
+    width: 100%;
+  }
+}
