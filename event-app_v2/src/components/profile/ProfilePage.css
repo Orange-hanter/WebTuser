@@ -3,10 +3,15 @@
   max-width: 600px;
   margin: 0 auto;
   color: #fff;
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .profile-back-button {
@@ -30,7 +35,7 @@
   padding: 16px;
   margin-bottom: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
+  flex: 0 0 auto; /* size to content */
 }
 
 /* Personal Info Block */
@@ -38,6 +43,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 0 0 auto; /* allow this block to take as much height as it needs */
 }
 
 .section-header {
@@ -314,10 +320,10 @@
 .history-block {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Take remaining space */
-  min-height: 0; /* Allow shrinking */
-  padding-bottom: 0; /* Remove bottom padding for scroll area */
-  overflow: hidden;
+  flex: 0 0 auto; /* size to content so page scrolls for overflow */
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: visible;
 }
 
 .history-header {
@@ -352,13 +358,12 @@
 }
 
 .history-list-scrollable {
-  overflow-y: auto;
-  padding-right: 4px; /* Space for scrollbar */
+  /* Let history items flow naturally so the page itself scrolls.
+     Removing fixed max-height and inner scroll avoids trying to fit everything
+     into a limited area. */
+  overflow: visible;
+  padding-right: 4px;
   padding-bottom: 16px;
-  /* Custom Scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-  max-height: 40vh; /* As requested */
 }
 
 .history-list-scrollable::-webkit-scrollbar {
@@ -463,8 +468,9 @@
 }
 
 .profile-footer {
-  margin-top: auto; /* Push to bottom */
+  margin-top: 16px;
   padding-top: 16px;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
   flex-shrink: 0;
 }
 
@@ -671,4 +677,250 @@
   border-radius: 8px;
   font-size: 14px;
   margin-top: 16px;
+}
+
+/* iPhone 13 mini и маленькие экраны (375px и меньше) */
+@media (max-width: 390px) {
+  .profile-page {
+    padding: 12px;
+  }
+
+  .profile-back-button {
+    margin-bottom: 12px;
+    font-size: 14px;
+    gap: 6px;
+  }
+
+  .profile-section {
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .personal-info-content {
+    gap: 12px;
+  }
+
+  .profile-avatar-compact {
+    width: 42px;
+    height: 42px;
+  }
+
+  .profile-avatar-compact svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .user-name {
+    font-size: 16px;
+  }
+
+  .secondary-info {
+    font-size: 13px;
+  }
+
+  .info-row {
+    gap: 6px;
+  }
+
+  .compact-input {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .edit-form-grid {
+    gap: 6px;
+  }
+
+  /* Telegram status */
+  .telegram-status-row {
+    margin-top: 6px;
+  }
+
+  .telegram-section-compact {
+    font-size: 12px;
+  }
+
+  .telegram-connected-compact {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .telegram-text-action {
+    font-size: 11px;
+  }
+
+  .telegram-binding-active-compact {
+    padding: 6px;
+  }
+
+  .telegram-instruction-compact {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .telegram-btn-compact {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .telegram-actions-compact {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .telegram-timer-compact {
+    font-size: 10px;
+  }
+
+  /* History */
+  .history-header {
+    margin-bottom: 10px;
+  }
+
+  .history-tabs-compact {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .tab-pill {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .history-list-scrollable {
+    max-height: 35vh;
+    padding-bottom: 12px;
+  }
+
+  .history-card-compact {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+
+  .history-event-title {
+    font-size: 13px;
+    max-width: 180px;
+  }
+
+  .history-event-meta {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .status-badge-compact {
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  .text-action-btn {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .empty-history {
+    padding: 24px 0;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .empty-history svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Footer */
+  .profile-footer {
+    padding-top: 12px;
+  }
+
+  .logout-button-compact {
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .logout-button-compact svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Profile section general */
+  .profile-header {
+    margin-bottom: 14px;
+  }
+
+  .profile-avatar {
+    width: 52px;
+    height: 52px;
+    margin-right: 12px;
+  }
+
+  .profile-title {
+    font-size: 20px;
+  }
+
+  .profile-form-group {
+    margin-bottom: 12px;
+  }
+
+  .profile-label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .profile-input {
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .profile-actions {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .history-tab {
+    font-size: 14px;
+    padding: 10px 0;
+  }
+
+  .event-card-compact {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .event-card-compact .event-info h4 {
+    font-size: 14px;
+  }
+
+  .event-meta {
+    font-size: 12px;
+  }
+
+  .status-badge {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  .telegram-badge {
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-top: 12px;
+  }
 }

@@ -390,3 +390,121 @@
     gap: 0.5rem;
   }
 }
+
+/* iPhone 13 mini и маленькие экраны (375px и меньше) */
+@media (max-width: 390px) {
+  .verification-content {
+    padding: 0.75rem;
+  }
+
+  .verification-card {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .verification-back {
+    top: 1rem;
+    left: 1rem;
+    padding: 0.375rem;
+  }
+
+  .verification-icon {
+    margin-bottom: 1rem;
+  }
+
+  .verification-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .verification-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .verification-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .verification-method-selector {
+    gap: 0.625rem;
+    margin-bottom: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .verification-method-btn {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 10px;
+    gap: 0.375rem;
+  }
+
+  .verification-method-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .soon-badge {
+    top: -24px;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+
+  .verification-send-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .verification-code-chars {
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .verification-code-char {
+    width: 36px;
+    height: 36px;
+    font-size: 1.125rem;
+    border-radius: 10px;
+  }
+
+  .verification-code-input {
+    height: 36px;
+  }
+
+  .verification-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 10px;
+  }
+
+  .verification-resend {
+    margin-top: 1rem;
+  }
+
+  .verification-resend-text,
+  .verification-resend-button {
+    font-size: 0.825rem;
+  }
+
+  .verification-login-link {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .verification-switch-button {
+    font-size: 0.825rem;
+  }
+
+  .verification-blob.blob-1 {
+    width: 250px;
+    height: 250px;
+  }
+
+  .verification-blob.blob-2 {
+    width: 200px;
+    height: 200px;
+  }
+}

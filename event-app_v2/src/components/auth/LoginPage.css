@@ -298,3 +298,69 @@
     height: 150px;
   }
 }
+
+/* iPhone 13 mini и маленькие экраны (375px и меньше) */
+@media (max-width: 390px) {
+  .login-content {
+    padding: 0.75rem;
+  }
+
+  .login-card {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+    max-height: calc(var(--vh, 1vh) * 100 - 60px);
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .login-form {
+    gap: 1.25rem;
+  }
+
+  .login-label {
+    font-size: 0.85rem;
+  }
+
+  .login-input-wrapper {
+    padding: 0.625rem 0.875rem;
+    border-radius: 10px;
+  }
+
+  .login-input {
+    font-size: 0.9rem;
+  }
+
+  .login-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .login-footer-text {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+  }
+
+  .login-gradient-blob.blob-1 {
+    width: 150px;
+    height: 150px;
+  }
+
+  .login-gradient-blob.blob-2 {
+    width: 120px;
+    height: 120px;
+  }
+
+  .login-gradient-blob.blob-3 {
+    width: 100px;
+    height: 100px;
+  }
+}
