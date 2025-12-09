@@ -25,6 +25,33 @@ window.addEventListener('orientationchange', setVh)
 window.addEventListener('focusin', setVh)
 window.addEventListener('focusout', setVh)
 
+// Disable browser back navigation by keeping a non-navigable history state.
+// When the user presses Back, we immediately push the state again so nothing happens.
+function disableBackNavigation() {
+  try {
+    // Ensure there's a predictable state object we can check on popstate
+    const state = { noBack: true }
+    // Replace current state then push a duplicate so the back button targets our state
+    history.replaceState(state, '', location.href)
+    history.pushState(state, '', location.href)
+
+    window.addEventListener('popstate', (ev) => {
+      // If the popped state is ours, push it back again to prevent leaving
+      if (ev.state && (ev.state as any).noBack) {
+        history.pushState(state, '', location.href)
+      }
+    })
+  } catch (err) {
+    // Fail gracefully — do not break app if the browser forbids history manipulation
+    // eslint-disable-next-line no-console
+    console.warn('disableBackNavigation failed', err)
+  }
+}
+
+// Activate behavior by default. If you want to limit it to specific routes,
+// call this from route components instead.
+disableBackNavigation()
+
 createRoot(rootElement).render(
   <StrictMode>
     <ToastProvider>

@@ -18,6 +18,8 @@
   justify-content: flex-start;
   align-items: center;
   overflow: hidden;
+  /* allow flex children to set percentage heights and scroll internally */
+  min-height: 0;
   width: 100%;
   gap: 0;
 }

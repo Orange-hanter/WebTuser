@@ -7,9 +7,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  width: 100%;
+  /* keep container sized to its content to avoid covering page */
+  width: auto;
   max-width: 320px;
-  pointer-events: none;
+  /* allow interactions inside container */
+  pointer-events: auto;
 }
 
 .toast-container-inner {
