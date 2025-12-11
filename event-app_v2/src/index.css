@@ -22,14 +22,17 @@
 
 html, body, #root {
   width: 100%;
+  min-height: 100%;
   height: 100%;
+  /* prevent the document from scrolling so app-level/inner containers handle scroll */
   overflow: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 a {

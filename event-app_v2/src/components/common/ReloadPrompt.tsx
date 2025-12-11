@@ -41,37 +41,43 @@ export const ReloadPrompt: FC = () => {
 
   return (
     <div className="toast-container" style={{ bottom: '3%', zIndex: 9999 }}>
-      <div className="toast toast-info">
-        <div className="toast-message">
-          {offlineReady
-            ? 'App ready to work offline'
-            : 'New content available, click on reload button to update.'}
-        </div>
-        {needRefresh && (
+      <div className="toast-container-inner" style={{ pointerEvents: 'auto' }}>
+        <div className="toast toast-info">
+          <div className="toast-message">
+            {offlineReady
+              ? 'App ready to work offline'
+              : 'New content available, click on reload button to update.'}
+          </div>
+          {needRefresh && (
+            <button
+              className="toast-action-btn"
+              onClick={() => {
+                console.log('ReloadPrompt: reload button clicked')
+                try {
+                  updateServiceWorker(true)
+                } catch (e) {
+                  console.error('updateServiceWorker error', e)
+                }
+                // mark dismissed for current state to avoid reopening
+                dismissedRef.current = { offlineReady, needRefresh }
+                setVisible(false)
+              }}
+              style={{ marginLeft: '10px', padding: '4px 8px', borderRadius: '4px', border: '1px solid currentColor', background: 'transparent', color: 'inherit', cursor: 'pointer' }}
+            >
+              Reload
+            </button>
+          )}
           <button
-            className="toast-action-btn"
+            className="toast-close"
             onClick={() => {
-              try {
-                updateServiceWorker(true)
-              } catch (e) {
-                console.error('updateServiceWorker error', e)
-              }
-              // mark dismissed for current state to avoid reopening
-              dismissedRef.current = { offlineReady, needRefresh }
-              setVisible(false)
+              console.log('ReloadPrompt: close button clicked')
+              close()
             }}
-            style={{ marginLeft: '10px', padding: '4px 8px', borderRadius: '4px', border: '1px solid currentColor', background: 'transparent', color: 'inherit', cursor: 'pointer' }}
+            style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
           >
-            Reload
+            ✕
           </button>
-        )}
-        <button
-          className="toast-close"
-          onClick={close}
-          style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
-        >
-          ✕
-        </button>
+        </div>
       </div>
     </div>
   )
