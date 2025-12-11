@@ -36,6 +36,7 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
   const [isRegistering, setIsRegistering] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [hasConflictPending, setHasConflictPending] = useState(false);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
   const [registrationData, setRegistrationData] = useState<{ email: string; phone: string; password: string } | null>(null);
   const [verifyCodeDev, setVerifyCodeDev] = useState<string | null>(null);
@@ -93,12 +94,31 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
 
       if (!res.success) {
         // 409 conflict handling
+        const errText = (res.error || '').toLowerCase();
+        const isConflict = errText.includes('409') || 
+                          errText.includes('exist') || 
+                          errText.includes('существ') || 
+                          errText.includes('ожидает подтверждения') ||
+                          errText.includes('conflict');
+
+        if (isConflict) {
+          setHasConflictPending(true);
+          setConflictUser(true);
+          // Закрыть возможный старый Telegram flow, если был
+          setShowTelegramFlow(false);
+          // При конфликте просто показываем поле ввода кода. Повторная отправка
+          // выполняется через кнопку "Отправить код снова" (verification-resend).
+          console.log('🔵 VerificationPage: Conflict detected, showing code entry without resend');
+          setShowCodeEntry(true);
+          // Сбрасываем таймер на дефолт, чтобы пользователь видел обратный отсчёт/кнопку ресенда
+          setTimeLeft(60);
+          setCanResend(false);
+          toast.info('Введите код подтверждения, отправленный ранее.');
+          return;
+        }
+
         setError(res.error || 'Ошибка регистрации');
         toast.error(res.error || 'Ошибка регистрации');
-        const errText = (res.error || '').toLowerCase();
-        if (errText.includes('409') || errText.includes('exist') || errText.includes('существ')) {
-          setConflictUser(true);
-        }
         return;
       }
 
@@ -112,6 +132,8 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
         });
         setShowTelegramFlow(true);
         return;
+      } else if (selectedMethod === 'telegram') {
+        console.warn('🔵 VerificationPage.sendVerificationCode: Telegram selected but no binding data', res.data);
       }
 
       // Стандартный flow для email/sms
@@ -165,6 +187,18 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
     setMethod(selected);
     setSelectedMethod(selected);
     setError('');
+
+    // Если ранее был конфликт/ожидание подтверждения (409), сразу показываем поле ввода кода,
+    // чтобы пользователь мог ввести уже отправленный код без повторной регистрации.
+    if (hasConflictPending) {
+      setShowTelegramFlow(false);
+      setShowCodeEntry(true);
+      if (!canResend) {
+        // перезапустить таймер, если нужен UI таймера
+        setTimeLeft((t) => (t > 0 ? t : 60));
+      }
+      toast.info('Введите код подтверждения, который уже был отправлен.');
+    }
   };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
