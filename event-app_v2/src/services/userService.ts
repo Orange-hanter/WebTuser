@@ -313,8 +313,28 @@ export const userService = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to request creator role');
-    }
+      let errorMessage = 'Failed to request creator role';
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+          // Prefer structured error fields if present
+          errorMessage = data?.error
+        } 
+       
+      }
+       catch (e) {
+        
+        // ignore parse errors and fall back to generic message
+       }
+      switch (errorMessage) {
+          case "invalid_request":
+            throw new Error('Недостаточно длинный запрос. Опишите, почему вы хотите стать создателем событий.');
+          default:
+            throw new Error("Не удалось отправить запрос. Попробуйте позже");
+        }
+      }
+    
   },
 
   async getRoleRequests(): Promise<RoleRequest[]> {

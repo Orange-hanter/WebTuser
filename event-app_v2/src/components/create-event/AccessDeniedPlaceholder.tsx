@@ -90,7 +90,7 @@ export const AccessDeniedPlaceholder: FC<AccessDeniedPlaceholderProps> = ({ onCl
       setStatus('pending');
     } catch (err) {
       console.error('Failed to request role:', err);
-      setError('Не удалось отправить запрос. Попробуйте позже.');
+      setError('' + err);
     } finally {
       setIsSubmitting(false);
     }
