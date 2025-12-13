@@ -508,3 +508,18 @@
     height: 200px;
   }
 }
+
+/* Toggle to show only Telegram option on the verification screen.
+   Keeps code intact; visually hides Email and SMS choices. */
+.verification-container.telegram-only .verification-method-selector > button:first-child,
+.verification-container.telegram-only .verification-method-selector > div {
+  display: none;
+}
+
+/* When only Telegram remains, make it take full width */
+.verification-container.telegram-only .verification-method-selector {
+  gap: 0;
+}
+.verification-container.telegram-only .verification-method-selector > button:last-child {
+  flex: 1 1 100%;
+}

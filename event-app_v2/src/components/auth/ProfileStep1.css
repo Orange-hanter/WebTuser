@@ -1,4 +1,4 @@
-.profile-step1-container {
+.profile-step-container {
   /* dynamic viewport height variable to avoid keyboard-induced shifts */
   width: 100%;
   min-height: calc(var(--vh, 1vh) * 100);
@@ -319,7 +319,7 @@
 
 /* iPhone 13 mini и маленькие экраны (375px и меньше) */
 @media (max-width: 390px) {
-  .profile-step1-container {
+  .profile-step-container {
     padding: 0.375rem;
   }
 

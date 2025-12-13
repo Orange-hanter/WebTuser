@@ -315,7 +315,7 @@ const VerificationPage: FC<VerificationPageProps> = ({ onSwitchToLogin, defaultM
   };
 
   return (
-    <div className="verification-container">
+    <div className="verification-container telegram-only">
       <div className="verification-background">
         <div className="verification-blob blob-1" />
         <div className="verification-blob blob-2" />
