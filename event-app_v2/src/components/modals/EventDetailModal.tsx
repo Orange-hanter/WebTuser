@@ -1,5 +1,5 @@
 import { FC, useEffect } from 'react';
-import { X, MapPin, Clock, Users, Star } from 'lucide-react';
+import { X, MapPin, Clock, Users } from 'lucide-react';
 import type { Event } from '@/types';
 import { ParticipantAvatarStrip, AvatarWithPopover, ShareButton } from '@/components/common';
 import './EventDetailModal.css';
@@ -12,6 +12,20 @@ interface EventDetailModalProps {
 }
 
 const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, onLike }) => {
+  const getMapsLink = (location: string) => {
+    const query = encodeURIComponent(location);
+    const geoHref = `geo:0,0?q=${query}`;
+    const webHref = `https://www.google.com/maps/search/?api=1&query=${query}`;
+
+    // Prefer geo: on mobile (opens external maps app). Fallback to web on desktop.
+    const ua = navigator.userAgent || '';
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+
+    return isMobile
+      ? { href: geoHref }
+      : { href: webHref, target: '_blank' as const, rel: 'noopener noreferrer' };
+  };
+
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -76,11 +90,7 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
               <span className="modal-type">{event.type}</span>
             </div>
             <div className="modal-header-right">
-              <div className="modal-rating-section">
-                <div className="modal-rating">
-                  <Star className="modal-rating-star" />
-                  <span className="modal-rating-value">{event.rating}</span>
-                </div>
+              <div className="modal-header-meta">
                 <span className="modal-date">{event.date}</span>
               </div>
             </div>
@@ -125,17 +135,23 @@ const EventDetailModal: FC<EventDetailModalProps> = ({ isOpen, onClose, event, o
           </div>
 
           <div className="modal-info-row">
-            <div className="modal-info-item">
+            <a
+              className="modal-info-item modal-info-item--link modal-info-item--location"
+              {...getMapsLink(event.location)}
+              aria-label={`Открыть место проведения в картах: ${event.location}`}
+            >
               <MapPin className="modal-info-icon" />
-              {event.location}
-            </div>
-            <div className="modal-info-item">
+              <span className="modal-info-text">{event.location}</span>
+            </a>
+
+            <div className="modal-info-item modal-info-item--time">
               <Clock className="modal-info-icon" />
-              {event.time}
+              <span className="modal-info-text">{event.time}</span>
             </div>
-            <div className="modal-info-item">
+
+            <div className="modal-info-item modal-info-item--attendees">
               <Users className="modal-info-icon" />
-              {event.attendees} участников
+              <span className="modal-info-text">{event.attendees} участников</span>
             </div>
           </div>
 
