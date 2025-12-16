@@ -1,7 +1,7 @@
 // API Service for working with events
 // Uses real backend API at api.tuserduser.online
 
-import { Event, EventDetails, EventBatchResponse, EventDetailsResponse } from '@/types';
+import { Event, EventDetails, EventBatchResponse, EventDetailsResponse, DiscoverySessionLike } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tuserduser.online/v1/api';
 const EVENTS_BATCH_SIZE = 5; // Number of events to load per batch
@@ -31,6 +31,37 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
   });
 };
 
+const getOptionalDevUserIdHeader = (): Record<string, string> => {
+  const fromEnv = import.meta.env.VITE_X_USER_ID;
+  if (fromEnv) return { 'X-User-ID': fromEnv };
+
+  try {
+    const fromStorage = localStorage.getItem('X-User-ID');
+    if (fromStorage) return { 'X-User-ID': fromStorage };
+  } catch {
+    // ignore
+  }
+
+  return {};
+};
+
+const readErrorBody = async (response: Response): Promise<string> => {
+  try {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      try {
+        return JSON.stringify(data);
+      } catch {
+        return String(data);
+      }
+    }
+    return await response.text();
+  } catch {
+    return '';
+  }
+};
+
 // Backend event model from Swagger
 interface BackendEvent {
   id: string;
@@ -56,6 +87,20 @@ interface DiscoveryEvent {
     end: string;
   };
   metadata: Record<string, any>;
+}
+
+interface DiscoveryLikesApiItem {
+  likedAt?: string;
+  liked_at?: string;
+  createdAt?: string;
+  created_at?: string;
+  event?: Partial<DiscoveryEvent>;
+  author?: Partial<DiscoveryAuthor>;
+  slot?: { start: string; end: string };
+  id?: string;
+  title?: string;
+  description?: string;
+  metadata?: Record<string, any>;
 }
 
 // Author profile returned by discovery/next API
@@ -201,6 +246,67 @@ const transformDiscoveryEvent = (discoveryEvent: DiscoveryEvent, author?: Discov
   }
 
   return result;
+};
+
+export const fetchDiscoverySessionLikes = async (): Promise<DiscoverySessionLike[]> => {
+  const response = await fetchWithAuth(`${API_BASE_URL}/discovery/likes`, {
+    method: 'GET',
+    headers: {
+      ...getOptionalDevUserIdHeader(),
+    },
+  });
+
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    const suffix = body ? `: ${body}` : '';
+    throw new Error(`Failed to fetch discovery session likes (${response.status})${suffix}`);
+  }
+
+  const json = await response.json();
+  const items: DiscoveryLikesApiItem[] = Array.isArray(json)
+    ? json
+    : (json?.likes || json?.data || json?.items || []);
+
+  return items
+    .map((item): DiscoverySessionLike | null => {
+      const rawEvent = item.event || item;
+      const slot = rawEvent.slot || item.slot;
+      if (!rawEvent?.id || !rawEvent?.title || !slot?.start || !slot?.end) {
+        return null;
+      }
+
+      const normalizedEvent: DiscoveryEvent = {
+        id: rawEvent.id,
+        title: rawEvent.title,
+        description: (rawEvent as any).description || item.description || '',
+        slot: {
+          start: slot.start,
+          end: slot.end,
+        },
+        metadata: (rawEvent as any).metadata || item.metadata || {},
+      };
+
+      const likedAt =
+        item.likedAt ||
+        item.liked_at ||
+        item.createdAt ||
+        item.created_at ||
+        new Date().toISOString();
+
+      const event = transformDiscoveryEvent(normalizedEvent, item.author as any);
+
+      return {
+        event,
+        slot: normalizedEvent.slot,
+        likedAt,
+      };
+    })
+    .filter((x): x is DiscoverySessionLike => Boolean(x))
+    .sort((a, b) => {
+      const ta = Date.parse(a.likedAt);
+      const tb = Date.parse(b.likedAt);
+      return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+    });
 };
 
 /**

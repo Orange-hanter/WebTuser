@@ -1,6 +1,6 @@
 import { FC, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Header, BottomNavigation, type NavTab } from '@components/layout';
-import { EventCard, EmptyEventCard, ActionButtons, CityOverview, UpcomingEventsView } from '@components/events';
+import { EventCard, EmptyEventCard, ActionButtons, CityOverview, UpcomingEventsView, SessionLikesView } from '@components/events';
 import { CreateEventWizard } from '@components/create-event';
 import { 
   SettingsModal, 
@@ -34,9 +34,16 @@ const MainAppContent: FC = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('discover');
-  const [viewMode, setViewMode] = useState<'card' | 'category'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'likes' | 'category'>('card');
   const [preferences, handleSettingsChange] = useEventPreferences();
   const { success: showSuccess } = useToast();
+
+  // Session key is used to clear/refresh the "session likes" view after queue reset.
+  const [discoverySessionKey, setDiscoverySessionKey] = useState(0);
+
+  const startNewDiscoverySession = useCallback(() => {
+    setDiscoverySessionKey((k) => k + 1);
+  }, []);
   
   // Swipe handling
   const touchStart = useRef<number | null>(null);
@@ -63,18 +70,22 @@ const MainAppContent: FC = () => {
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe && viewMode === 'card') {
-      setViewMode('category');
+    if (isLeftSwipe) {
+      if (viewMode === 'card') setViewMode('likes');
+      else if (viewMode === 'likes' && !import.meta.env.PROD) setViewMode('category');
     }
-    if (isRightSwipe && viewMode === 'category') {
-      setViewMode('card');
+
+    if (isRightSwipe) {
+      if (viewMode === 'category') setViewMode('likes');
+      else if (viewMode === 'likes') setViewMode('card');
     }
   };
 
   const handleCategorySelect = useCallback((category: string) => {
+    startNewDiscoverySession();
     initialize(category);
     setViewMode('card');
-  }, [initialize]);
+  }, [initialize, startNewDiscoverySession]);
   
   // Removed handleLoadMore and useEventNavigation as we use useDiscoveryQueue now
 
@@ -215,6 +226,12 @@ const MainAppContent: FC = () => {
                     Подбор
                   </button>
                   <button 
+                    className={`toggle-btn ${viewMode === 'likes' ? 'active' : ''}`}
+                    onClick={() => setViewMode('likes')}
+                  >
+                    Лайки
+                  </button>
+                  <button 
                     className={`toggle-btn ${viewMode === 'category' ? 'active' : ''} ${import.meta.env.PROD ? 'disabled-feature' : ''}`}
                     onClick={() => !import.meta.env.PROD && setViewMode('category')}
                     disabled={import.meta.env.PROD}
@@ -225,7 +242,16 @@ const MainAppContent: FC = () => {
                 </div>
               </div>
 
-              {viewMode === 'category' ? (
+              {viewMode === 'likes' ? (
+                <SessionLikesView
+                  sessionKey={discoverySessionKey}
+                  onEventClick={(event) => {
+                    setSelectedEvent(event);
+                    setShowEventDetail(true);
+                  }}
+                  onGoToDiscovery={() => setViewMode('card')}
+                />
+              ) : viewMode === 'category' ? (
                 <CityOverview 
                   isActive={viewMode === 'category'}
                   onCategorySelect={handleCategorySelect}
@@ -240,7 +266,15 @@ const MainAppContent: FC = () => {
                   {expandedCategory && (
                     <div className="expanded-mode-banner">
                       <span>Фильтр: {expandedCategory}</span>
-                      <button onClick={() => initialize()} className="close-banner">×</button>
+                      <button
+                        onClick={() => {
+                          startNewDiscoverySession();
+                          initialize();
+                        }}
+                        className="close-banner"
+                      >
+                        ×
+                      </button>
                     </div>
                   )}
 
