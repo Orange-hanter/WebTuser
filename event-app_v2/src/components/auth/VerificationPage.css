@@ -7,7 +7,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand-135);
 }
 
 /* Фон */
@@ -28,7 +28,7 @@
 .verification-blob.blob-1 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-blob-1);
   top: -100px;
   left: -100px;
 }
@@ -36,7 +36,7 @@
 .verification-blob.blob-2 {
   width: 350px;
   height: 350px;
-  background: linear-gradient(135deg, #764ba2, #f093fb);
+  background: var(--gradient-brand-blob-2);
   bottom: -100px;
   right: -100px;
   animation-delay: -3s;
@@ -61,11 +61,11 @@
 }
 
 .verification-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-card);
   backdrop-filter: blur(10px);
   border-radius: 24px;
   padding: 2.5rem 2rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-card);
   text-align: center;
   animation: slideUp 0.6s ease-out;
   position: relative;
@@ -78,7 +78,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--gray-500);
   padding: 0.5rem;
   display: flex;
   align-items: center;
@@ -88,8 +88,8 @@
 }
 
 .verification-back:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+  background: var(--gray-100);
+  color: var(--gray-800);
 }
 
 .verification-back:active {
@@ -111,7 +111,7 @@
 }
 
 .verification-icon {
-  color: #667eea;
+  color: var(--brand-a);
   margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;

@@ -1,7 +1,7 @@
 .event-card {
   background-color: var(--white);
   border-radius: 24px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px var(--black-a10);
   overflow: hidden;
   cursor: pointer;
   transform: scale(1);
@@ -87,7 +87,7 @@
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.5) 100%);
+  background: linear-gradient(to bottom, transparent 0%, var(--black-a20) 40%, var(--black-a50) 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -96,7 +96,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--white-a90);
   backdrop-filter: blur(10px);
   color: var(--purple-700);
   padding: 0.25rem 0.75rem;
@@ -119,16 +119,16 @@
   font-weight: 700;
   color: var(--white);
   margin-bottom: 0.5rem;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 4px 8px var(--black-a60), 0 2px 4px var(--black-a40);
 }
 
 .event-card-info {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--white-a95);
   font-size: 0.875rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 4px var(--black-a50);
 }
 
 .event-card-info-item {
@@ -178,7 +178,8 @@
 }
 
 .event-card-rating-stars {
-  display: flex;
+  /* Hidden per request — keep markup intact but hide visually */
+  display: none !important;
   align-items: center;
   gap: 0.25rem;
 }
@@ -279,7 +280,7 @@
 @media (max-width: 375px) {
   .event-card {
     border-radius: 16px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-elev-2);
   }
 
   .event-card:hover {

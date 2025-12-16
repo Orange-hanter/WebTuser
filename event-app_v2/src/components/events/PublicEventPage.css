@@ -42,7 +42,7 @@
 .public-event-type {
   display: inline-block;
   padding: 4px 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--white-a10);
   border-radius: 100px;
   font-size: 14px;
   color: var(--text-secondary);
