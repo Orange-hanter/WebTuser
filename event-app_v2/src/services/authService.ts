@@ -3,6 +3,17 @@ import type { AuthCredentials, RegistrationData, VerificationData, User, UserPro
 // 🔧 API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/v1/api';
 
+const AUTH_TOKEN_KEY = '_auth_token';
+const AUTH_TOKEN_PERSIST_UNTIL_KEY = '_auth_token_persist_until_ms';
+
+const AUTH_PERSIST_DAYS = (() => {
+  const raw = import.meta.env.VITE_AUTH_PERSIST_DAYS;
+  const parsed = raw === undefined ? NaN : Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 3;
+})();
+
+const DAYS_TO_MS = 24 * 60 * 60 * 1000;
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -576,12 +587,22 @@ class AuthService {
   private static setAuthCookie(token: string): void {
     // Имитация HTTPOnly cookie
     // В реальности: Set-Cookie: auth_token=...; HttpOnly; Secure; SameSite=Strict;
+    const persistUntilMs = Date.now() + AUTH_PERSIST_DAYS * DAYS_TO_MS;
+
     try {
-      // Сохраняем в sessionStorage как демонстрация (в реальности это делается на уровне браузера)
-      sessionStorage.setItem('_auth_token', token);
+      // Persist across browser restarts (requested behavior)
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(AUTH_TOKEN_PERSIST_UNTIL_KEY, String(persistUntilMs));
       localStorage.setItem('_token_hint', token.substring(0, 20) + '...'); // Только для логирования
     } catch (e) {
-      console.warn('Failed to set auth cookie');
+      console.warn('Failed to persist auth token');
+    }
+
+    // Keep current-tab compatibility for older code paths
+    try {
+      sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+    } catch (e) {
+      // ignore
     }
   }
 
@@ -590,7 +611,9 @@ class AuthService {
    */
   private static clearAuthCookie(): void {
     try {
-      sessionStorage.removeItem('_auth_token');
+      sessionStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_TOKEN_PERSIST_UNTIL_KEY);
       localStorage.removeItem('_token_hint');
     } catch (e) {
       console.warn('Failed to clear auth cookie');
@@ -601,8 +624,33 @@ class AuthService {
    * Получение текущего токена из "HTTPOnly cookie" (имитация)
    */
   static getAuthToken(): string | null {
+    // Prefer persisted token from localStorage (keeps session across reloads / restarts)
     try {
-      return sessionStorage.getItem('_auth_token');
+      const persistedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (persistedToken) {
+        const persistUntilRaw = localStorage.getItem(AUTH_TOKEN_PERSIST_UNTIL_KEY);
+        const persistUntilMs = persistUntilRaw ? Number(persistUntilRaw) : NaN;
+        if (Number.isFinite(persistUntilMs) && Date.now() > persistUntilMs) {
+          this.clearAuthCookie();
+          return null;
+        }
+        return persistedToken;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Fallback to sessionStorage (legacy) and migrate if possible
+    try {
+      const sessionToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
+      if (!sessionToken) return null;
+
+      // If it's valid, persist it so next reload stays logged in.
+      if (parseJWT(sessionToken) !== null) {
+        this.setAuthCookie(sessionToken);
+      }
+
+      return sessionToken;
     } catch (e) {
       return null;
     }

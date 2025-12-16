@@ -2,15 +2,14 @@
 // Uses real backend API at api.tuserduser.online
 
 import { Event, EventDetails, EventBatchResponse, EventDetailsResponse, DiscoverySessionLike } from '@/types';
+import AuthService from '@/services/authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tuserduser.online/v1/api';
 const EVENTS_BATCH_SIZE = 5; // Number of events to load per batch
 
 
-// Helper to get auth token from sessionStorage
-const getAuthToken = (): string | null => {
-  return sessionStorage.getItem('_auth_token');
-};
+// Helper to get auth token
+const getAuthToken = (): string | null => AuthService.getAuthToken();
 
 // Helper to make authenticated requests
 const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
