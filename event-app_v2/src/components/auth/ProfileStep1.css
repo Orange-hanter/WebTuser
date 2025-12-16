@@ -1,4 +1,4 @@
-.profile-step1-container {
+.profile-step-container {
   /* dynamic viewport height variable to avoid keyboard-induced shifts */
   width: 100%;
   min-height: calc(var(--vh, 1vh) * 100);
@@ -8,7 +8,7 @@
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand-135);
   box-sizing: border-box;
 }
 
@@ -36,7 +36,7 @@
 .profile-step-blob.blob-1 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-blob-1);
   top: -100px;
   left: -100px;
 }
@@ -44,7 +44,7 @@
 .profile-step-blob.blob-2 {
   width: 350px;
   height: 350px;
-  background: linear-gradient(135deg, #764ba2, #f093fb);
+  background: var(--gradient-brand-blob-2);
   bottom: -100px;
   right: -100px;
   animation-delay: -3s;
@@ -70,11 +70,11 @@
 }
 
 .profile-step-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-card);
   backdrop-filter: blur(10px);
   border-radius: 24px;
   padding: 2.5rem 2rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-card);
   animation: slideUp 0.6s ease-out;
   /* keyboard-safe max height so content scrolls inside the card */
   max-height: calc(var(--vh, 1vh) * 100 - 120px);
@@ -98,7 +98,7 @@
 .profile-step-progress {
   width: 100%;
   height: 4px;
-  background: #e5e7eb;
+  background: var(--gray-200);
   border-radius: 2px;
   margin-bottom: 2rem;
   overflow: hidden;
@@ -106,7 +106,7 @@
 
 .profile-step-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: var(--gradient-brand-90);
   transition: width 0.3s ease;
   border-radius: 2px;
 }
@@ -114,13 +114,13 @@
 .profile-step-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--gray-800);
   margin: 0 0 0.5rem 0;
 }
 
 .profile-step-subtitle {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--gray-500);
   margin: 0 0 2rem 0;
 }
 
@@ -147,7 +147,7 @@
 .profile-step-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--gray-700);
 }
 
 .profile-step-input-wrapper {
@@ -155,8 +155,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
+  background: var(--gray-100);
+  border: 2px solid var(--gray-200);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
@@ -165,18 +165,18 @@
 }
 
 .profile-step-input-wrapper:focus-within {
-  background: #f9fafb;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: var(--gray-50);
+  border-color: var(--brand-a);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .profile-step-input-icon {
-  color: #9ca3af;
+  color: var(--gray-400);
   flex-shrink: 0;
 }
 
 .profile-step-input-wrapper:focus-within .profile-step-input-icon {
-  color: #667eea;
+  color: var(--brand-a);
 }
 
 .profile-step-input {
@@ -186,12 +186,12 @@
   border: none;
   outline: none;
   font-size: 0.95rem;
-  color: #1f2937;
+  color: var(--gray-800);
   font-family: inherit;
 }
 
 .profile-step-input::placeholder {
-  color: #d1d5db;
+  color: var(--gray-300);
 }
 
 /* Textarea */
@@ -199,17 +199,17 @@
   position: relative;
   display: flex;
   gap: 0.75rem;
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
+  background: var(--gray-100);
+  border: 2px solid var(--gray-200);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
 }
 
 .profile-step-textarea-wrapper:focus-within {
-  background: #f9fafb;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: var(--gray-50);
+  border-color: var(--brand-a);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .profile-step-textarea {
@@ -218,14 +218,14 @@
   border: none;
   outline: none;
   font-size: 0.95rem;
-  color: #1f2937;
+  color: var(--gray-800);
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
 }
 
 .profile-step-textarea::placeholder {
-  color: #d1d5db;
+  color: var(--gray-300);
 }
 
 /* Ошибка */
@@ -319,7 +319,7 @@
 
 /* iPhone 13 mini и маленькие экраны (375px и меньше) */
 @media (max-width: 390px) {
-  .profile-step1-container {
+  .profile-step-container {
     padding: 0.375rem;
   }
 

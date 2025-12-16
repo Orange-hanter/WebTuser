@@ -1,4 +1,5 @@
 import type { TelegramBindingLink, TelegramStatus } from '@/types';
+import AuthService from '@/services/authService';
 
 // 🔧 API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/v1/api';
@@ -30,11 +31,7 @@ class TelegramService {
    * Get auth token from session storage
    */
   private static getAuthToken(): string | null {
-    try {
-      return sessionStorage.getItem('_auth_token');
-    } catch (e) {
-      return null;
-    }
+    return AuthService.getAuthToken();
   }
 
   /**

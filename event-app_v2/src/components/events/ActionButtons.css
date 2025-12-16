@@ -16,10 +16,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px var(--black-a10), 0 2px 4px -1px var(--black-a06);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--white-a90);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -32,7 +32,7 @@
 
 .action-button:not(:disabled):hover {
   transform: scale(1.1);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px var(--black-a10);
 }
 
 .action-button:not(:disabled):active {
@@ -44,27 +44,27 @@
 .action-button-dislike {
   width: 48px;
   height: 48px;
-  color: #ef4444; /* Red-500 */
+  color: var(--color-danger);
 }
 
 /* Skip - Medium */
 .action-button-skip {
   width: 64px;
   height: 64px;
-  color: #6b7280; /* Gray-500 */
+  color: var(--gray-500);
 }
 
 /* Like - Small */
 .action-button-like {
   width: 48px;
   height: 48px;
-  color: #22c55e; /* Green-500 */
+  color: var(--color-like);
 }
 
 /* Active (liked) state */
 .action-button-like.active {
-  background-color: #16a34a; /* Green-600 */
-  color: #ffffff;
+  background-color: var(--color-like-active-bg);
+  color: var(--white);
   transform: scale(1.05);
 }
 

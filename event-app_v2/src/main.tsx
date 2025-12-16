@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider, ToastProvider } from '@/contexts'
 import { ReloadPrompt } from '@components/common'
+import { initTheme } from '@/styles/themeRuntime'
 import '@/index.css'
 import App from '@/App'
 
@@ -10,6 +11,9 @@ const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Root element not found')
 }
+
+// Apply persisted theme before first paint (prevents theme flash)
+initTheme()
 
 // Set CSS variable --vh to handle mobile browser UI (keyboard) resizing.
 // Use this value in CSS instead of 100vh to avoid content jumping when keyboard appears.

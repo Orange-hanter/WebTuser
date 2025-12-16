@@ -1,0 +1,144 @@
+/* Centralized theme tokens.
+   To create themes, override these variables by setting a class on <html> or <body>.
+   Example: <body class="theme-dark"> ... */
+
+:root {
+  /* Base UI */
+  --color-text: #213547;
+  --color-bg: #ffffff;
+  --color-link: #646cff;
+  --color-link-hover: #747bff;
+
+  /* Legacy/alias tokens (used across older styles) */
+  --background-color: var(--color-bg);
+  --card-background: var(--surface-card);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--gray-600);
+  --primary-color: var(--color-primary);
+  --border-color: var(--gray-200);
+  --error-color: var(--color-danger);
+
+  /* Neutral palette */
+  --white: #ffffff;
+  --black: #000000;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+
+  /* Brand palette */
+  --purple-50: #faf5ff;
+  --purple-100: #f3e8ff;
+  --purple-500: #a855f7;
+  --purple-600: #9333ea;
+  --purple-700: #7e22ce;
+  --purple-800: #6b21a8;
+
+  --pink-50: #fdf2f8;
+  --pink-500: #ec4899;
+  --pink-600: #db2777;
+  --pink-700: #be185d;
+
+  /* Status palette */
+  --red-500: #ef4444;
+  --yellow-400: #facc15;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+  --dark-green-900: #114022;
+
+  /* App gradients used across auth/onboarding */
+  --brand-a: #667eea;
+  --brand-b: #764ba2;
+  --brand-c: #f093fb;
+
+  --gradient-brand-135: linear-gradient(135deg, var(--brand-a) 0%, var(--brand-b) 100%);
+  --gradient-brand-90: linear-gradient(90deg, var(--brand-a), var(--brand-b));
+  --gradient-brand-blob-1: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+  --gradient-brand-blob-2: linear-gradient(135deg, var(--brand-b), var(--brand-c));
+
+  /* Common surfaces */
+  --surface-card: rgba(255, 255, 255, 0.95);
+  --shadow-card: 0 25px 50px rgba(0, 0, 0, 0.3);
+  --focus-ring: rgba(102, 126, 234, 0.1);
+
+  /* Common alpha colors */
+  --white-a95: rgba(255, 255, 255, 0.95);
+  --white-a90: rgba(255, 255, 255, 0.9);
+  --white-a60: rgba(255, 255, 255, 0.6);
+  --white-a20: rgba(255, 255, 255, 0.2);
+  --white-a10: rgba(255, 255, 255, 0.1);
+  --white-a08: rgba(255, 255, 255, 0.08);
+  --white-a06: rgba(255, 255, 255, 0.06);
+  --white-a05: rgba(255, 255, 255, 0.05);
+  --white-a04: rgba(255, 255, 255, 0.04);
+  --white-a03: rgba(255, 255, 255, 0.03);
+
+  --black-a12: rgba(0, 0, 0, 0.12);
+  --black-a10: rgba(0, 0, 0, 0.10);
+  --black-a08: rgba(0, 0, 0, 0.08);
+  --black-a06: rgba(0, 0, 0, 0.06);
+  --black-a05: rgba(0, 0, 0, 0.05);
+  --black-a80: rgba(0, 0, 0, 0.80);
+  --black-a60: rgba(0, 0, 0, 0.60);
+  --black-a50: rgba(0, 0, 0, 0.5);
+  --black-a40: rgba(0, 0, 0, 0.4);
+  --black-a30: rgba(0, 0, 0, 0.3);
+  --black-a20: rgba(0, 0, 0, 0.2);
+
+  /* Events (primary/accent) */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-bg: rgba(99, 102, 241, 0.1);
+  --color-accent: #8b5cf6;
+
+  --gradient-primary-135: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+
+  /* Events (radar chart accent) */
+  --color-radar: var(--color-link);
+  --color-radar-fill: rgba(100, 108, 255, 0.6);
+  --color-radar-fill-hover: rgba(100, 108, 255, 0.8);
+
+  /* Semantic status colors */
+  --color-success: #16a34a;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+
+  --color-warning: #ca8a04;
+  --color-warning-bg: rgba(234, 179, 8, 0.1);
+
+  --color-danger: var(--red-500);
+  --color-danger-border: #fecaca;
+  --color-danger-border-hover: #fca5a5;
+  --color-danger-bg-hover: #fef2f2;
+
+  /* Event action colors */
+  --color-like: #22c55e;
+  --color-like-active-bg: #16a34a;
+
+  /* Shadows */
+  --shadow-elev-1: 0 4px 6px -1px var(--black-a10), 0 2px 4px -1px var(--black-a06);
+  --shadow-elev-2: 0 10px 15px -3px var(--black-a10);
+
+  --shadow-primary-40: 0 4px 14px rgba(99, 102, 241, 0.4);
+  --shadow-primary-50: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+/* Optional example dark theme (enable by adding class on html/body) */
+.theme-dark {
+  --color-text: #e5e7eb;
+  --color-bg: #0b1220;
+  --color-link: #a5b4fc;
+  --color-link-hover: #c7d2fe;
+
+  --text-secondary: var(--gray-400);
+
+  /* Keep brand colors; adjust common surfaces */
+  --surface-card: rgba(17, 24, 39, 0.92);
+  --shadow-card: 0 25px 50px rgba(0, 0, 0, 0.55);
+}

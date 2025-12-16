@@ -29,6 +29,15 @@ export interface EventWithAuthor extends Event {
   author?: PublicUserProfile;
 }
 
+export interface DiscoverySessionLike {
+  event: Event;
+  slot: {
+    start: string;
+    end: string;
+  };
+  likedAt: string;
+}
+
 export interface EventDetails extends Event {
   fullDescription: string;
   organizer: {

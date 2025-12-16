@@ -1,3 +1,5 @@
+@import './styles/theme.css';
+
 /* Global Styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -5,8 +7,8 @@
   font-weight: 400;
 
   color-scheme: light;
-  color: #213547;
-  background-color: #ffffff;
+  color: var(--color-text);
+  background-color: var(--color-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -37,12 +39,12 @@ body {
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-link);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #747bff;
+  color: var(--color-link-hover);
 }
 
 h1 {
@@ -79,30 +81,4 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* Color Variables */
-:root {
-  --purple-50: #faf5ff;
-  --purple-100: #f3e8ff;
-  --purple-500: #a855f7;
-  --purple-600: #9333ea;
-  --purple-700: #7e22ce;
-  --purple-800: #6b21a8;
-  --pink-50: #fdf2f8;
-  --pink-500: #ec4899;
-  --pink-600: #db2777;
-  --pink-700: #be185d;
-  --red-500: #ef4444;
-  --yellow-400: #facc15;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --green-500: #10b981;
-  --green-600: #059669;
-  --green-700: #047857;
-  --dark-green-900: #114022;
-  --white: #ffffff;
-  --black: #000000;
-}
+/* Theme tokens live in src/styles/theme.css */

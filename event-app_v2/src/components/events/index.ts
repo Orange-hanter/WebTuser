@@ -5,3 +5,4 @@ export { default as EventByCategory } from './EventByCategory';
 export { default as CityOverview } from './CityOverview';
 export { UpcomingEventsView } from './UpcomingEventsView';
 export { default as PublicEventPage } from './PublicEventPage';
+export { SessionLikesView } from './likes';

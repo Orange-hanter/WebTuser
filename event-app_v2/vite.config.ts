@@ -61,6 +61,10 @@ export default defineConfig({
           },
         ],
       },
+      // Enable PWA dev-mode files (manifest, sw) during `vite` dev server
+      devOptions: {
+        enabled: true,
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
